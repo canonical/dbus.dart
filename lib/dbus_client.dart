@@ -1201,7 +1201,7 @@ class DBusClient {
                      member: 'Hello');
   }
 
-  Future<int> requestName(String name, int flags) async {
+  Future<int> requestName(String name, { int flags = 0 }) async {
     var result = await callMethod(destination: 'org.freedesktop.DBus',
                                   path: '/org/freedesktop/DBus',
                                   interface: 'org.freedesktop.DBus',
