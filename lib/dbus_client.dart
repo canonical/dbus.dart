@@ -1,6 +1,7 @@
 import "unix_domain_socket.dart";
 import "dart:async";
 import "dart:convert";
+import "dart:io";
 import "dart:isolate";
 import "dart:typed_data";
 
@@ -1134,7 +1135,31 @@ class DBusClient {
   Stream _signalStream;
 
   DBusClient.system() {
-    _socket = UnixDomainSocket.create('/run/dbus/system_bus_socket');
+    var address = Platform.environment['DBUS_SYSTEM_BUS_ADDRESS'];
+    if (address == null)
+      address = 'unix:path=/run/dbus/system_bus_socket';
+    _setAddress(address);
+  }
+
+  DBusClient.session() {
+    var address = Platform.environment['DBUS_SESSION_BUS_ADDRESS'];
+    if (address == null) {
+      var runtimeDir = Platform.environment['XDG_USER_DIR'];
+      if (runtimeDir == null) {
+        var uid = Platform.environment['UID']; // FIXME: What to do if can't get this? No UID API in Dart
+        runtimeDir = '/run/user/${uid}';
+      }
+      address = "unix:path=${runtimeDir}/bus";
+    }
+    _setAddress(address);
+  }
+
+  _setAddress(String address) {
+    var prefix = 'unix:path=';
+    if (!address.startsWith(prefix))
+      throw 'D-Bus address not supported: ${address}';
+    var path = address.substring(prefix.length);
+    _socket = UnixDomainSocket.create(path);
     var dbusMessages = new ReceivePort();
     _messageStream = dbusMessages.asBroadcastStream();
     var signalPort = new ReceivePort();
