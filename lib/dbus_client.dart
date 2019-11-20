@@ -1132,7 +1132,6 @@ class DBusClient {
   UnixDomainSocket _socket;
   var _lastSerial = 0;
   Stream _messageStream;
-  Stream _signalStream;
 
   DBusClient.system() {
     var address = Platform.environment['DBUS_SYSTEM_BUS_ADDRESS'];
@@ -1162,14 +1161,6 @@ class DBusClient {
     _socket = UnixDomainSocket.create(path);
     var dbusMessages = new ReceivePort();
     _messageStream = dbusMessages.asBroadcastStream();
-    var signalPort = new ReceivePort();
-    _signalStream = signalPort.asBroadcastStream();
-    _messageStream.listen((dynamic receivedData) {
-      var m = receivedData as DBusMessage;
-      if (m.type == MessageType.Signal)
-        signalPort.sendPort.send(m);
-    });
-
     var data = new ReadData();
     data.port = dbusMessages.sendPort;
     data.socket = _socket;
@@ -1179,9 +1170,27 @@ class DBusClient {
   }
 
   listenSignal(void onSignal(String path, String interface, String member, List<DBusValue> values)) {
-    _signalStream.listen((dynamic receivedData) {
+    _messageStream.listen((dynamic receivedData) {
       var message = receivedData as DBusMessage;
-      onSignal(message.path, message.interface, message.member, message.values);
+      if (message.type == MessageType.Signal)
+        onSignal(message.path, message.interface, message.member, message.values);
+    });
+  }
+
+  // FIXME: Should be async
+  listenMethod(String interface, List<DBusValue> onMethod(String path, String interface, String member, List<DBusValue> values)) {
+    _messageStream.listen((dynamic receivedData) {
+      var message = receivedData as DBusMessage;
+      if (message.type == MessageType.MethodCall && message.interface == interface) {
+        var result = onMethod(message.path, message.interface, message.member, message.values);
+        _lastSerial++;
+        var response = new DBusMessage(type: MessageType.MethodReturn,
+                                       serial: _lastSerial,
+                                       replySerial: message.serial,
+                                       destination: message.sender,
+                                       values: result);
+        _sendMessage(response);
+      }
     });
   }
 
@@ -1325,10 +1334,7 @@ class DBusClient {
                                   interface: interface,
                                   member: member,
                                   values: values);
-
-    var buffer = new DBusWriteBuffer();
-    message.marshal(buffer);
-    _socket.write(buffer.data);
+    _sendMessage(message);
 
     var completer = new Completer<List<DBusValue>>();
     _messageStream.listen((dynamic receivedData) {
@@ -1341,6 +1347,12 @@ class DBusClient {
     });
 
     return completer.future;
+  }
+
+  _sendMessage(DBusMessage message) {
+    var buffer = new DBusWriteBuffer();
+    message.marshal(buffer);
+    _socket.write(buffer.data);
   }
 
   _authenticate() {
