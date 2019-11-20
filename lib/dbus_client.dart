@@ -666,7 +666,7 @@ class DBusSignature extends DBusValue {
               count--;
             end++;
           }
-          signatures.add(new DBusSignature(value.substring (i, end)));
+          signatures.add(new DBusSignature(value.substring(i, end)));
           i += end - i;
         }
         else if (value[i+1] == '{') {
@@ -679,11 +679,11 @@ class DBusSignature extends DBusValue {
               count--;
             end++;
           }
-          signatures.add(new DBusSignature(value.substring (i, end)));
+          signatures.add(new DBusSignature(value.substring(i, end)));
           i += end - i;
         }
         else {
-          signatures.add(new DBusSignature(value.substring (i, i+2)));
+          signatures.add(new DBusSignature(value.substring(i, i+2)));
           i++;
         }
       }
