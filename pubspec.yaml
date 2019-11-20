@@ -1,11 +1,10 @@
 name: dbus_client
-version: 0.0.0-dev
+version: 0.0.0-dev.1
 description: Native DBus client library.
-author: Robert Ancell <robert.ancell@canonical.com>
 homepage: https://github.com/CanonicalLtd/dbus_client.dart
 
 environment:
-  sdk: ">=2.0.0 <3.0.0"
+  sdk: '>=2.6.0 <3.0.0'
 
 dependencies:
-  unix_domain_socket: ^0.0.0-dev
+  unix_domain_socket: ^0.0.0-dev.1
