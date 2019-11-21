@@ -1,4 +1,5 @@
-import "unix_domain_socket.dart";
+import 'package:unix_domain_socket/unix_domain_socket.dart';
+
 import "dart:async";
 import "dart:convert";
 import "dart:io";

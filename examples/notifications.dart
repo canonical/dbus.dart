@@ -1,4 +1,4 @@
-import 'dbus_client.dart';
+import 'package:dbus_client/dbus_client.dart';
 
 main() async {
   var client = DBusClient.session();
