@@ -45,7 +45,7 @@ class HeaderCode {
 const ProtocolVersion = 1;
 
 class DBusWriteBuffer {
-  var data = new List<int>();
+  var data = List<int>();
 
   writeByte(int value) {
     data.add(value);
@@ -56,44 +56,44 @@ class DBusWriteBuffer {
   }
 
   writeInt16(int value) {
-    var bytes = new Uint8List(2).buffer;
-    new ByteData.view(bytes).setInt16(0, value, Endian.little);
+    var bytes = Uint8List(2).buffer;
+    ByteData.view(bytes).setInt16(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
   writeUint16(int value) {
-    var bytes = new Uint8List(2).buffer;
-    new ByteData.view(bytes).setUint16(0, value, Endian.little);
+    var bytes = Uint8List(2).buffer;
+    ByteData.view(bytes).setUint16(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
   writeInt32(int value) {
-    var bytes = new Uint8List(4).buffer;
-    new ByteData.view(bytes).setInt32(0, value, Endian.little);
+    var bytes = Uint8List(4).buffer;
+    ByteData.view(bytes).setInt32(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
   writeUint32(int value) {
-    var bytes = new Uint8List(4).buffer;
-    new ByteData.view(bytes).setUint32(0, value, Endian.little);
+    var bytes = Uint8List(4).buffer;
+    ByteData.view(bytes).setUint32(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
   writeInt64(int value) {
-    var bytes = new Uint8List(8).buffer;
-    new ByteData.view(bytes).setInt64(0, value, Endian.little);
+    var bytes = Uint8List(8).buffer;
+    ByteData.view(bytes).setInt64(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
   writeUint64(int value) {
-    var bytes = new Uint8List(8).buffer;
-    new ByteData.view(bytes).setUint64(0, value, Endian.little);
+    var bytes = Uint8List(8).buffer;
+    ByteData.view(bytes).setUint64(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
   writeFloat64(double value) {
-    var bytes = new Uint8List(8).buffer;
-    new ByteData.view(bytes).setFloat64(0, value, Endian.little);
+    var bytes = Uint8List(8).buffer;
+    ByteData.view(bytes).setFloat64(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
@@ -108,7 +108,7 @@ class DBusWriteBuffer {
 }
 
 class DBusReadBuffer {
-  var data = new List<int>();
+  var data = List<int>();
   int readOffset = 0;
 
   int get remaining {
@@ -125,38 +125,38 @@ class DBusReadBuffer {
   }
 
   ByteBuffer readBytes(int length) {
-    var bytes = new Uint8List(length);
+    var bytes = Uint8List(length);
     for (var i = 0; i < length; i++)
       bytes[i] = readByte();
     return bytes.buffer;
   }
 
   int readInt16() {
-    return new ByteData.view(readBytes(2)).getInt16(0, Endian.little);
+    return ByteData.view(readBytes(2)).getInt16(0, Endian.little);
   }
 
   int readUint16() {
-    return new ByteData.view(readBytes(2)).getUint16(0, Endian.little);
+    return ByteData.view(readBytes(2)).getUint16(0, Endian.little);
   }
 
   int readInt32() {
-    return new ByteData.view(readBytes(4)).getInt32(0, Endian.little);
+    return ByteData.view(readBytes(4)).getInt32(0, Endian.little);
   }
 
   int readUint32() {
-    return new ByteData.view(readBytes(4)).getUint32(0, Endian.little);
+    return ByteData.view(readBytes(4)).getUint32(0, Endian.little);
   }
 
   int readInt64() {
-    return new ByteData.view(readBytes(8)).getInt64(0, Endian.little);
+    return ByteData.view(readBytes(8)).getInt64(0, Endian.little);
   }
 
   int readUint64() {
-    return new ByteData.view(readBytes(8)).getUint64(0, Endian.little);
+    return ByteData.view(readBytes(8)).getUint64(0, Endian.little);
   }
 
   double readFloat64() {
-    return new ByteData.view(readBytes(8)).getFloat64(0, Endian.little);
+    return ByteData.view(readBytes(8)).getFloat64(0, Endian.little);
   }
 
   bool align(int boundary) {
@@ -190,53 +190,50 @@ class DBusValue {
   static DBusValue fromSignature(DBusSignature signature) {
     var s = signature.value;
     if (s == 'y')
-      return new DBusByte(0);
+      return DBusByte(0);
     else if (s == 'b')
-      return new DBusBoolean(false);
+      return DBusBoolean(false);
     else if (s == 'n')
-      return new DBusInt16(0);
+      return DBusInt16(0);
     else if (s == 'q')
-      return new DBusUint16(0);
+      return DBusUint16(0);
     else if (s == 'i')
-      return new DBusInt32(0);
+      return DBusInt32(0);
     else if (s == 'u')
-      return new DBusUint32(0);
+      return DBusUint32(0);
     else if (s == 'x')
-      return new DBusInt64(0);
+      return DBusInt64(0);
     else if (s == 't')
-      return new DBusUint64(0);
+      return DBusUint64(0);
     else if (s == 'd')
-      return new DBusDouble(0);
+      return DBusDouble(0);
     else if (s == 's')
-      return new DBusString('');
+      return DBusString('');
     else if (s == 'o')
-      return new DBusObjectPath('');
+      return DBusObjectPath('');
     else if (s == 'g')
-      return new DBusSignature('');
+      return DBusSignature('');
     else if (s == 'v')
-      return new DBusVariant(null);
+      return DBusVariant(null);
     else if (s.startsWith('a{') && s.endsWith('}')) {
-      var childSignature = new DBusSignature(s.substring(2, s.length));
+      var childSignature = DBusSignature(s.substring(2, s.length));
       var signatures = childSignature.split(); // FIXME: Check two signatures
-      return new DBusDict(signatures[0], signatures[1]);
+      return DBusDict(signatures[0], signatures[1]);
     }
     else if (s.startsWith('a'))
-      return new DBusArray(DBusValue.fromSignature(new DBusSignature(s.substring(1, s.length + 1))));
+      return DBusArray(DBusValue.fromSignature(DBusSignature(s.substring(1, s.length + 1))));
     else if (s.startsWith('(') && s.endsWith(')')) {
-      var children = new List<DBusValue>();
+      var children = List<DBusValue>();
       for (var i = 1; i < s.length - 1; i++)
-        children.add(DBusValue.fromSignature(new DBusSignature(s[i])));
-      return new DBusStruct(children);
+        children.add(DBusValue.fromSignature(DBusSignature(s[i])));
+      return DBusStruct(children);
     }
     else
       throw "Unknown DBus data type '${s}'";
   }
 
-  DBusSignature get signature {
-  }
-
-  int get alignment {
-  }
+  DBusSignature signature;
+  int alignment;
 
   marshal(DBusWriteBuffer buffer) {
   }
@@ -604,7 +601,7 @@ class DBusString extends DBusValue {
   @override
   marshal(DBusWriteBuffer buffer) {
     var data = utf8.encode(value);
-    var length = new DBusUint32(value.length);
+    var length = DBusUint32(value.length);
     length.marshal(buffer);
     for (var d in data)
       buffer.writeByte(d);
@@ -613,12 +610,12 @@ class DBusString extends DBusValue {
 
   @override
   bool unmarshal(DBusReadBuffer buffer) {
-    var length = new DBusUint32(0);
+    var length = DBusUint32(0);
     if (!length.unmarshal(buffer))
       return false;
     if (buffer.remaining < (length.value + 1))
       return false;
-    var values = new List<int>();
+    var values = List<int>();
     for (var i = 0; i < length.value; i++)
       values.add(buffer.readByte());
     this.value = utf8.decode(values);
@@ -668,7 +665,7 @@ class DBusSignature extends DBusValue {
               count--;
             end++;
           }
-          signatures.add(new DBusSignature(value.substring(i, end)));
+          signatures.add(DBusSignature(value.substring(i, end)));
           i += end - i;
         }
         else if (value[i+1] == '{') {
@@ -681,16 +678,16 @@ class DBusSignature extends DBusValue {
               count--;
             end++;
           }
-          signatures.add(new DBusSignature(value.substring(i, end)));
+          signatures.add(DBusSignature(value.substring(i, end)));
           i += end - i;
         }
         else {
-          signatures.add(new DBusSignature(value.substring(i, i+2)));
+          signatures.add(DBusSignature(value.substring(i, i+2)));
           i++;
         }
       }
       else
-        signatures.add(new DBusSignature(value[i]));
+        signatures.add(DBusSignature(value[i]));
     }
     return signatures;
   }
@@ -719,7 +716,7 @@ class DBusSignature extends DBusValue {
     if (buffer.remaining < 1)
       return false;
     var length = buffer.readByte();
-    var values = new List<int>();
+    var values = List<int>();
     if (buffer.remaining < length + 1)
       return false;
     for (var i = 0; i < length; i++)
@@ -759,7 +756,7 @@ class DBusVariant extends DBusValue {
 
   @override
   bool unmarshal(DBusReadBuffer buffer) {
-    var signature = new DBusSignature('');
+    var signature = DBusSignature('');
     if (!signature.unmarshal(buffer))
       return false;
     value = DBusValue.fromSignature(signature);
@@ -787,7 +784,7 @@ class DBusStruct extends DBusValue {
     var signature = '';
     for (var child in children)
       signature += child.signature.value;
-    return new DBusSignature('(' + signature + ')');
+    return DBusSignature('(' + signature + ')');
   }
 
   @override
@@ -811,7 +808,7 @@ class DBusStruct extends DBusValue {
 
   @override
   String toString() {
-    var childrenText = new List<String>();
+    var childrenText = List<String>();
     for (var child in children)
       childrenText.add(child.toString());
     return "DBusStruct([${childrenText.join(', ')}])";
@@ -820,7 +817,7 @@ class DBusStruct extends DBusValue {
 
 class DBusArray extends DBusValue {
   final DBusSignature childSignature;
-  var children = new List<DBusValue>();
+  var children = List<DBusValue>();
 
   DBusArray(this.childSignature);
 
@@ -830,7 +827,7 @@ class DBusArray extends DBusValue {
 
   @override
   DBusSignature get signature {
-    return new DBusSignature('a' + childSignature.value);
+    return DBusSignature('a' + childSignature.value);
   }
 
   @override
@@ -840,7 +837,7 @@ class DBusArray extends DBusValue {
 
   @override
   marshal(DBusWriteBuffer buffer) {
-    new DBusUint32(0).marshal(buffer);
+    DBusUint32(0).marshal(buffer);
     var lengthOffset = buffer.data.length - 4;
     if (children.length > 0)
       buffer.align(children[0].alignment);
@@ -858,7 +855,7 @@ class DBusArray extends DBusValue {
 
   @override
   bool unmarshal(DBusReadBuffer buffer) {
-    var length = new DBusUint32(0);
+    var length = DBusUint32(0);
     if (!length.unmarshal(buffer))
       return false;
     // FIXME: Align to first element (not in length)
@@ -875,7 +872,7 @@ class DBusArray extends DBusValue {
 
   @override
   String toString() {
-    var childrenText = new List<String>();
+    var childrenText = List<String>();
     for (var child in children)
       childrenText.add(child.toString());
     return "DBusArray([${childrenText.join(', ')}])";
@@ -885,13 +882,13 @@ class DBusArray extends DBusValue {
 class DBusDict extends DBusValue {
   final DBusSignature keySignature;
   final DBusSignature valueSignature;
-  var children = new List<DBusStruct>();
+  var children = List<DBusStruct>();
 
   DBusDict(this.keySignature, this.valueSignature);
 
   add(DBusValue key, DBusValue value) {
     // FIXME: Check if key exists
-    children.add(new DBusStruct([key, value]));
+    children.add(DBusStruct([key, value]));
   }
 
   DBusValue lookup(DBusValue key) {
@@ -903,7 +900,7 @@ class DBusDict extends DBusValue {
 
   @override
   DBusSignature get signature {
-    return new DBusSignature('a{${keySignature.value}${valueSignature.value}}');
+    return DBusSignature('a{${keySignature.value}${valueSignature.value}}');
   }
 
   @override
@@ -913,7 +910,7 @@ class DBusDict extends DBusValue {
 
   @override
   marshal(DBusWriteBuffer buffer) {
-    new DBusUint32(0).marshal(buffer);
+    DBusUint32(0).marshal(buffer);
     var lengthOffset = buffer.data.length - 4;
     if (children.length > 0)
       buffer.align(children[0].alignment);
@@ -931,13 +928,13 @@ class DBusDict extends DBusValue {
 
   @override
   bool unmarshal(DBusReadBuffer buffer) {
-    var length = new DBusUint32(0);
+    var length = DBusUint32(0);
     if (!length.unmarshal(buffer))
       return false;
     // FIXME: Align to first element (not in length)
     var end = buffer.readOffset + length.value;
     while (buffer.readOffset < end) {
-      var child = new DBusStruct([DBusValue.fromSignature(keySignature), DBusValue.fromSignature(valueSignature)]);
+      var child = DBusStruct([DBusValue.fromSignature(keySignature), DBusValue.fromSignature(valueSignature)]);
       if (!child.unmarshal(buffer))
         return false;
       children.add(child);
@@ -948,7 +945,7 @@ class DBusDict extends DBusValue {
 
   @override
   String toString() {
-    var childrenText = new List<String>();
+    var childrenText = List<String>();
     for (var child in children)
       childrenText.add(child.toString());
     return "DBusDict([${childrenText.join(', ')}])";
@@ -966,41 +963,41 @@ class DBusMessage {
   int replySerial;
   String destination;
   String sender;
-  var values = new List<DBusValue>();
+  var values = List<DBusValue>();
 
   DBusMessage({this.type = MessageType.Invalid, this.flags = 0, this.serial = 0, this.path, this.interface, this.member, this.errorName, this.replySerial, this.destination, this.sender, this.values});
 
   marshal(DBusWriteBuffer buffer) {
-    var valueBuffer = new DBusWriteBuffer();
+    var valueBuffer = DBusWriteBuffer();
     for (var value in values)
       value.marshal(valueBuffer);
 
-    new DBusByte(Endianess.Little).marshal(buffer);
-    new DBusByte(type).marshal(buffer);
-    new DBusByte(flags).marshal(buffer);
-    new DBusByte(ProtocolVersion).marshal(buffer);
-    new DBusUint32(valueBuffer.data.length).marshal(buffer);
-    new DBusUint32(serial).marshal(buffer);
-    var headerArray = new DBusArray(new DBusSignature('(yv)'));
+    DBusByte(Endianess.Little).marshal(buffer);
+    DBusByte(type).marshal(buffer);
+    DBusByte(flags).marshal(buffer);
+    DBusByte(ProtocolVersion).marshal(buffer);
+    DBusUint32(valueBuffer.data.length).marshal(buffer);
+    DBusUint32(serial).marshal(buffer);
+    var headerArray = DBusArray(DBusSignature('(yv)'));
     if (this.path != null)
-      headerArray.add(_makeHeader(HeaderCode.Path, new DBusObjectPath(this.path)));
+      headerArray.add(_makeHeader(HeaderCode.Path, DBusObjectPath(this.path)));
     if (this.interface != null)
-      headerArray.add(_makeHeader(HeaderCode.Interface, new DBusString(this.interface)));
+      headerArray.add(_makeHeader(HeaderCode.Interface, DBusString(this.interface)));
     if (this.member != null)
-      headerArray.add(_makeHeader(HeaderCode.Member, new DBusString(this.member)));
+      headerArray.add(_makeHeader(HeaderCode.Member, DBusString(this.member)));
     if (this.errorName != null)
-      headerArray.add(_makeHeader(HeaderCode.ErrorName, new DBusString(this.errorName)));
+      headerArray.add(_makeHeader(HeaderCode.ErrorName, DBusString(this.errorName)));
     if (this.replySerial != null)
-      headerArray.add(_makeHeader(HeaderCode.ReplySerial, new DBusUint32(this.replySerial)));
+      headerArray.add(_makeHeader(HeaderCode.ReplySerial, DBusUint32(this.replySerial)));
     if (this.destination != null)
-      headerArray.add(_makeHeader(HeaderCode.Destination, new DBusString(this.destination)));
+      headerArray.add(_makeHeader(HeaderCode.Destination, DBusString(this.destination)));
     if (this.sender != null)
-      headerArray.add(_makeHeader(HeaderCode.Sender, new DBusString(this.sender)));
+      headerArray.add(_makeHeader(HeaderCode.Sender, DBusString(this.sender)));
     if (this.values.length > 0) {
       String signature = '';
       for (var value in values)
         signature += value.signature.value;
-      headerArray.add(_makeHeader(HeaderCode.Signature, new DBusSignature(signature)));
+      headerArray.add(_makeHeader(HeaderCode.Signature, DBusSignature(signature)));
     }
     headerArray.marshal(buffer);
     buffer.align(8);
@@ -1008,29 +1005,29 @@ class DBusMessage {
   }
 
   DBusStruct _makeHeader(int code, DBusValue value) {
-    return new DBusStruct([new DBusByte(code), new DBusVariant(value)]);
+    return DBusStruct([DBusByte(code), DBusVariant(value)]);
   }
 
   bool unmarshal(DBusReadBuffer buffer) {
     if (buffer.remaining < 12)
       return false;
 
-    var endianess = new DBusByte(0);
+    var endianess = DBusByte(0);
     endianess.unmarshal(buffer);
-    var type = new DBusByte(0);
+    var type = DBusByte(0);
     type.unmarshal(buffer);
     this.type = type.value;
-    var flags = new DBusByte(0);
+    var flags = DBusByte(0);
     flags.unmarshal(buffer);
     this.flags = flags.value;
-    var protocolVersion = new DBusByte(0);
+    var protocolVersion = DBusByte(0);
     protocolVersion.unmarshal(buffer);
-    var dataLength = new DBusUint32(0);
+    var dataLength = DBusUint32(0);
     dataLength.unmarshal(buffer);
-    var serial = new DBusUint32(0);
+    var serial = DBusUint32(0);
     serial.unmarshal(buffer);
     this.serial = serial.value;
-    var headers = new DBusArray(new DBusSignature('(yv)'));
+    var headers = DBusArray(DBusSignature('(yv)'));
     if (!headers.unmarshal(buffer))
       return false;
 
@@ -1059,7 +1056,7 @@ class DBusMessage {
     if (!buffer.align(8))
       return false;
 
-    this.values = new List<DBusValue>();
+    this.values = List<DBusValue>();
     if (signature != null) {
       var signatures = signature.split();
       for (var s in signatures) {
@@ -1087,7 +1084,7 @@ class DBusMessage {
     else
       text += '${type}';
     if (flags != 0) {
-      var flagNames = new List<String>();
+      var flagNames = List<String>();
       if (flags & Flags.NoReplyExpected != 0)
         flagNames.add('Flags.NoReplyExpected');
       if (flags & Flags.NoAutoStart != 0)
@@ -1114,7 +1111,7 @@ class DBusMessage {
     if (sender != null)
       text += ", sender='${sender}'";
     if (values.length > 0) {
-      var valueText = new List<String>();
+      var valueText = List<String>();
       for (var value in values)
         valueText.add(value.toString());
       text += ", values=[${valueText.join(', ')}]";
@@ -1160,9 +1157,9 @@ class DBusClient {
       throw 'D-Bus address not supported: ${address}';
     var path = address.substring(prefix.length);
     _socket = UnixDomainSocket.create(path);
-    var dbusMessages = new ReceivePort();
+    var dbusMessages = ReceivePort();
     _messageStream = dbusMessages.asBroadcastStream();
-    var data = new ReadData();
+    var data = ReadData();
     data.port = dbusMessages.sendPort;
     data.socket = _socket;
     Isolate.spawn(_read, data);
@@ -1185,7 +1182,7 @@ class DBusClient {
       if (message.type == MessageType.MethodCall && message.interface == interface) {
         var result = onMethod(message.path, message.interface, message.member, message.values);
         _lastSerial++;
-        var response = new DBusMessage(type: MessageType.MethodReturn,
+        var response = DBusMessage(type: MessageType.MethodReturn,
                                        serial: _lastSerial,
                                        replySerial: message.serial,
                                        destination: message.sender,
@@ -1207,7 +1204,7 @@ class DBusClient {
                                   path: '/org/freedesktop/DBus',
                                   interface: 'org.freedesktop.DBus',
                                   member: 'RequestName',
-                                  values: [new DBusString(name), new DBusUint32(flags)]);
+                                  values: [DBusString(name), DBusUint32(flags)]);
     return (result[0] as DBusUint32).value;
   }
 
@@ -1216,7 +1213,7 @@ class DBusClient {
                                   path: '/org/freedesktop/DBus',
                                   interface: 'org.freedesktop.DBus',
                                   member: 'ReleaseName',
-                                  values: [new DBusString(name)]);
+                                  values: [DBusString(name)]);
     return (result[0] as DBusUint32).value;
   }
 
@@ -1225,7 +1222,7 @@ class DBusClient {
                                   path: '/org/freedesktop/DBus',
                                   interface: 'org.freedesktop.DBus',
                                   member: 'ListNames');
-    var names = new List<String>();
+    var names = List<String>();
     for (var name in (result[0] as DBusArray).children)
       names.add((name as DBusString).value);
     return names;
@@ -1236,7 +1233,7 @@ class DBusClient {
                                   path: '/org/freedesktop/DBus',
                                   interface: 'org.freedesktop.DBus',
                                   member: 'ListActivatableNames');
-    var names = new List<String>();
+    var names = List<String>();
     for (var name in (result[0] as DBusArray).children)
       names.add((name as DBusString).value);
     return names;
@@ -1247,7 +1244,7 @@ class DBusClient {
                                   path: '/org/freedesktop/DBus',
                                   interface: 'org.freedesktop.DBus',
                                   member: 'NameHasOwner',
-                                  values: [new DBusString(name)]);
+                                  values: [DBusString(name)]);
     return (result[0] as DBusBoolean).value;
   }
 
@@ -1256,7 +1253,7 @@ class DBusClient {
                      path: '/org/freedesktop/DBus',
                      interface: 'org.freedesktop.DBus',
                      member: 'AddMatch',
-                     values: [new DBusString(rule)]);
+                     values: [DBusString(rule)]);
   }
 
   removeMatch(String rule) async {
@@ -1264,7 +1261,7 @@ class DBusClient {
                      path: '/org/freedesktop/DBus',
                      interface: 'org.freedesktop.DBus',
                      member: 'RemoveMatch',
-                     values: [new DBusString(rule)]);
+                     values: [DBusString(rule)]);
   }
 
   Future<String> getId() async {
@@ -1326,9 +1323,9 @@ class DBusClient {
 
   Future<List<DBusValue>> callMethod({String destination, String path, String interface, String member, List<DBusValue> values}) async {
     if (values == null)
-      values = new List<DBusValue>();
+      values = List<DBusValue>();
     _lastSerial++;
-    var message = new DBusMessage(type: MessageType.MethodCall,
+    var message = DBusMessage(type: MessageType.MethodCall,
                                   serial: _lastSerial,
                                   destination: destination,
                                   path: path,
@@ -1337,7 +1334,7 @@ class DBusClient {
                                   values: values);
     _sendMessage(message);
 
-    var completer = new Completer<List<DBusValue>>();
+    var completer = Completer<List<DBusValue>>();
     _messageStream.listen((dynamic receivedData) {
       var m = receivedData as DBusMessage;
       if (m.replySerial == message.serial) {
@@ -1351,7 +1348,7 @@ class DBusClient {
   }
 
   _sendMessage(DBusMessage message) {
-    var buffer = new DBusWriteBuffer();
+    var buffer = DBusWriteBuffer();
     message.marshal(buffer);
     _socket.write(buffer.data);
   }
@@ -1370,9 +1367,9 @@ class DBusClient {
 }
 
 _read(ReadData _data) {
-  var readBuffer = new DBusReadBuffer();
+  var readBuffer = DBusReadBuffer();
   while (true) {
-    var message = new DBusMessage();
+    var message = DBusMessage();
     var start = readBuffer.readOffset;
     if (!message.unmarshal(readBuffer)) {
       readBuffer.readOffset = start;
