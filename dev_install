@@ -1,0 +1,60 @@
+#!/bin/bash
+
+set -e
+
+# Check arguments
+if [ "$1" != "install" ] && [ "$1" != "remove" ]; then
+    echo "Usage: $0 install | remove"
+    exit 1;
+fi
+
+DIR=$(cd `dirname $0` && pwd)
+cd $DIR/
+
+# Determine install path from pubspec
+input="./pubspec.yaml"
+
+mapfile -s 0 name < $input
+mapfile -s 1 version < $input
+
+name=$(echo $name | cut -d' ' -f 2)
+version=$(echo $version | cut -d' ' -f 2)
+
+package=$(echo $HOME/.pub-cache/hosted/pub.dartlang.org/$name-$version)
+
+# Install
+if [ "$1" == "install" ]; then
+
+    # If symlink does not already exist
+    if ! [[ -L "$package" && -d "$package" ]]; then
+
+        # Backup if needed
+        if [ -d "$package" ]; then mv $package $package-backup; fi
+
+        # Create symlink
+        ln -s $DIR $package
+
+        echo "Local" $name-$version "installed."
+        echo "Changes to this project will now automatically reflect in its dependants."
+    else
+        echo "Local" $name-$version "already installed."
+    fi
+
+# Remove
+elif [ "$1" == "remove" ]; then
+
+    # If symlink exists
+    if [[ -L "$package" && -d "$package" ]]; then
+
+        # Remove symlink
+        rm $package
+
+        # Restore backup if present
+        if [ -d "$package-backup" ]; then mv $package-backup $package; fi
+
+        echo "Local" $name-$version "uninstalled."
+    else
+        echo "Local" $name-$version "already uninstalled."
+    fi
+
+fi
