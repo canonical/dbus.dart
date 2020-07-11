@@ -213,12 +213,11 @@ class DBusValue {
     else if (s == 'v')
       return DBusVariant(null);
     else if (s.startsWith('a{') && s.endsWith('}')) {
-      var childSignature = DBusSignature(s.substring(2, s.length));
+      var childSignature = DBusSignature(s.substring(2, s.length - 1));
       var signatures = childSignature.split(); // FIXME: Check two signatures
       return DBusDict(signatures[0], signatures[1]);
     } else if (s.startsWith('a'))
-      return DBusArray(
-          DBusValue.fromSignature(DBusSignature(s.substring(1, s.length + 1))));
+      return DBusArray(DBusSignature(s.substring(1, s.length)));
     else if (s.startsWith('(') && s.endsWith(')')) {
       var children = List<DBusValue>();
       for (var i = 1; i < s.length - 1; i++)
