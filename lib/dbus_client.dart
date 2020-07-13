@@ -1099,10 +1099,17 @@ class DBusClient {
   }
 
   _setAddress(String address) {
-    var prefix = 'unix:path=';
-    if (!address.startsWith(prefix))
-      throw 'D-Bus address not supported: ${address}';
-    var path = address.substring(prefix.length);
+    var prefix = 'unix:';
+    var chunkPrefix = 'path=';
+    if (!address.startsWith(prefix)) throw 'D-Bus address not supported: ${address}';
+
+    var path = address
+        .substring(prefix.length)
+        .split(",")
+        .firstWhere((element) => element.startsWith(chunkPrefix), orElse: () => null)
+        ?.substring(chunkPrefix.length);
+    if (path == null) throw 'D-Bus address not supported: ${address}';
+
     _socket = UnixDomainSocket.create(path);
     var dbusMessages = ReceivePort();
     _messageStream = dbusMessages.asBroadcastStream();
