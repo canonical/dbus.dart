@@ -1073,6 +1073,84 @@ class ReadData {
   SendPort port;
 }
 
+class DBusAddressProperty {
+  String key;
+  String value;
+
+  DBusAddressProperty(this.key, this.value);
+}
+
+class DBusAddress {
+  String transport;
+  List<DBusAddressProperty> properties;
+
+  DBusAddress(String address) {
+    // Addresses are in the form 'transport:key1=value1,key2=value2'
+    var index = address.indexOf(':');
+    if (index < 0)
+      throw 'Unable to determine transport of D-Bus address: ${address}';
+
+    transport = address.substring(0, index);
+    properties = _parseProperties(address.substring(index + 1));
+  }
+
+  List<DBusAddressProperty> _parseProperties(String propertiesList) {
+    var properties = List<DBusAddressProperty>();
+    if (propertiesList == '') return properties;
+
+    for (var property in propertiesList.split(',')) {
+      var index = property.indexOf('=');
+      if (index < 0) throw 'Invalid D-Bus address property: ${property}';
+
+      var key = property.substring(0, index);
+      var value = _decodeValue(property.substring(index + 1));
+      if (value == null)
+        throw 'Invalid value in D-Bus address property: ${property}';
+
+      properties.add(DBusAddressProperty(key, value));
+    }
+
+    return properties;
+  }
+
+  String _decodeValue(String encodedValue) {
+    var escapedValue = utf8.encode(encodedValue);
+    var binaryValue = List<int>();
+    for (var i = 0; i < escapedValue.length; i++) {
+      final int percent = 37; // '%'
+      // Values can escape bytes using %nn
+      if (escapedValue[i] == percent) {
+        if (i + 3 > escapedValue.length) return null;
+        var nibble0 = _decodeHex(escapedValue[i + 1]);
+        var nibble1 = _decodeHex(escapedValue[i + 2]);
+        if (nibble0 < 0 || nibble1 < 0) return null;
+        binaryValue.add(nibble0 << 4 + nibble1);
+        i += 2;
+      } else {
+        binaryValue.add(escapedValue[i]);
+      }
+    }
+    return utf8.decode(binaryValue);
+  }
+
+  int _decodeHex(int value) {
+    final int zero = 48; // '0'
+    final int nine = 57; // '9'
+    final int A = 65; // 'A'
+    final int F = 80; // 'F'
+    final int a = 97; // 'a'
+    final int f = 112; // 'f'
+    if (value >= zero && value <= nine)
+      return value - zero;
+    else if (value >= A && value <= F)
+      return value - A + 10;
+    else if (value >= a && value <= f)
+      return value - a + 10;
+    else
+      return -1;
+  }
+}
+
 class DBusClient {
   UnixDomainSocket _socket;
   var _lastSerial = 0;
@@ -1098,19 +1176,19 @@ class DBusClient {
     _setAddress(address);
   }
 
-  _setAddress(String address) {
-    var prefix = 'unix:';
-    var chunkPrefix = 'path=';
-    if (!address.startsWith(prefix)) throw 'D-Bus address not supported: ${address}';
+  _setAddress(String address_string) {
+    var address = DBusAddress(address_string);
+    if (address.transport != 'unix')
+      throw 'D-Bus address transport not supported: ${address_string}';
 
-    var path = address
-        .substring(prefix.length)
-        .split(",")
-        .firstWhere((element) => element.startsWith(chunkPrefix), orElse: () => null)
-        ?.substring(chunkPrefix.length);
-    if (path == null) throw 'D-Bus address not supported: ${address}';
+    var paths = List<String>();
+    for (var property in address.properties) {
+      if (property.key == 'path') paths.add(property.value);
+    }
+    if (paths.length == 0)
+      throw 'Unable to determine D-Bus unix address path: ${address_string}';
 
-    _socket = UnixDomainSocket.create(path);
+    _socket = UnixDomainSocket.create(paths[0]);
     var dbusMessages = ReceivePort();
     _messageStream = dbusMessages.asBroadcastStream();
     var data = ReadData();
