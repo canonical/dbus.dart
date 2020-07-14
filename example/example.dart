@@ -3,6 +3,8 @@ import 'package:dbus_client/dbus_client.dart';
 main() async {
   var client = DBusClient.session();
   await client.connect();
+  var proxy = DBusObjectProxy(client, 'org.freedesktop.Notifications',
+      '/org/freedesktop/Notifications');
   var values = [
     new DBusString(''), // App name
     new DBusUint32(0), // Replaces
@@ -13,12 +15,8 @@ main() async {
     new DBusDict(new DBusSignature('s'), new DBusSignature('v')), // Hints
     new DBusInt32(-1), // Expire timeout
   ];
-  var result = await client.callMethod(
-      destination: 'org.freedesktop.Notifications',
-      path: '/org/freedesktop/Notifications',
-      interface: 'org.freedesktop.Notifications',
-      member: 'Notify',
-      values: values);
+  var result =
+      await proxy.callMethod('org.freedesktop.Notifications', 'Notify', values);
   var id = (result[0] as DBusUint32).value;
   print('notify ${id}');
 }
