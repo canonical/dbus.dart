@@ -28,7 +28,7 @@ class DBusObjectProxy {
   }
 
   /// Sets a property on this object.
-  setProperty(String interface, String name, DBusVariant value) {
+  setProperty(String interface, String name, DBusValue value) {
     return client.setProperty(
         destination: destination,
         path: path,

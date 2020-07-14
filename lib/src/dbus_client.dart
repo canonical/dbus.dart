@@ -261,13 +261,13 @@ class DBusClient {
       String path,
       String interface,
       String name,
-      DBusVariant value}) async {
+      DbusValue value}) async {
     await callMethod(
         destination: destination,
         path: path,
         interface: 'org.freedesktop.DBus.Properties',
         member: 'Set',
-        values: [DBusString(interface), DBusString(name), value]);
+        values: [DBusString(interface), DBusString(name), DBusVariant(value)]);
   }
 
   /// Invokes a method on a D-Bus object.
