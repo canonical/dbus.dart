@@ -1,4 +1,4 @@
-import 'dbus_client.dart';
+import 'package:dbus_client/dbus_client.dart';
 
 // Test with:
 // $ gdbus call --session --dest com.canonical.DBusDart --object-path / --method com.canonical.DBusDart.Test
@@ -9,6 +9,9 @@ main() async {
   await client.requestName('com.canonical.DBusDart');
   client.listenMethod('com.canonical.DBusDart',
       (String path, String interface, String member, List<DBusValue> values) {
-    if (member == 'Test') return [new DBusString('Hello World!')];
+    if (member == 'Test')
+      return [new DBusString('Hello World!')];
+    else
+      return [];
   });
 }

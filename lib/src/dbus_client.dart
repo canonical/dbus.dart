@@ -261,7 +261,7 @@ class DBusClient {
       String path,
       String interface,
       String name,
-      DbusValue value}) async {
+      DBusValue value}) async {
     await callMethod(
         destination: destination,
         path: path,
