@@ -1,5 +1,5 @@
 name: dbus_client
-version: 0.0.0-dev.5
+version: 0.0.0-dev.6
 description: Native DBus client library.
 homepage: https://github.com/CanonicalLtd/dbus_client.dart
 
