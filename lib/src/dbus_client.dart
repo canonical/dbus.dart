@@ -1,10 +1,8 @@
-import 'package:unix_domain_socket/unix_domain_socket.dart';
-
 import "dart:async";
 import "dart:convert";
 import "dart:ffi";
 import "dart:io";
-import "dart:isolate";
+import "dart:typed_data";
 
 import "dbus_address.dart";
 import "dbus_message.dart";
@@ -30,11 +28,6 @@ int _getuid() {
   return getuidP();
 }
 
-class ReadData {
-  UnixDomainSocket socket;
-  SendPort port;
-}
-
 class _MethodCall {
   int serial;
   var completer = Completer<List<DBusValue>>();
@@ -58,8 +51,7 @@ class _MethodHandler {
 /// A client connection to a D-Bus server.
 class DBusClient {
   String _address;
-  UnixDomainSocket _socket;
-  Stream _readStream;
+  Socket _socket;
   DBusReadBuffer _readBuffer;
   var _authenticateCompleter = Completer();
   var _lastSerial = 0;
@@ -116,17 +108,9 @@ class DBusClient {
 
     var socket_address =
         InternetAddress(paths[0], type: InternetAddressType.unix);
-    _socket = UnixDomainSocket.create(paths[0]);
+    _socket = await Socket.connect(socket_address, 0);
     _readBuffer = DBusReadBuffer();
-    var readPort = ReceivePort();
-    _readStream = readPort.asBroadcastStream();
-    _readStream.listen((dynamic receivedData) {
-      _processData(receivedData as List<int>);
-    });
-    var data = ReadData();
-    data.port = readPort.sendPort;
-    data.socket = _socket;
-    Isolate.spawn(_read, data);
+    _socket.listen(_processData);
 
     await _authenticate();
 
@@ -138,18 +122,20 @@ class DBusClient {
   }
 
   _authenticate() async {
-    _socket.sendCredentials();
+    // Send an empty byte, as this is required if sending the credentials as a socket control message.
+    // We rely on the server using SO_PEERCRED to check out credentials.
+    _socket.add([ 0 ]);
 
     var uid = _getuid();
     var uidString = '';
     for (var c in uid.toString().runes)
       uidString += c.toRadixString(16).padLeft(2, '0');
-    _socket.write(utf8.encode('AUTH EXTERNAL ${uidString}\r\n'));
+    _socket.write('AUTH EXTERNAL ${uidString}\r\n');
 
     return _authenticateCompleter.future;
   }
 
-  _processData(List<int> data) {
+  _processData(Uint8List data) {
     _readBuffer.writeBytes(data);
 
     var complete = false;
@@ -167,7 +153,7 @@ class DBusClient {
     if (line == null) return true;
 
     if (line.startsWith('OK ')) {
-      _socket.write(utf8.encode('BEGIN\r\n'));
+      _socket.write('BEGIN\r\n');
       _authenticateCompleter.complete();
     } else
       throw 'Failed to authenticate: ${line}';
@@ -411,12 +397,6 @@ class DBusClient {
   _sendMessage(DBusMessage message) {
     var buffer = DBusWriteBuffer();
     message.marshal(buffer);
-    _socket.write(buffer.data);
-  }
-}
-
-_read(ReadData _data) {
-  while (true) {
-    _data.port.send(_data.socket.read(1024));
+    _socket.add(buffer.data);
   }
 }
