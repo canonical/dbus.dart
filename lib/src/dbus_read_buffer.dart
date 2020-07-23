@@ -1,7 +1,9 @@
 import "dart:convert";
 import "dart:typed_data";
 
-class DBusReadBuffer {
+import "dbus_buffer.dart";
+
+class DBusReadBuffer extends DBusBuffer {
   var data = List<int>();
   int readOffset = 0;
 

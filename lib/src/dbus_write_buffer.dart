@@ -1,6 +1,8 @@
 import "dart:typed_data";
 
-class DBusWriteBuffer {
+import "dbus_buffer.dart";
+
+class DBusWriteBuffer extends DBusBuffer {
   var data = List<int>();
 
   writeByte(int value) {
