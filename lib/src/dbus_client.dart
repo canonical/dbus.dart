@@ -323,8 +323,6 @@ class DBusClient {
     var uid_str = '';
     for (var c in uid.toString().runes)
       uid_str += c.toRadixString(16).padLeft(2);
-    _socket.write(utf8.encode('AUTH\r\n'));
-    print(utf8.decode(_socket.read(1024)));
     _socket.write(utf8.encode('AUTH EXTERNAL ${uid_str}\r\n'));
     print(utf8.decode(_socket.read(1024)));
     _socket.write(utf8.encode('BEGIN\r\n'));
