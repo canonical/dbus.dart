@@ -2,6 +2,7 @@ import 'package:unix_domain_socket/unix_domain_socket.dart';
 
 import "dart:async";
 import "dart:convert";
+import "dart:ffi";
 import "dart:io";
 import "dart:isolate";
 
@@ -13,6 +14,15 @@ import "dbus_write_buffer.dart";
 
 // FIXME: Use more efficient data store than List<int>?
 // FIXME: Use ByteData more efficiently - don't copy when reading/writing
+
+typedef _getuidC = Int32 Function();
+typedef _getuidDart = int Function();
+
+int _getuid() {
+  final dylib = DynamicLibrary.open('libc.so.6');
+  final getuidP = dylib.lookupFunction<_getuidC, _getuidDart>('getuid');
+  return getuidP();
+}
 
 class ReadData {
   UnixDomainSocket socket;
@@ -43,8 +53,7 @@ class DBusClient {
     if (address == null) {
       var runtimeDir = Platform.environment['XDG_USER_DIR'];
       if (runtimeDir == null) {
-        var uid = Platform.environment[
-            'UID']; // FIXME: What to do if can't get this? No UID API in Dart
+        var uid = _getuid();
         runtimeDir = '/run/user/${uid}';
       }
       address = "unix:path=${runtimeDir}/bus";
@@ -309,7 +318,8 @@ class DBusClient {
   }
 
   _authenticate() {
-    var uid = _socket.sendCredentials();
+    _socket.sendCredentials();
+    var uid = _getuid();
     var uid_str = '';
     for (var c in uid.toString().runes)
       uid_str += c.toRadixString(16).padLeft(2);
