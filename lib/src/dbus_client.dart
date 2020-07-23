@@ -319,55 +319,6 @@ class DBusClient {
     return (result[0] as DBusString).value;
   }
 
-  /// Gets the introspection data about a D-Bus object.
-  Future<String> introspect(String destination, String path) async {
-    var result = await callMethod(
-        destination: destination,
-        path: path,
-        interface: 'org.freedesktop.DBus.Introspectable',
-        member: 'Introspect');
-    return (result[0] as DBusString).value;
-  }
-
-  /// Gets a property on a D-Bus object.
-  Future<DBusVariant> getProperty(
-      {String destination, String path, String interface, String name}) async {
-    var result = await callMethod(
-        destination: destination,
-        path: path,
-        interface: 'org.freedesktop.DBus.Properties',
-        member: 'Get',
-        values: [DBusString(interface), DBusString(name)]);
-    return result[0] as DBusVariant;
-  }
-
-  /// Gets the values of all the properties of a D-Bus object.
-  Future<DBusDict> getAllProperties(
-      {String destination, String path, String interface}) async {
-    var result = await callMethod(
-        destination: destination,
-        path: path,
-        interface: 'org.freedesktop.DBus.Properties',
-        member: 'GetAll',
-        values: [DBusString(interface)]);
-    return result[0] as DBusDict;
-  }
-
-  // Sets a property on a D-Bus object.
-  setProperty(
-      {String destination,
-      String path,
-      String interface,
-      String name,
-      DBusValue value}) async {
-    await callMethod(
-        destination: destination,
-        path: path,
-        interface: 'org.freedesktop.DBus.Properties',
-        member: 'Set',
-        values: [DBusString(interface), DBusString(name), DBusVariant(value)]);
-  }
-
   /// Invokes a method on a D-Bus object.
   Future<List<DBusValue>> callMethod(
       {String destination,

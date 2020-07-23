@@ -12,29 +12,44 @@ class DBusObjectProxy {
 
   /// Gets the introspection data for this object.
   Future<String> introspect() async {
-    return client.introspect(destination, path);
+    var result = await client.callMethod(
+        destination: destination,
+        path: path,
+        interface: 'org.freedesktop.DBus.Introspectable',
+        member: 'Introspect');
+    return (result[0] as DBusString).value;
   }
 
   /// Gets a property on this object.
-  Future<DBusVariant> getProperty(String interface, String name) {
-    return client.getProperty(
-        destination: destination, path: path, interface: interface, name: name);
+  Future<DBusVariant> getProperty(String interface, String name) async {
+    var result = await client.callMethod(
+        destination: destination,
+        path: path,
+        interface: 'org.freedesktop.DBus.Properties',
+        member: 'Get',
+        values: [DBusString(interface), DBusString(name)]);
+    return result[0] as DBusVariant;
   }
 
   /// Gets the values of all the properties on this object.
   Future<DBusDict> getAllProperties(String interface) async {
-    return client.getAllProperties(
-        destination: destination, path: path, interface: interface);
+    var result = await client.callMethod(
+        destination: destination,
+        path: path,
+        interface: 'org.freedesktop.DBus.Properties',
+        member: 'GetAll',
+        values: [DBusString(interface)]);
+    return result[0] as DBusDict;
   }
 
   /// Sets a property on this object.
-  setProperty(String interface, String name, DBusValue value) {
-    return client.setProperty(
+  setProperty(String interface, String name, DBusValue value) async {
+    await client.callMethod(
         destination: destination,
         path: path,
-        interface: interface,
-        name: name,
-        value: value);
+        interface: 'org.freedesktop.DBus.Properties',
+        member: 'Set',
+        values: [DBusString(interface), DBusString(name), DBusVariant(value)]);
   }
 
   /// Invokes a method on this object.
