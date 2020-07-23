@@ -1,3 +1,4 @@
+import "dart:convert";
 import "dart:typed_data";
 
 class DBusReadBuffer {
@@ -21,6 +22,17 @@ class DBusReadBuffer {
     var bytes = Uint8List(length);
     for (var i = 0; i < length; i++) bytes[i] = readByte();
     return bytes.buffer;
+  }
+
+  String readLine() {
+    for (var i = readOffset; i < data.length - 1; i++) {
+      if (data[i] == 13 /* '\r' */ && data[i + 1] == 10 /* '\n' */) {
+        var bytes = List<int>(i - readOffset);
+        for (var j = readOffset; j < i; j++) bytes[j] = readByte();
+        readOffset = i + 2;
+        return utf8.decode(bytes);
+      }
+    }
   }
 
   int readInt16() {

@@ -61,6 +61,7 @@ class DBusClient {
   UnixDomainSocket _socket;
   Stream _readStream;
   DBusReadBuffer _readBuffer;
+  var _authenticateCompleter = Completer();
   var _lastSerial = 0;
   var _methodCalls = List<_MethodCall>();
   var _signalHandlers = List<_SignalHandler>();
@@ -127,7 +128,7 @@ class DBusClient {
     data.socket = _socket;
     Isolate.spawn(_read, data);
 
-    _authenticate();
+    await _authenticate();
 
     await callMethod(
         destination: 'org.freedesktop.DBus',
@@ -136,7 +137,7 @@ class DBusClient {
         member: 'Hello');
   }
 
-  _authenticate() {
+  _authenticate() async {
     _socket.sendCredentials();
 
     var uid = _getuid();
@@ -144,8 +145,8 @@ class DBusClient {
     for (var c in uid.toString().runes)
       uidString += c.toRadixString(16).padLeft(2, '0');
     _socket.write(utf8.encode('AUTH EXTERNAL ${uidString}\r\n'));
-    print(utf8.decode(_socket.read(1024)));
-    _socket.write(utf8.encode('BEGIN\r\n'));
+
+    return _authenticateCompleter.future;
   }
 
   _processData(List<int> data) {
@@ -153,9 +154,25 @@ class DBusClient {
 
     var complete = false;
     while (!complete) {
-      complete = _processMessages();
+      if (!_authenticateCompleter.isCompleted)
+        complete = _processAuth();
+      else
+        complete = _processMessages();
       _readBuffer.flush();
     }
+  }
+
+  bool _processAuth() {
+    var line = _readBuffer.readLine();
+    if (line == null) return true;
+
+    if (line.startsWith('OK ')) {
+      _socket.write(utf8.encode('BEGIN\r\n'));
+      _authenticateCompleter.complete();
+    } else
+      throw 'Failed to authenticate: ${line}';
+
+    return false;
   }
 
   bool _processMessages() {
