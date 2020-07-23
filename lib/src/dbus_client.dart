@@ -35,12 +35,36 @@ class ReadData {
   SendPort port;
 }
 
+class _MethodCall {
+  int serial;
+  var completer = Completer<List<DBusValue>>();
+
+  _MethodCall(this.serial) {}
+}
+
+class _SignalHandler {
+  SignalCallback callback;
+
+  _SignalHandler(this.callback);
+}
+
+class _MethodHandler {
+  String interface;
+  MethodCallback callback;
+
+  _MethodHandler(this.interface, this.callback) {}
+}
+
 /// A client connection to a D-Bus server.
 class DBusClient {
   String _address;
   UnixDomainSocket _socket;
+  Stream _readStream;
+  DBusReadBuffer _readBuffer;
   var _lastSerial = 0;
-  Stream _messageStream;
+  var _methodCalls = List<_MethodCall>();
+  var _signalHandlers = List<_SignalHandler>();
+  var _methodHandlers = List<_MethodHandler>();
 
   /// Creates a new DBus client to connect on [address].
   DBusClient(String address) {
@@ -68,6 +92,14 @@ class DBusClient {
     _address = address;
   }
 
+  listenSignal(SignalCallback callback) {
+    _signalHandlers.add(_SignalHandler(callback));
+  }
+
+  listenMethod(String interface, MethodCallback callback) {
+    _methodHandlers.add(_MethodHandler(interface, callback));
+  }
+
   /// Connects to the D-Bus server.
   connect() async {
     var address = DBusAddress(_address);
@@ -84,10 +116,14 @@ class DBusClient {
     var socket_address =
         InternetAddress(paths[0], type: InternetAddressType.unix);
     _socket = UnixDomainSocket.create(paths[0]);
-    var dbusMessages = ReceivePort();
-    _messageStream = dbusMessages.asBroadcastStream();
+    _readBuffer = DBusReadBuffer();
+    var readPort = ReceivePort();
+    _readStream = readPort.asBroadcastStream();
+    _readStream.listen((dynamic receivedData) {
+      _processData(receivedData as List<int>);
+    });
     var data = ReadData();
-    data.port = dbusMessages.sendPort;
+    data.port = readPort.sendPort;
     data.socket = _socket;
     Isolate.spawn(_read, data);
 
@@ -112,22 +148,28 @@ class DBusClient {
     _socket.write(utf8.encode('BEGIN\r\n'));
   }
 
-  listenSignal(SignalCallback callback) {
-    _messageStream.listen((dynamic receivedData) {
-      var message = receivedData as DBusMessage;
-      if (message.type == MessageType.Signal)
-        callback(
-            message.path, message.interface, message.member, message.values);
-    });
+  _processData(List<int> data) {
+    _readBuffer.writeBytes(data);
+
+    var complete = false;
+    while (!complete) {
+      complete = _processMessages();
+      _readBuffer.flush();
+    }
   }
 
-  // FIXME: Should be async
-  listenMethod(String interface, MethodCallback callback) {
-    _messageStream.listen((dynamic receivedData) {
-      var message = receivedData as DBusMessage;
-      if (message.type == MessageType.MethodCall &&
-          message.interface == interface) {
-        var result = callback(
+  bool _processMessages() {
+    var message = DBusMessage();
+    var start = _readBuffer.readOffset;
+    if (!message.unmarshal(_readBuffer)) {
+      _readBuffer.readOffset = start;
+      return true;
+    }
+
+    if (message.type == MessageType.MethodCall) {
+      var handler = _findMethodHandler(message.interface);
+      if (handler != null) {
+        var result = handler.callback(
             message.path, message.interface, message.member, message.values);
         _lastSerial++;
         var response = DBusMessage(
@@ -138,7 +180,38 @@ class DBusClient {
             values: result);
         _sendMessage(response);
       }
-    });
+    } else if (message.type == MessageType.MethodReturn ||
+        message.type == MessageType.Error) {
+      _processMethodReturn(message);
+    } else if (message.type == MessageType.Signal) {
+      for (var handler in _signalHandlers)
+        handler.callback(
+            message.path, message.interface, message.member, message.values);
+    }
+
+    return false;
+  }
+
+  _processMethodReturn(DBusMessage message) {
+    var methodCall = _findMethodCall(message.replySerial);
+    if (methodCall == null) return;
+    _methodCalls.remove(methodCall);
+
+    if (message.type == MessageType.Error)
+      print('Error: ${message.errorName}'); // FIXME
+    methodCall.completer.complete(message.values);
+  }
+
+  _MethodCall _findMethodCall(int serial) {
+    for (var methodCall in _methodCalls)
+      if (methodCall.serial == serial) return methodCall;
+    return null;
+  }
+
+  _MethodHandler _findMethodHandler(String interface) {
+    for (var handler in _methodHandlers)
+      if (handler.interface == interface) return handler;
+    return null;
   }
 
   /// Requests usage of [name] as a D-Bus object name.
@@ -312,17 +385,10 @@ class DBusClient {
         values: values);
     _sendMessage(message);
 
-    var completer = Completer<List<DBusValue>>();
-    _messageStream.listen((dynamic receivedData) {
-      var m = receivedData as DBusMessage;
-      if (m.replySerial == message.serial) {
-        if (m.type == MessageType.Error)
-          print('Error: ${m.errorName}'); // FIXME
-        completer.complete(m.values);
-      }
-    });
+    var call = _MethodCall(message.serial);
+    _methodCalls.add(call);
 
-    return completer.future;
+    return call.completer.future;
   }
 
   _sendMessage(DBusMessage message) {
@@ -333,18 +399,7 @@ class DBusClient {
 }
 
 _read(ReadData _data) {
-  var readBuffer = DBusReadBuffer();
   while (true) {
-    var message = DBusMessage();
-    var start = readBuffer.readOffset;
-    if (!message.unmarshal(readBuffer)) {
-      readBuffer.readOffset = start;
-      var data = _data.socket.read(1024);
-      readBuffer.writeBytes(data);
-      continue;
-    }
-    readBuffer.flush();
-
-    _data.port.send(message);
+    _data.port.send(_data.socket.read(1024));
   }
 }
