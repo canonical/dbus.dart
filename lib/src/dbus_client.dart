@@ -15,6 +15,12 @@ import "dbus_write_buffer.dart";
 // FIXME: Use more efficient data store than List<int>?
 // FIXME: Use ByteData more efficiently - don't copy when reading/writing
 
+typedef SignalCallback(
+    String path, String interface, String member, List<DBusValue> values);
+// FIXME: Should be async
+typedef List<DBusValue> MethodCallback(
+    String path, String interface, String member, List<DBusValue> values);
+
 typedef _getuidC = Int32 Function();
 typedef _getuidDart = int Function();
 
@@ -106,27 +112,22 @@ class DBusClient {
     _socket.write(utf8.encode('BEGIN\r\n'));
   }
 
-  listenSignal(
-      void onSignal(String path, String interface, String member,
-          List<DBusValue> values)) {
+  listenSignal(SignalCallback callback) {
     _messageStream.listen((dynamic receivedData) {
       var message = receivedData as DBusMessage;
       if (message.type == MessageType.Signal)
-        onSignal(
+        callback(
             message.path, message.interface, message.member, message.values);
     });
   }
 
   // FIXME: Should be async
-  listenMethod(
-      String interface,
-      List<DBusValue> onMethod(String path, String interface, String member,
-          List<DBusValue> values)) {
+  listenMethod(String interface, MethodCallback callback) {
     _messageStream.listen((dynamic receivedData) {
       var message = receivedData as DBusMessage;
       if (message.type == MessageType.MethodCall &&
           message.interface == interface) {
-        var result = onMethod(
+        var result = callback(
             message.path, message.interface, message.member, message.values);
         _lastSerial++;
         var response = DBusMessage(
