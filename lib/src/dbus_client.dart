@@ -1,5 +1,4 @@
 import "dart:async";
-import "dart:convert";
 import "dart:ffi";
 import "dart:io";
 import "dart:typed_data";
@@ -124,7 +123,7 @@ class DBusClient {
   _authenticate() async {
     // Send an empty byte, as this is required if sending the credentials as a socket control message.
     // We rely on the server using SO_PEERCRED to check out credentials.
-    _socket.add([ 0 ]);
+    _socket.add([0]);
 
     var uid = _getuid();
     var uidString = '';

@@ -33,6 +33,7 @@ class DBusReadBuffer {
         return utf8.decode(bytes);
       }
     }
+    return null;
   }
 
   int readInt16() {
