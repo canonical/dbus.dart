@@ -1,9 +1,8 @@
-import 'package:unix_domain_socket/unix_domain_socket.dart';
-
 import "dart:async";
 import "dart:convert";
+import "dart:ffi";
 import "dart:io";
-import "dart:isolate";
+import "dart:typed_data";
 
 import "dbus_address.dart";
 import "dbus_message.dart";
@@ -14,27 +13,62 @@ import "dbus_write_buffer.dart";
 // FIXME: Use more efficient data store than List<int>?
 // FIXME: Use ByteData more efficiently - don't copy when reading/writing
 
-class ReadData {
-  UnixDomainSocket socket;
-  SendPort port;
+typedef SignalCallback(
+    String path, String interface, String member, List<DBusValue> values);
+// FIXME: Should be async
+typedef List<DBusValue> MethodCallback(
+    String path, String interface, String member, List<DBusValue> values);
+
+typedef _getuidC = Int32 Function();
+typedef _getuidDart = int Function();
+
+int _getuid() {
+  final dylib = DynamicLibrary.open('libc.so.6');
+  final getuidP = dylib.lookupFunction<_getuidC, _getuidDart>('getuid');
+  return getuidP();
+}
+
+class _MethodCall {
+  int serial;
+  var completer = Completer<List<DBusValue>>();
+
+  _MethodCall(this.serial) {}
+}
+
+class _SignalHandler {
+  SignalCallback callback;
+
+  _SignalHandler(this.callback);
+}
+
+class _MethodHandler {
+  String interface;
+  MethodCallback callback;
+
+  _MethodHandler(this.interface, this.callback) {}
 }
 
 /// A client connection to a D-Bus server.
 class DBusClient {
-  UnixDomainSocket _socket;
+  String _address;
+  Socket _socket;
+  DBusReadBuffer _readBuffer;
+  var _authenticateCompleter = Completer();
   var _lastSerial = 0;
-  Stream _messageStream;
+  var _methodCalls = List<_MethodCall>();
+  var _signalHandlers = List<_SignalHandler>();
+  var _methodHandlers = List<_MethodHandler>();
 
   /// Creates a new DBus client to connect on [address].
   DBusClient(String address) {
-    _setAddress(address);
+    _address = address;
   }
 
   /// Creates a new DBus client to communicate with the system bus.
   DBusClient.system() {
     var address = Platform.environment['DBUS_SYSTEM_BUS_ADDRESS'];
     if (address == null) address = 'unix:path=/run/dbus/system_bus_socket';
-    _setAddress(address);
+    _address = address;
   }
 
   /// Creates a new DBus client to communicate with the session bus.
@@ -43,59 +77,102 @@ class DBusClient {
     if (address == null) {
       var runtimeDir = Platform.environment['XDG_USER_DIR'];
       if (runtimeDir == null) {
-        var uid = Platform.environment[
-            'UID']; // FIXME: What to do if can't get this? No UID API in Dart
+        var uid = _getuid();
         runtimeDir = '/run/user/${uid}';
       }
       address = "unix:path=${runtimeDir}/bus";
     }
-    _setAddress(address);
+    _address = address;
   }
 
-  _setAddress(String address_string) {
-    var address = DBusAddress(address_string);
+  listenSignal(SignalCallback callback) {
+    _signalHandlers.add(_SignalHandler(callback));
+  }
+
+  listenMethod(String interface, MethodCallback callback) {
+    _methodHandlers.add(_MethodHandler(interface, callback));
+  }
+
+  /// Connects to the D-Bus server.
+  connect() async {
+    var address = DBusAddress(_address);
     if (address.transport != 'unix')
-      throw 'D-Bus address transport not supported: ${address_string}';
+      throw 'D-Bus address transport not supported: ${_address}';
 
     var paths = List<String>();
     for (var property in address.properties) {
       if (property.key == 'path') paths.add(property.value);
     }
     if (paths.length == 0)
-      throw 'Unable to determine D-Bus unix address path: ${address_string}';
+      throw 'Unable to determine D-Bus unix address path: ${_address}';
 
-    _socket = UnixDomainSocket.create(paths[0]);
-    var dbusMessages = ReceivePort();
-    _messageStream = dbusMessages.asBroadcastStream();
-    var data = ReadData();
-    data.port = dbusMessages.sendPort;
-    data.socket = _socket;
-    Isolate.spawn(_read, data);
+    var socket_address =
+        InternetAddress(paths[0], type: InternetAddressType.unix);
+    _socket = await Socket.connect(socket_address, 0);
+    _readBuffer = DBusReadBuffer();
+    _socket.listen(_processData);
 
-    _authenticate();
+    await _authenticate();
+
+    await callMethod(
+        destination: 'org.freedesktop.DBus',
+        path: '/org/freedesktop/DBus',
+        interface: 'org.freedesktop.DBus',
+        member: 'Hello');
   }
 
-  listenSignal(
-      void onSignal(String path, String interface, String member,
-          List<DBusValue> values)) {
-    _messageStream.listen((dynamic receivedData) {
-      var message = receivedData as DBusMessage;
-      if (message.type == MessageType.Signal)
-        onSignal(
-            message.path, message.interface, message.member, message.values);
-    });
+  _authenticate() async {
+    // Send an empty byte, as this is required if sending the credentials as a socket control message.
+    // We rely on the server using SO_PEERCRED to check out credentials.
+    _socket.add([ 0 ]);
+
+    var uid = _getuid();
+    var uidString = '';
+    for (var c in uid.toString().runes)
+      uidString += c.toRadixString(16).padLeft(2, '0');
+    _socket.write('AUTH EXTERNAL ${uidString}\r\n');
+
+    return _authenticateCompleter.future;
   }
 
-  // FIXME: Should be async
-  listenMethod(
-      String interface,
-      List<DBusValue> onMethod(String path, String interface, String member,
-          List<DBusValue> values)) {
-    _messageStream.listen((dynamic receivedData) {
-      var message = receivedData as DBusMessage;
-      if (message.type == MessageType.MethodCall &&
-          message.interface == interface) {
-        var result = onMethod(
+  _processData(Uint8List data) {
+    _readBuffer.writeBytes(data);
+
+    var complete = false;
+    while (!complete) {
+      if (!_authenticateCompleter.isCompleted)
+        complete = _processAuth();
+      else
+        complete = _processMessages();
+      _readBuffer.flush();
+    }
+  }
+
+  bool _processAuth() {
+    var line = _readBuffer.readLine();
+    if (line == null) return true;
+
+    if (line.startsWith('OK ')) {
+      _socket.write('BEGIN\r\n');
+      _authenticateCompleter.complete();
+    } else
+      throw 'Failed to authenticate: ${line}';
+
+    return false;
+  }
+
+  bool _processMessages() {
+    var message = DBusMessage();
+    var start = _readBuffer.readOffset;
+    if (!message.unmarshal(_readBuffer)) {
+      _readBuffer.readOffset = start;
+      return true;
+    }
+
+    if (message.type == MessageType.MethodCall) {
+      var handler = _findMethodHandler(message.interface);
+      if (handler != null) {
+        var result = handler.callback(
             message.path, message.interface, message.member, message.values);
         _lastSerial++;
         var response = DBusMessage(
@@ -106,16 +183,38 @@ class DBusClient {
             values: result);
         _sendMessage(response);
       }
-    });
+    } else if (message.type == MessageType.MethodReturn ||
+        message.type == MessageType.Error) {
+      _processMethodReturn(message);
+    } else if (message.type == MessageType.Signal) {
+      for (var handler in _signalHandlers)
+        handler.callback(
+            message.path, message.interface, message.member, message.values);
+    }
+
+    return false;
   }
 
-  /// Connects to the D-Bus server.
-  connect() async {
-    await callMethod(
-        destination: 'org.freedesktop.DBus',
-        path: '/org/freedesktop/DBus',
-        interface: 'org.freedesktop.DBus',
-        member: 'Hello');
+  _processMethodReturn(DBusMessage message) {
+    var methodCall = _findMethodCall(message.replySerial);
+    if (methodCall == null) return;
+    _methodCalls.remove(methodCall);
+
+    if (message.type == MessageType.Error)
+      print('Error: ${message.errorName}'); // FIXME
+    methodCall.completer.complete(message.values);
+  }
+
+  _MethodCall _findMethodCall(int serial) {
+    for (var methodCall in _methodCalls)
+      if (methodCall.serial == serial) return methodCall;
+    return null;
+  }
+
+  _MethodHandler _findMethodHandler(String interface) {
+    for (var handler in _methodHandlers)
+      if (handler.interface == interface) return handler;
+    return null;
   }
 
   /// Requests usage of [name] as a D-Bus object name.
@@ -289,51 +388,15 @@ class DBusClient {
         values: values);
     _sendMessage(message);
 
-    var completer = Completer<List<DBusValue>>();
-    _messageStream.listen((dynamic receivedData) {
-      var m = receivedData as DBusMessage;
-      if (m.replySerial == message.serial) {
-        if (m.type == MessageType.Error)
-          print('Error: ${m.errorName}'); // FIXME
-        completer.complete(m.values);
-      }
-    });
+    var call = _MethodCall(message.serial);
+    _methodCalls.add(call);
 
-    return completer.future;
+    return call.completer.future;
   }
 
   _sendMessage(DBusMessage message) {
     var buffer = DBusWriteBuffer();
     message.marshal(buffer);
-    _socket.write(buffer.data);
-  }
-
-  _authenticate() {
-    var uid = _socket.sendCredentials();
-    var uid_str = '';
-    for (var c in uid.toString().runes)
-      uid_str += c.toRadixString(16).padLeft(2);
-    _socket.write(utf8.encode('AUTH\r\n'));
-    print(utf8.decode(_socket.read(1024)));
-    _socket.write(utf8.encode('AUTH EXTERNAL ${uid_str}\r\n'));
-    print(utf8.decode(_socket.read(1024)));
-    _socket.write(utf8.encode('BEGIN\r\n'));
-  }
-}
-
-_read(ReadData _data) {
-  var readBuffer = DBusReadBuffer();
-  while (true) {
-    var message = DBusMessage();
-    var start = readBuffer.readOffset;
-    if (!message.unmarshal(readBuffer)) {
-      readBuffer.readOffset = start;
-      var data = _data.socket.read(1024);
-      readBuffer.writeBytes(data);
-      continue;
-    }
-    readBuffer.flush();
-
-    _data.port.send(message);
+    _socket.add(buffer.data);
   }
 }
