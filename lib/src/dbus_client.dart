@@ -31,20 +31,21 @@ class ReadData {
 
 /// A client connection to a D-Bus server.
 class DBusClient {
+  String _address;
   UnixDomainSocket _socket;
   var _lastSerial = 0;
   Stream _messageStream;
 
   /// Creates a new DBus client to connect on [address].
   DBusClient(String address) {
-    _setAddress(address);
+    _address = address;
   }
 
   /// Creates a new DBus client to communicate with the system bus.
   DBusClient.system() {
     var address = Platform.environment['DBUS_SYSTEM_BUS_ADDRESS'];
     if (address == null) address = 'unix:path=/run/dbus/system_bus_socket';
-    _setAddress(address);
+    _address = address;
   }
 
   /// Creates a new DBus client to communicate with the session bus.
@@ -58,21 +59,24 @@ class DBusClient {
       }
       address = "unix:path=${runtimeDir}/bus";
     }
-    _setAddress(address);
+    _address = address;
   }
 
-  _setAddress(String address_string) {
-    var address = DBusAddress(address_string);
+  /// Connects to the D-Bus server.
+  connect() async {
+    var address = DBusAddress(_address);
     if (address.transport != 'unix')
-      throw 'D-Bus address transport not supported: ${address_string}';
+      throw 'D-Bus address transport not supported: ${_address}';
 
     var paths = List<String>();
     for (var property in address.properties) {
       if (property.key == 'path') paths.add(property.value);
     }
     if (paths.length == 0)
-      throw 'Unable to determine D-Bus unix address path: ${address_string}';
+      throw 'Unable to determine D-Bus unix address path: ${_address}';
 
+    var socket_address =
+        InternetAddress(paths[0], type: InternetAddressType.unix);
     _socket = UnixDomainSocket.create(paths[0]);
     var dbusMessages = ReceivePort();
     _messageStream = dbusMessages.asBroadcastStream();
@@ -82,6 +86,24 @@ class DBusClient {
     Isolate.spawn(_read, data);
 
     _authenticate();
+
+    await callMethod(
+        destination: 'org.freedesktop.DBus',
+        path: '/org/freedesktop/DBus',
+        interface: 'org.freedesktop.DBus',
+        member: 'Hello');
+  }
+
+  _authenticate() {
+    _socket.sendCredentials();
+
+    var uid = _getuid();
+    var uidString = '';
+    for (var c in uid.toString().runes)
+      uidString += c.toRadixString(16).padLeft(2, '0');
+    _socket.write(utf8.encode('AUTH EXTERNAL ${uidString}\r\n'));
+    print(utf8.decode(_socket.read(1024)));
+    _socket.write(utf8.encode('BEGIN\r\n'));
   }
 
   listenSignal(
@@ -116,15 +138,6 @@ class DBusClient {
         _sendMessage(response);
       }
     });
-  }
-
-  /// Connects to the D-Bus server.
-  connect() async {
-    await callMethod(
-        destination: 'org.freedesktop.DBus',
-        path: '/org/freedesktop/DBus',
-        interface: 'org.freedesktop.DBus',
-        member: 'Hello');
   }
 
   /// Requests usage of [name] as a D-Bus object name.
@@ -315,17 +328,6 @@ class DBusClient {
     var buffer = DBusWriteBuffer();
     message.marshal(buffer);
     _socket.write(buffer.data);
-  }
-
-  _authenticate() {
-    _socket.sendCredentials();
-    var uid = _getuid();
-    var uid_str = '';
-    for (var c in uid.toString().runes)
-      uid_str += c.toRadixString(16).padLeft(2);
-    _socket.write(utf8.encode('AUTH EXTERNAL ${uid_str}\r\n'));
-    print(utf8.decode(_socket.read(1024)));
-    _socket.write(utf8.encode('BEGIN\r\n'));
   }
 }
 
