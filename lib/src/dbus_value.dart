@@ -1,41 +1,6 @@
 import "dart:convert";
 
 import "dbus_read_buffer.dart";
-import "dbus_write_buffer.dart";
-
-int _getAlignment(DBusWriteBuffer buffer, DBusValue value) {
-  if (value is DBusByte) {
-    return buffer.BYTE_ALIGNMENT;
-  } else if (value is DBusBoolean) {
-    return buffer.BOOLEAN_ALIGNMENT;
-  } else if (value is DBusInt16) {
-    return buffer.INT16_ALIGNMENT;
-  } else if (value is DBusUint16) {
-    return buffer.UINT16_ALIGNMENT;
-  } else if (value is DBusInt32) {
-    return buffer.INT32_ALIGNMENT;
-  } else if (value is DBusUint32) {
-    return buffer.UINT32_ALIGNMENT;
-  } else if (value is DBusInt64) {
-    return buffer.INT64_ALIGNMENT;
-  } else if (value is DBusUint64) {
-    return buffer.UINT64_ALIGNMENT;
-  } else if (value is DBusDouble) {
-    return buffer.DOUBLE_ALIGNMENT;
-  } else if (value is DBusString) {
-    return buffer.STRING_ALIGNMENT;
-  } else if (value is DBusSignature) {
-    return buffer.SIGNATURE_ALIGNMENT;
-  } else if (value is DBusVariant) {
-    return buffer.VARIANT_ALIGNMENT;
-  } else if (value is DBusStruct) {
-    return buffer.STRUCT_ALIGNMENT;
-  } else if (value is DBusArray) {
-    return buffer.ARRAY_ALIGNMENT;
-  } else if (value is DBusDict) {
-    return buffer.DICT_ALIGNMENT;
-  }
-}
 
 /// Base class for D-Bus values.
 abstract class DBusValue {
@@ -85,8 +50,6 @@ abstract class DBusValue {
 
   DBusSignature signature;
 
-  marshal(DBusWriteBuffer buffer) {}
-
   bool unmarshal(DBusReadBuffer buffer) {
     return false;
   }
@@ -110,11 +73,6 @@ class DBusByte extends DBusValue {
   @override
   int get alignment {
     return 1;
-  }
-
-  @override
-  marshal(DBusWriteBuffer buffer) {
-    buffer.writeByte(this.value);
   }
 
   @override
@@ -147,12 +105,6 @@ class DBusBoolean extends DBusValue {
   }
 
   @override
-  marshal(DBusWriteBuffer buffer) {
-    buffer.align(buffer.BOOLEAN_ALIGNMENT);
-    buffer.writeUint32(value ? 1 : 0);
-  }
-
-  @override
   bool unmarshal(DBusReadBuffer buffer) {
     if (!buffer.align(buffer.BOOLEAN_ALIGNMENT)) return false;
     if (buffer.remaining < 4) return false;
@@ -179,12 +131,6 @@ class DBusInt16 extends DBusValue {
   @override
   DBusSignature get signature {
     return _signature;
-  }
-
-  @override
-  marshal(DBusWriteBuffer buffer) {
-    buffer.align(buffer.INT16_ALIGNMENT);
-    buffer.writeInt16(value);
   }
 
   @override
@@ -217,12 +163,6 @@ class DBusUint16 extends DBusValue {
   }
 
   @override
-  marshal(DBusWriteBuffer buffer) {
-    buffer.align(buffer.UINT16_ALIGNMENT);
-    buffer.writeUint16(value);
-  }
-
-  @override
   bool unmarshal(DBusReadBuffer buffer) {
     if (!buffer.align(buffer.UINT16_ALIGNMENT)) return false;
     if (buffer.remaining < 2) return false;
@@ -249,12 +189,6 @@ class DBusInt32 extends DBusValue {
   @override
   DBusSignature get signature {
     return _signature;
-  }
-
-  @override
-  marshal(DBusWriteBuffer buffer) {
-    buffer.align(buffer.INT32_ALIGNMENT);
-    buffer.writeInt32(value);
   }
 
   @override
@@ -287,12 +221,6 @@ class DBusUint32 extends DBusValue {
   }
 
   @override
-  marshal(DBusWriteBuffer buffer) {
-    buffer.align(buffer.UINT32_ALIGNMENT);
-    buffer.writeUint32(value);
-  }
-
-  @override
   bool unmarshal(DBusReadBuffer buffer) {
     if (!buffer.align(buffer.UINT32_ALIGNMENT)) return false;
     if (buffer.remaining < 4) return false;
@@ -319,12 +247,6 @@ class DBusInt64 extends DBusValue {
   @override
   DBusSignature get signature {
     return _signature;
-  }
-
-  @override
-  marshal(DBusWriteBuffer buffer) {
-    buffer.align(buffer.INT64_ALIGNMENT);
-    buffer.writeInt64(value);
   }
 
   @override
@@ -357,12 +279,6 @@ class DBusUint64 extends DBusValue {
   }
 
   @override
-  marshal(DBusWriteBuffer buffer) {
-    buffer.align(buffer.UINT64_ALIGNMENT);
-    buffer.writeUint64(value);
-  }
-
-  @override
   bool unmarshal(DBusReadBuffer buffer) {
     if (!buffer.align(buffer.UINT64_ALIGNMENT)) return false;
     if (buffer.remaining < 8) return false;
@@ -392,12 +308,6 @@ class DBusDouble extends DBusValue {
   }
 
   @override
-  marshal(DBusWriteBuffer buffer) {
-    buffer.align(buffer.DOUBLE_ALIGNMENT);
-    buffer.writeFloat64(value);
-  }
-
-  @override
   bool unmarshal(DBusReadBuffer buffer) {
     if (!buffer.align(buffer.DOUBLE_ALIGNMENT)) return false;
     if (buffer.remaining < 8) return false;
@@ -424,15 +334,6 @@ class DBusString extends DBusValue {
   @override
   DBusSignature get signature {
     return _signature;
-  }
-
-  @override
-  marshal(DBusWriteBuffer buffer) {
-    var data = utf8.encode(value);
-    var length = DBusUint32(value.length);
-    length.marshal(buffer);
-    for (var d in data) buffer.writeByte(d);
-    buffer.writeByte(0);
   }
 
   @override
@@ -544,14 +445,6 @@ class DBusSignature extends DBusValue {
   }
 
   @override
-  marshal(DBusWriteBuffer buffer) {
-    var data = utf8.encode(value);
-    buffer.writeByte(value.length);
-    for (var d in data) buffer.writeByte(d);
-    buffer.writeByte(0);
-  }
-
-  @override
   bool unmarshal(DBusReadBuffer buffer) {
     if (buffer.remaining < 1) return false;
     var length = buffer.readByte();
@@ -585,12 +478,6 @@ class DBusVariant extends DBusValue {
   }
 
   @override
-  marshal(DBusWriteBuffer buffer) {
-    value.signature.marshal(buffer);
-    value.marshal(buffer);
-  }
-
-  @override
   bool unmarshal(DBusReadBuffer buffer) {
     var signature = DBusSignature('');
     if (!signature.unmarshal(buffer)) return false;
@@ -617,12 +504,6 @@ class DBusStruct extends DBusValue {
     var signature = '';
     for (var child in children) signature += child.signature.value;
     return DBusSignature('(' + signature + ')');
-  }
-
-  @override
-  marshal(DBusWriteBuffer buffer) {
-    buffer.align(buffer.STRUCT_ALIGNMENT);
-    for (var child in children) child.marshal(buffer);
   }
 
   @override
@@ -662,22 +543,6 @@ class DBusArray extends DBusValue {
   @override
   DBusSignature get signature {
     return DBusSignature('a' + childSignature.value);
-  }
-
-  @override
-  marshal(DBusWriteBuffer buffer) {
-    DBusUint32(0).marshal(buffer);
-    var lengthOffset = buffer.data.length - 4;
-    if (children.length > 0) buffer.align(_getAlignment(buffer, children[0]));
-    var startOffset = buffer.data.length;
-    for (var child in children) child.marshal(buffer);
-
-    // Update the length that was written
-    var length = buffer.data.length - startOffset;
-    buffer.setByte(lengthOffset + 0, (length >> 0) & 0xFF);
-    buffer.setByte(lengthOffset + 1, (length >> 8) & 0xFF);
-    buffer.setByte(lengthOffset + 2, (length >> 16) & 0xFF);
-    buffer.setByte(lengthOffset + 3, (length >> 24) & 0xFF);
   }
 
   @override
@@ -732,22 +597,6 @@ class DBusDict extends DBusValue {
   @override
   DBusSignature get signature {
     return DBusSignature('a{${keySignature.value}${valueSignature.value}}');
-  }
-
-  @override
-  marshal(DBusWriteBuffer buffer) {
-    DBusUint32(0).marshal(buffer);
-    var lengthOffset = buffer.data.length - 4;
-    if (children.length > 0) buffer.align(_getAlignment(buffer, children[0]));
-    var startOffset = buffer.data.length;
-    for (var child in children) child.marshal(buffer);
-
-    // Update the length that was written
-    var length = buffer.data.length - startOffset;
-    buffer.setByte(lengthOffset + 0, (length >> 0) & 0xFF);
-    buffer.setByte(lengthOffset + 1, (length >> 8) & 0xFF);
-    buffer.setByte(lengthOffset + 2, (length >> 16) & 0xFF);
-    buffer.setByte(lengthOffset + 3, (length >> 24) & 0xFF);
   }
 
   @override

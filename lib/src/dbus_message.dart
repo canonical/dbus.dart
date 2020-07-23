@@ -64,15 +64,15 @@ class DBusMessage {
 
   marshal(DBusWriteBuffer buffer) {
     var valueBuffer = DBusWriteBuffer();
-    for (var value in values) value.marshal(valueBuffer);
+    for (var value in values) valueBuffer.writeValue(value);
 
     // FIXME(robert-ancell): Handle endianess - currently hard-coded to little
-    DBusByte(Endianess.Little).marshal(buffer);
-    DBusByte(type).marshal(buffer);
-    DBusByte(flags).marshal(buffer);
-    DBusByte(ProtocolVersion).marshal(buffer);
-    DBusUint32(valueBuffer.data.length).marshal(buffer);
-    DBusUint32(serial).marshal(buffer);
+    buffer.writeValue(DBusByte(Endianess.Little));
+    buffer.writeValue(DBusByte(type));
+    buffer.writeValue(DBusByte(flags));
+    buffer.writeValue(DBusByte(ProtocolVersion));
+    buffer.writeValue(DBusUint32(valueBuffer.data.length));
+    buffer.writeValue(DBusUint32(serial));
     var headerArray = DBusArray(DBusSignature('(yv)'));
     if (this.path != null)
       headerArray.add(_makeHeader(HeaderCode.Path, DBusObjectPath(this.path)));
@@ -98,7 +98,7 @@ class DBusMessage {
       headerArray
           .add(_makeHeader(HeaderCode.Signature, DBusSignature(signature)));
     }
-    headerArray.marshal(buffer);
+    buffer.writeValue(headerArray);
     buffer.align(8);
     buffer.writeBytes(valueBuffer.data);
   }
