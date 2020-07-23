@@ -65,28 +65,28 @@ class DBusWriteBuffer extends DBusBuffer {
     if (value is DBusByte) {
       writeByte((value as DBusByte).value);
     } else if (value is DBusBoolean) {
-      align(getAlignment(value));
+      align(BOOLEAN_ALIGNMENT);
       writeUint32((value as DBusBoolean).value ? 1 : 0);
     } else if (value is DBusInt16) {
-      align(getAlignment(value));
+      align(INT16_ALIGNMENT);
       writeInt16((value as DBusInt16).value);
     } else if (value is DBusUint16) {
-      align(getAlignment(value));
+      align(UINT16_ALIGNMENT);
       writeUint16((value as DBusUint16).value);
     } else if (value is DBusInt32) {
-      align(getAlignment(value));
+      align(INT32_ALIGNMENT);
       writeInt32((value as DBusInt32).value);
     } else if (value is DBusUint32) {
-      align(getAlignment(value));
+      align(UINT32_ALIGNMENT);
       writeUint32((value as DBusUint32).value);
     } else if (value is DBusInt64) {
-      align(getAlignment(value));
+      align(INT64_ALIGNMENT);
       writeInt64((value as DBusInt64).value);
     } else if (value is DBusUint64) {
-      align(getAlignment(value));
+      align(UINT64_ALIGNMENT);
       writeUint64((value as DBusUint64).value);
     } else if (value is DBusDouble) {
-      align(getAlignment(value));
+      align(DOUBLE_ALIGNMENT);
       writeFloat64((value as DBusDouble).value);
     } else if (value is DBusString) {
       var data = utf8.encode((value as DBusString).value);
@@ -103,7 +103,7 @@ class DBusWriteBuffer extends DBusBuffer {
       writeValue(childValue.signature);
       writeValue(childValue);
     } else if (value is DBusStruct) {
-      align(getAlignment(value));
+      align(STRUCT_ALIGNMENT);
       var children = (value as DBusStruct).children;
       for (var child in children) writeValue(child);
     } else if (value is DBusArray) {

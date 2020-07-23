@@ -1,58 +1,8 @@
 import "dart:convert";
 
-import "dbus_read_buffer.dart";
-
 /// Base class for D-Bus values.
 abstract class DBusValue {
-  /// Creates a new D-Bus value from the given [signature].
-  static DBusValue fromSignature(DBusSignature signature) {
-    var s = signature.value;
-    if (s == 'y')
-      return DBusByte(0);
-    else if (s == 'b')
-      return DBusBoolean(false);
-    else if (s == 'n')
-      return DBusInt16(0);
-    else if (s == 'q')
-      return DBusUint16(0);
-    else if (s == 'i')
-      return DBusInt32(0);
-    else if (s == 'u')
-      return DBusUint32(0);
-    else if (s == 'x')
-      return DBusInt64(0);
-    else if (s == 't')
-      return DBusUint64(0);
-    else if (s == 'd')
-      return DBusDouble(0);
-    else if (s == 's')
-      return DBusString('');
-    else if (s == 'o')
-      return DBusObjectPath('');
-    else if (s == 'g')
-      return DBusSignature('');
-    else if (s == 'v')
-      return DBusVariant(null);
-    else if (s.startsWith('a{') && s.endsWith('}')) {
-      var childSignature = DBusSignature(s.substring(2, s.length - 1));
-      var signatures = childSignature.split(); // FIXME: Check two signatures
-      return DBusDict(signatures[0], signatures[1]);
-    } else if (s.startsWith('a'))
-      return DBusArray(DBusSignature(s.substring(1, s.length)));
-    else if (s.startsWith('(') && s.endsWith(')')) {
-      var children = List<DBusValue>();
-      for (var i = 1; i < s.length - 1; i++)
-        children.add(DBusValue.fromSignature(DBusSignature(s[i])));
-      return DBusStruct(children);
-    } else
-      throw "Unknown DBus data type '${s}'";
-  }
-
   DBusSignature signature;
-
-  bool unmarshal(DBusReadBuffer buffer) {
-    return false;
-  }
 }
 
 /// D-Bus representation of an unsigned 8 bit value.
@@ -73,13 +23,6 @@ class DBusByte extends DBusValue {
   @override
   int get alignment {
     return 1;
-  }
-
-  @override
-  bool unmarshal(DBusReadBuffer buffer) {
-    if (buffer.remaining < 1) return false;
-    value = buffer.readByte();
-    return true;
   }
 
   @override
@@ -105,14 +48,6 @@ class DBusBoolean extends DBusValue {
   }
 
   @override
-  bool unmarshal(DBusReadBuffer buffer) {
-    if (!buffer.align(buffer.BOOLEAN_ALIGNMENT)) return false;
-    if (buffer.remaining < 4) return false;
-    value = buffer.readUint32() != 0;
-    return true;
-  }
-
-  @override
   String toString() {
     return 'DBusBoolean(${value})';
   }
@@ -131,14 +66,6 @@ class DBusInt16 extends DBusValue {
   @override
   DBusSignature get signature {
     return _signature;
-  }
-
-  @override
-  bool unmarshal(DBusReadBuffer buffer) {
-    if (!buffer.align(buffer.INT16_ALIGNMENT)) return false;
-    if (buffer.remaining < 2) return false;
-    value = buffer.readInt16();
-    return true;
   }
 
   @override
@@ -163,14 +90,6 @@ class DBusUint16 extends DBusValue {
   }
 
   @override
-  bool unmarshal(DBusReadBuffer buffer) {
-    if (!buffer.align(buffer.UINT16_ALIGNMENT)) return false;
-    if (buffer.remaining < 2) return false;
-    value = buffer.readUint16();
-    return true;
-  }
-
-  @override
   String toString() {
     return 'DBusUint16(${value})';
   }
@@ -189,14 +108,6 @@ class DBusInt32 extends DBusValue {
   @override
   DBusSignature get signature {
     return _signature;
-  }
-
-  @override
-  bool unmarshal(DBusReadBuffer buffer) {
-    if (!buffer.align(buffer.INT32_ALIGNMENT)) return false;
-    if (buffer.remaining < 4) return false;
-    value = buffer.readInt32();
-    return true;
   }
 
   @override
@@ -221,14 +132,6 @@ class DBusUint32 extends DBusValue {
   }
 
   @override
-  bool unmarshal(DBusReadBuffer buffer) {
-    if (!buffer.align(buffer.UINT32_ALIGNMENT)) return false;
-    if (buffer.remaining < 4) return false;
-    value = buffer.readUint32();
-    return true;
-  }
-
-  @override
   String toString() {
     return 'DBusUint32(${value})';
   }
@@ -247,14 +150,6 @@ class DBusInt64 extends DBusValue {
   @override
   DBusSignature get signature {
     return _signature;
-  }
-
-  @override
-  bool unmarshal(DBusReadBuffer buffer) {
-    if (!buffer.align(buffer.INT64_ALIGNMENT)) return false;
-    if (buffer.remaining < 8) return false;
-    value = buffer.readInt64();
-    return true;
   }
 
   @override
@@ -279,14 +174,6 @@ class DBusUint64 extends DBusValue {
   }
 
   @override
-  bool unmarshal(DBusReadBuffer buffer) {
-    if (!buffer.align(buffer.UINT64_ALIGNMENT)) return false;
-    if (buffer.remaining < 8) return false;
-    value = buffer.readUint64();
-    return true;
-  }
-
-  @override
   String toString() {
     return 'DBusUint64(${value})';
   }
@@ -308,14 +195,6 @@ class DBusDouble extends DBusValue {
   }
 
   @override
-  bool unmarshal(DBusReadBuffer buffer) {
-    if (!buffer.align(buffer.DOUBLE_ALIGNMENT)) return false;
-    if (buffer.remaining < 8) return false;
-    value = buffer.readFloat64();
-    return true;
-  }
-
-  @override
   String toString() {
     return 'DBusDouble(${value})';
   }
@@ -334,18 +213,6 @@ class DBusString extends DBusValue {
   @override
   DBusSignature get signature {
     return _signature;
-  }
-
-  @override
-  bool unmarshal(DBusReadBuffer buffer) {
-    var length = DBusUint32(0);
-    if (!length.unmarshal(buffer)) return false;
-    if (buffer.remaining < (length.value + 1)) return false;
-    var values = List<int>();
-    for (var i = 0; i < length.value; i++) values.add(buffer.readByte());
-    this.value = utf8.decode(values);
-    buffer.readByte(); // Trailing nul
-    return true;
   }
 
   @override
@@ -445,18 +312,6 @@ class DBusSignature extends DBusValue {
   }
 
   @override
-  bool unmarshal(DBusReadBuffer buffer) {
-    if (buffer.remaining < 1) return false;
-    var length = buffer.readByte();
-    var values = List<int>();
-    if (buffer.remaining < length + 1) return false;
-    for (var i = 0; i < length; i++) values.add(buffer.readByte());
-    value = utf8.decode(values);
-    buffer.readByte(); // Trailing nul
-    return true;
-  }
-
-  @override
   String toString() {
     return "DBusSignature('${value}')";
   }
@@ -478,14 +333,6 @@ class DBusVariant extends DBusValue {
   }
 
   @override
-  bool unmarshal(DBusReadBuffer buffer) {
-    var signature = DBusSignature('');
-    if (!signature.unmarshal(buffer)) return false;
-    value = DBusValue.fromSignature(signature);
-    return value.unmarshal(buffer);
-  }
-
-  @override
   String toString() {
     return 'DBusVariant(${value.toString()})';
   }
@@ -504,16 +351,6 @@ class DBusStruct extends DBusValue {
     var signature = '';
     for (var child in children) signature += child.signature.value;
     return DBusSignature('(' + signature + ')');
-  }
-
-  @override
-  bool unmarshal(DBusReadBuffer buffer) {
-    if (!buffer.align(buffer.STRUCT_ALIGNMENT)) return false;
-    for (var child in children) {
-      if (!child.unmarshal(buffer)) return false;
-    }
-
-    return true;
   }
 
   @override
@@ -543,21 +380,6 @@ class DBusArray extends DBusValue {
   @override
   DBusSignature get signature {
     return DBusSignature('a' + childSignature.value);
-  }
-
-  @override
-  bool unmarshal(DBusReadBuffer buffer) {
-    var length = DBusUint32(0);
-    if (!length.unmarshal(buffer)) return false;
-    // FIXME: Align to first element (not in length)
-    var end = buffer.readOffset + length.value;
-    while (buffer.readOffset < end) {
-      var child = DBusValue.fromSignature(childSignature);
-      if (!child.unmarshal(buffer)) return false;
-      children.add(child);
-    }
-
-    return true;
   }
 
   @override
@@ -597,24 +419,6 @@ class DBusDict extends DBusValue {
   @override
   DBusSignature get signature {
     return DBusSignature('a{${keySignature.value}${valueSignature.value}}');
-  }
-
-  @override
-  bool unmarshal(DBusReadBuffer buffer) {
-    var length = DBusUint32(0);
-    if (!length.unmarshal(buffer)) return false;
-    // FIXME: Align to first element (not in length)
-    var end = buffer.readOffset + length.value;
-    while (buffer.readOffset < end) {
-      var child = DBusStruct([
-        DBusValue.fromSignature(keySignature),
-        DBusValue.fromSignature(valueSignature)
-      ]);
-      if (!child.unmarshal(buffer)) return false;
-      children.add(child);
-    }
-
-    return true;
   }
 
   @override

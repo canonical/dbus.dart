@@ -110,23 +110,14 @@ class DBusMessage {
   bool unmarshal(DBusReadBuffer buffer) {
     if (buffer.remaining < 12) return false;
 
-    var endianess = DBusByte(0);
-    endianess.unmarshal(buffer);
-    var type = DBusByte(0);
-    type.unmarshal(buffer);
-    this.type = type.value;
-    var flags = DBusByte(0);
-    flags.unmarshal(buffer);
-    this.flags = flags.value;
-    var protocolVersion = DBusByte(0);
-    protocolVersion.unmarshal(buffer);
-    var dataLength = DBusUint32(0);
-    dataLength.unmarshal(buffer);
-    var serial = DBusUint32(0);
-    serial.unmarshal(buffer);
-    this.serial = serial.value;
-    var headers = DBusArray(DBusSignature('(yv)'));
-    if (!headers.unmarshal(buffer)) return false;
+    var endianess = buffer.readDBusByte();
+    this.type = buffer.readDBusByte().value;
+    this.flags = buffer.readDBusByte().value;
+    buffer.readDBusByte(); // Protocol version.
+    var dataLength = buffer.readDBusUint32();
+    this.serial = buffer.readDBusUint32().value;
+    var headers = buffer.readDBusArray(DBusSignature('(yv)'));
+    if (headers == null) return false;
 
     DBusSignature signature;
     for (var child in headers.children) {
@@ -155,8 +146,8 @@ class DBusMessage {
     if (signature != null) {
       var signatures = signature.split();
       for (var s in signatures) {
-        var value = DBusValue.fromSignature(s);
-        if (!value.unmarshal(buffer)) return false;
+        var value = buffer.readDBusValue(s);
+        if (value == null) return false;
         values.add(value);
       }
     }

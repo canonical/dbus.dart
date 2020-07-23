@@ -2,6 +2,7 @@ import "dart:convert";
 import "dart:typed_data";
 
 import "dbus_buffer.dart";
+import "dbus_value.dart";
 
 class DBusReadBuffer extends DBusBuffer {
   var data = List<int>();
@@ -64,6 +65,182 @@ class DBusReadBuffer extends DBusBuffer {
 
   double readFloat64() {
     return ByteData.view(readBytes(8)).getFloat64(0, Endian.little);
+  }
+
+  DBusByte readDBusByte() {
+    if (remaining < 1) return null;
+    return DBusByte(readByte());
+  }
+
+  DBusBoolean readDBusBoolean() {
+    if (!align(BOOLEAN_ALIGNMENT)) return null;
+    if (remaining < 4) return null;
+    return DBusBoolean(readUint32() != 0);
+  }
+
+  DBusInt16 readDBusInt16() {
+    if (!align(INT16_ALIGNMENT)) return null;
+    if (remaining < 2) return null;
+    return DBusInt16(readInt16());
+  }
+
+  DBusUint16 readDBusUint16() {
+    if (!align(UINT16_ALIGNMENT)) return null;
+    if (remaining < 2) return null;
+    return DBusUint16(readUint16());
+  }
+
+  DBusInt32 readDBusInt32() {
+    if (!align(INT32_ALIGNMENT)) return null;
+    if (remaining < 4) return null;
+    return DBusInt32(readInt32());
+  }
+
+  DBusUint32 readDBusUint32() {
+    if (!align(UINT32_ALIGNMENT)) return null;
+    if (remaining < 4) return null;
+    return DBusUint32(readUint32());
+  }
+
+  DBusInt64 readDBusInt64() {
+    if (!align(INT64_ALIGNMENT)) return null;
+    if (remaining < 8) return null;
+    return DBusInt64(readInt64());
+  }
+
+  DBusUint64 readDBusUint64() {
+    if (!align(UINT64_ALIGNMENT)) return null;
+    if (remaining < 8) return null;
+    return DBusUint64(readUint64());
+  }
+
+  DBusDouble readDBusDouble() {
+    if (!align(DOUBLE_ALIGNMENT)) return null;
+    if (remaining < 8) return null;
+    return DBusDouble(readFloat64());
+  }
+
+  DBusString readDBusString() {
+    var length = readDBusUint32();
+    if (length == null) return null;
+    if (remaining < (length.value + 1)) return null;
+    var values = List<int>();
+    for (var i = 0; i < length.value; i++) values.add(readByte());
+    readByte(); // Trailing nul
+    return DBusString(utf8.decode(values));
+  }
+
+  DBusObjectPath readDBusObjectPath() {
+    var value = readDBusString();
+    if (value == null) return null;
+    return DBusObjectPath(value.value);
+  }
+
+  DBusSignature readDBusSignature() {
+    if (remaining < 1) return null;
+    var length = readByte();
+    var values = List<int>();
+    if (remaining < length + 1) return null;
+    for (var i = 0; i < length; i++) values.add(readByte());
+    readByte(); // Trailing nul
+    return DBusSignature(utf8.decode(values));
+  }
+
+  DBusVariant readDBusVariant() {
+    var signature = readDBusSignature();
+    if (signature == null) return null;
+    var childValue = readDBusValue(signature);
+    if (childValue == null) return null;
+    return DBusVariant(childValue);
+  }
+
+  DBusStruct readDBusStruct(List<DBusSignature> childSignatures) {
+    if (!align(STRUCT_ALIGNMENT)) return null;
+    var children = List<DBusValue>();
+    for (var signature in childSignatures) {
+      var child = readDBusValue(signature);
+      if (child == null) return null;
+      children.add(child);
+    }
+
+    return DBusStruct(children);
+  }
+
+  DBusArray readDBusArray(DBusSignature childSignature) {
+    var length = readDBusUint32();
+    if (length == null) return null;
+    // FIXME: Align to first element (not in length)
+    var end = readOffset + length.value;
+    var value = DBusArray(childSignature);
+    while (readOffset < end) {
+      var child = readDBusValue(childSignature);
+      if (child == null) return null;
+      value.add(child);
+    }
+
+    return value;
+  }
+
+  DBusDict readDBusDict(
+      DBusSignature keySignature, DBusSignature valueSignature) {
+    var length = readDBusUint32();
+    if (length == null) return null;
+    // FIXME: Align to first element (not in length)
+    var end = readOffset + length.value;
+    var value = DBusDict(keySignature, valueSignature);
+    var childSignatures = List<DBusSignature>();
+    childSignatures.add(keySignature);
+    childSignatures.add(valueSignature);
+    while (readOffset < end) {
+      var child = readDBusStruct(childSignatures);
+      if (child == null) return null;
+      value.add(child.children[0], child.children[1]);
+    }
+
+    return value;
+  }
+
+  DBusValue readDBusValue(DBusSignature signature) {
+    var s = signature.value;
+    if (s == 'y')
+      return readDBusByte();
+    else if (s == 'b')
+      return readDBusBoolean();
+    else if (s == 'n')
+      return readDBusInt16();
+    else if (s == 'q')
+      return readDBusUint16();
+    else if (s == 'i')
+      return readDBusInt32();
+    else if (s == 'u')
+      return readDBusUint32();
+    else if (s == 'x')
+      return readDBusInt64();
+    else if (s == 't')
+      return readDBusUint64();
+    else if (s == 'd')
+      return readDBusDouble();
+    else if (s == 's')
+      return readDBusString();
+    else if (s == 'o')
+      return readDBusObjectPath();
+    else if (s == 'g')
+      return readDBusSignature();
+    else if (s == 'v')
+      return readDBusVariant();
+    else if (s.startsWith('a{') && s.endsWith('}')) {
+      var childSignature = DBusSignature(s.substring(2, s.length - 1));
+      var signatures = childSignature.split(); // FIXME: Check two signatures
+      return readDBusDict(signatures[0], signatures[1]);
+    } else if (s.startsWith('a'))
+      return readDBusArray(DBusSignature(s.substring(1, s.length)));
+    else if (s.startsWith('(') && s.endsWith(')')) {
+      var childSignatures = List<DBusSignature>();
+      for (var i = 1; i < s.length - 1; i++)
+        childSignatures.add(DBusSignature(s[i]));
+      return readDBusStruct(childSignatures);
+    } else
+      throw "Unknown DBus data type '${s}'";
   }
 
   bool align(int boundary) {
