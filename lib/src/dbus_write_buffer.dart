@@ -130,7 +130,9 @@ class DBusWriteBuffer extends DBusBuffer {
       var children = (value as DBusDict).children;
       if (children.length > 0) align(getAlignment(children[0]));
       var startOffset = data.length;
-      for (var child in children) writeValue(child);
+      children.forEach((key, value) {
+        writeValue(DBusStruct([key, value]));
+      });
 
       // Update the length that was written
       var length = data.length - startOffset;

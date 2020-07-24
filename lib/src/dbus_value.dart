@@ -1,3 +1,4 @@
+import "dart:collection";
 import "dart:convert";
 
 /// Base class for D-Bus values.
@@ -8,16 +9,14 @@ abstract class DBusValue {
 /// D-Bus representation of an unsigned 8 bit value.
 class DBusByte extends DBusValue {
   /// A integer in the range [0, 255]
-  int value;
-
-  static final _signature = DBusSignature('y');
+  final int value;
 
   /// Creates a new byte with the given [value].
   DBusByte(this.value);
 
   @override
   DBusSignature get signature {
-    return _signature;
+    return DBusSignature('y');
   }
 
   @override
@@ -35,16 +34,14 @@ class DBusByte extends DBusValue {
 class DBusBoolean extends DBusValue {
   // FIXME: extends DBusUint32
   /// A boolean value.
-  bool value;
-
-  static final _signature = DBusSignature('b');
+  final bool value;
 
   /// Creates a new boolean with the given [value].
   DBusBoolean(this.value);
 
   @override
   DBusSignature get signature {
-    return _signature;
+    return DBusSignature('b');
   }
 
   @override
@@ -56,16 +53,14 @@ class DBusBoolean extends DBusValue {
 /// D-Bus representation of a signed 16 bit integer.
 class DBusInt16 extends DBusValue {
   /// An integer in the range [-32768, 32767]
-  int value;
-
-  static final _signature = DBusSignature('n');
+  final int value;
 
   /// Creates a new signed 16 bit integer with the given [value].
   DBusInt16(this.value);
 
   @override
   DBusSignature get signature {
-    return _signature;
+    return DBusSignature('n');
   }
 
   @override
@@ -77,16 +72,14 @@ class DBusInt16 extends DBusValue {
 /// D-Bus representation of an unsigned 16 bit integer.
 class DBusUint16 extends DBusValue {
   /// An integer in the range [0, 65535]
-  int value;
-
-  static final _signature = DBusSignature('q');
+  final int value;
 
   /// Creates a new unsigned 16 bit integer with the given [value].
   DBusUint16(this.value);
 
   @override
   DBusSignature get signature {
-    return _signature;
+    return DBusSignature('q');
   }
 
   @override
@@ -98,16 +91,14 @@ class DBusUint16 extends DBusValue {
 /// D-Bus representation of a signed 32 bit integer.
 class DBusInt32 extends DBusValue {
   /// An integer in the range [-2147483648, 2147483647]
-  int value;
-
-  static final _signature = DBusSignature('i');
+  final int value;
 
   /// Creates a new signed 32 bit integer with the given [value].
   DBusInt32(this.value);
 
   @override
   DBusSignature get signature {
-    return _signature;
+    return DBusSignature('i');
   }
 
   @override
@@ -119,16 +110,14 @@ class DBusInt32 extends DBusValue {
 /// D-Bus representation of an unsigned 32 bit integer.
 class DBusUint32 extends DBusValue {
   /// An integer in the range [0, 4294967295]
-  int value;
-
-  static final _signature = DBusSignature('u');
+  final int value;
 
   /// Creates a new unsigned 32 bit integer with the given [value].
   DBusUint32(this.value);
 
   @override
   DBusSignature get signature {
-    return _signature;
+    return DBusSignature('u');
   }
 
   @override
@@ -140,16 +129,14 @@ class DBusUint32 extends DBusValue {
 /// D-Bus representation of a signed 64 bit integer.
 class DBusInt64 extends DBusValue {
   /// An integer in the range [-9223372036854775808, 9223372036854775807]
-  int value;
-
-  static final _signature = DBusSignature('x');
+  final int value;
 
   /// Creates a new signed 64 bit integer with the given [value].
   DBusInt64(this.value);
 
   @override
   DBusSignature get signature {
-    return _signature;
+    return DBusSignature('x');
   }
 
   @override
@@ -161,16 +148,14 @@ class DBusInt64 extends DBusValue {
 /// D-Bus representation of an unsigned 64 bit integer.
 class DBusUint64 extends DBusValue {
   /// An integer in the range [0, 18446744073709551615]
-  int value;
-
-  static final _signature = DBusSignature('t');
+  final int value;
 
   /// Creates a new unsigned 64 bit integer with the given [value].
   DBusUint64(this.value);
 
   @override
   DBusSignature get signature {
-    return _signature;
+    return DBusSignature('t');
   }
 
   @override
@@ -182,16 +167,14 @@ class DBusUint64 extends DBusValue {
 /// D-Bus representation of a 64 bit floating point value.
 class DBusDouble extends DBusValue {
   /// A 64 bit floating point number.
-  double value;
-
-  static final _signature = DBusSignature('d');
+  final double value;
 
   /// Creates a new 64 bit floating point number the given [value].
   DBusDouble(this.value);
 
   @override
   DBusSignature get signature {
-    return _signature;
+    return DBusSignature('d');
   }
 
   @override
@@ -203,16 +186,14 @@ class DBusDouble extends DBusValue {
 /// D-Bus representation of an Unicode text string.
 class DBusString extends DBusValue {
   /// A Unicode text string.
-  String value;
-
-  static final _signature = DBusSignature('s');
+  final String value;
 
   /// Creates a new Unicode text string with the given [value].
   DBusString(this.value);
 
   @override
   DBusSignature get signature {
-    return _signature;
+    return DBusSignature('s');
   }
 
   @override
@@ -227,14 +208,12 @@ class DBusString extends DBusValue {
 /// The path must begin with `/` and contain the characters `[A-Z][a-z][0-9]_` separated by more `/` dividers.
 /// `/org/freedesktop/DBus` is a valid object path.
 class DBusObjectPath extends DBusString {
-  static final _signature = DBusSignature('o');
-
   /// Creates a new D-Bus object path with the given [value].
   DBusObjectPath(String value) : super(value);
 
   @override
   DBusSignature get signature {
-    return _signature;
+    return DBusSignature('o');
   }
 
   @override
@@ -265,9 +244,7 @@ class DBusObjectPath extends DBusString {
 /// * `a{kv}` → [DBusDict] (`k` and `v` represent the key and value signatures).
 class DBusSignature extends DBusValue {
   /// A D-Bus signature string.
-  String value;
-
-  static final _signature = DBusSignature('g');
+  final String value;
 
   /// Create a new D-Bus signature with the given [value].
   DBusSignature(this.value);
@@ -308,7 +285,7 @@ class DBusSignature extends DBusValue {
 
   @override
   DBusSignature get signature {
-    return _signature;
+    return DBusSignature('g');
   }
 
   @override
@@ -320,16 +297,14 @@ class DBusSignature extends DBusValue {
 /// D-Bus value that contains any D-Bus type.
 class DBusVariant extends DBusValue {
   /// The value contained in this variant.
-  DBusValue value;
-
-  static final _signature = DBusSignature('v');
+  final DBusValue value;
 
   /// Creates a new D-Bus variant containing [value].
   DBusVariant(this.value);
 
   @override
   DBusSignature get signature {
-    return _signature;
+    return DBusSignature('v');
   }
 
   @override
@@ -341,7 +316,7 @@ class DBusVariant extends DBusValue {
 /// D-Bus value that contains a fixed set of other values.
 class DBusStruct extends DBusValue {
   /// Child values in this structure.
-  List<DBusValue> children;
+  final List<DBusValue> children;
 
   /// Creates a new D-Bus structure containing [children] values.
   DBusStruct(this.children);
@@ -367,14 +342,16 @@ class DBusArray extends DBusValue {
   final DBusSignature childSignature;
 
   /// Ordered list of children in this array.
-  var children = List<DBusValue>();
+  final List<DBusValue> children;
 
-  /// Creates a new empty D-Bus array containing values that match [childSignature].
-  DBusArray(this.childSignature);
-
-  /// Adds [value] to the end of the array.
-  add(DBusValue value) {
-    children.add(value);
+  /// Creates a new empty D-Bus array containing [children].
+  ///
+  /// An exception will be thrown if a DBusValue in [children] doesn't have a signature matching [childSignature].
+  DBusArray(this.childSignature, this.children) {
+    for (var child in children) {
+      if (child.signature.value != childSignature.value)
+        throw "Provided children don't match array signature";
+    }
   }
 
   @override
@@ -399,21 +376,18 @@ class DBusDict extends DBusValue {
   final DBusSignature valueSignature;
 
   /// The child values in this dictionary.
-  var children = List<DBusStruct>();
+  final LinkedHashMap<DBusValue, DBusValue> children;
 
   /// Creates a new dictionary with keys of the type [keySignature] and values of the type [valueSignature].
-  DBusDict(this.keySignature, this.valueSignature);
-
-  /// Sets the [key] in the dictionary to have [value]. An existing value used by this key is removed.
-  add(DBusValue key, DBusValue value) {
-    // FIXME: Check if key exists
-    children.add(DBusStruct([key, value]));
-  }
-
-  /// Gets the value in the dictionary using [key]. If no value exists null is returned.
-  DBusValue lookup(DBusValue key) {
-    for (var child in children) if (child.children[0] == key) return child;
-    return null;
+  ///
+  /// An exception will be thrown if the DBusValues in [children] don't have signatures matching [keySignature] and [valueSignature].
+  DBusDict(this.keySignature, this.valueSignature, this.children) {
+    children.forEach((key, value) {
+      if (key.signature.value != keySignature.value)
+        throw "Provided key don't match signature";
+      if (value.signature.value != valueSignature.value)
+        throw "Provided value don't match signature";
+    });
   }
 
   @override
@@ -424,7 +398,9 @@ class DBusDict extends DBusValue {
   @override
   String toString() {
     var childrenText = List<String>();
-    for (var child in children) childrenText.add(child.toString());
+    children.forEach((key, value) {
+      childrenText.add('${key.toString()}: ${value.toString()}');
+    });
     return "DBusDict([${childrenText.join(', ')}])";
   }
 }

@@ -73,32 +73,31 @@ class DBusMessage {
     buffer.writeValue(DBusByte(ProtocolVersion));
     buffer.writeValue(DBusUint32(valueBuffer.data.length));
     buffer.writeValue(DBusUint32(serial));
-    var headerArray = DBusArray(DBusSignature('(yv)'));
+    var headers = List<DBusValue>();
     if (this.path != null)
-      headerArray.add(_makeHeader(HeaderCode.Path, DBusObjectPath(this.path)));
+      headers.add(_makeHeader(HeaderCode.Path, DBusObjectPath(this.path)));
     if (this.interface != null)
-      headerArray
+      headers
           .add(_makeHeader(HeaderCode.Interface, DBusString(this.interface)));
     if (this.member != null)
-      headerArray.add(_makeHeader(HeaderCode.Member, DBusString(this.member)));
+      headers.add(_makeHeader(HeaderCode.Member, DBusString(this.member)));
     if (this.errorName != null)
-      headerArray
+      headers
           .add(_makeHeader(HeaderCode.ErrorName, DBusString(this.errorName)));
     if (this.replySerial != null)
-      headerArray.add(
+      headers.add(
           _makeHeader(HeaderCode.ReplySerial, DBusUint32(this.replySerial)));
     if (this.destination != null)
-      headerArray.add(
+      headers.add(
           _makeHeader(HeaderCode.Destination, DBusString(this.destination)));
     if (this.sender != null)
-      headerArray.add(_makeHeader(HeaderCode.Sender, DBusString(this.sender)));
+      headers.add(_makeHeader(HeaderCode.Sender, DBusString(this.sender)));
     if (this.values.length > 0) {
       String signature = '';
       for (var value in values) signature += value.signature.value;
-      headerArray
-          .add(_makeHeader(HeaderCode.Signature, DBusSignature(signature)));
+      headers.add(_makeHeader(HeaderCode.Signature, DBusSignature(signature)));
     }
-    buffer.writeValue(headerArray);
+    buffer.writeValue(DBusArray(DBusSignature('(yv)'), headers));
     buffer.align(8);
     buffer.writeBytes(valueBuffer.data);
   }

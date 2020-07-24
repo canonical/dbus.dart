@@ -1,3 +1,4 @@
+import "dart:collection";
 import "dart:convert";
 import "dart:typed_data";
 
@@ -171,14 +172,14 @@ class DBusReadBuffer extends DBusBuffer {
     if (length == null) return null;
     // FIXME: Align to first element (not in length)
     var end = readOffset + length.value;
-    var value = DBusArray(childSignature);
+    var children = new List<DBusValue>();
     while (readOffset < end) {
       var child = readDBusValue(childSignature);
       if (child == null) return null;
-      value.add(child);
+      children.add(child);
     }
 
-    return value;
+    return DBusArray(childSignature, children);
   }
 
   DBusDict readDBusDict(
@@ -187,17 +188,17 @@ class DBusReadBuffer extends DBusBuffer {
     if (length == null) return null;
     // FIXME: Align to first element (not in length)
     var end = readOffset + length.value;
-    var value = DBusDict(keySignature, valueSignature);
     var childSignatures = List<DBusSignature>();
     childSignatures.add(keySignature);
     childSignatures.add(valueSignature);
+    var children = new LinkedHashMap<DBusValue, DBusValue>();
     while (readOffset < end) {
       var child = readDBusStruct(childSignatures);
       if (child == null) return null;
-      value.add(child.children[0], child.children[1]);
+      children.update(child.children[0], (e) => child.children[1]);
     }
 
-    return value;
+    return DBusDict(keySignature, valueSignature, children);
   }
 
   DBusValue readDBusValue(DBusSignature signature) {
