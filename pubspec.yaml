@@ -1,6 +1,10 @@
 name: dbus_client
 version: 0.0.0-dev.8
-description: Native DBus client library.
+
+description:
+  A native Dart implementation of the D-Bus message bus client. This package
+  allows Dart applications to directly access services on the Linux desktop.
+
 homepage: https://github.com/CanonicalLtd/dbus_client.dart
 
 environment:
