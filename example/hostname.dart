@@ -8,4 +8,5 @@ main() async {
   var result = await proxy.getProperty('org.freedesktop.hostname1', 'Hostname');
   var hostname = (result.value as DBusString).value;
   print("hostname: ${hostname}");
+  client.disconnect();
 }

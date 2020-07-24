@@ -9,6 +9,7 @@ main() async {
   await client.requestName('com.canonical.DBusDart');
   client.listenMethod('com.canonical.DBusDart',
       (String path, String interface, String member, List<DBusValue> values) {
+    client.disconnect();
     if (member == 'Test')
       return [new DBusString('Hello World!')];
     else

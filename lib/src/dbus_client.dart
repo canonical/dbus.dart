@@ -120,6 +120,10 @@ class DBusClient {
         member: 'Hello');
   }
 
+  disconnect() async {
+    await _socket.close();
+  }
+
   _authenticate() async {
     // Send an empty byte, as this is required if sending the credentials as a socket control message.
     // We rely on the server using SO_PEERCRED to check out credentials.
