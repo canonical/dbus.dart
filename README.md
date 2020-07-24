@@ -13,4 +13,5 @@ var proxy = DBusObjectProxy(client, 'org.freedesktop.hostname1', '/org/freedeskt
 var result = await proxy.getProperty('org.freedesktop.hostname1', 'Hostname');
 var hostname = (result.value as DBusString).value;
 print("hostname: ${hostname}");
+await client.disconnect();
 ```
