@@ -63,6 +63,11 @@ class DBusMethodErrorResponse extends DBusMethodResponse {
       : this('org.freedesktop.DBus.Error.PropertyReadOnly',
             [DBusString('Property is read-only')]);
 
+  /// Creates a new error response when attempting to read to a write-only property.
+  DBusMethodErrorResponse.propertyWriteOnly()
+      : this('org.freedesktop.DBus.Error.PropertyWriteOnly',
+            [DBusString('Property is write-only')]);
+
   @override
   List<DBusValue> get returnValues => throw 'Error: ${errorName}';
 }
