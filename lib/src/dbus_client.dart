@@ -14,8 +14,7 @@ import "dbus_write_buffer.dart";
 
 typedef SignalCallback(
     String path, String interface, String member, List<DBusValue> values);
-// FIXME: Should be async
-typedef List<DBusValue> MethodCallback(
+typedef Future<List<DBusValue>> MethodCallback(
     String path, String interface, String member, List<DBusValue> values);
 
 typedef _getuidC = Int32 Function();
@@ -173,19 +172,7 @@ class DBusClient {
     }
 
     if (message.type == MessageType.MethodCall) {
-      var handler = _findMethodHandler(message.interface);
-      if (handler != null) {
-        var result = handler.callback(
-            message.path, message.interface, message.member, message.values);
-        _lastSerial++;
-        var response = DBusMessage(
-            type: MessageType.MethodReturn,
-            serial: _lastSerial,
-            replySerial: message.serial,
-            destination: message.sender,
-            values: result);
-        _sendMessage(response);
-      }
+      _processMethodCall(message);
     } else if (message.type == MessageType.MethodReturn ||
         message.type == MessageType.Error) {
       _processMethodReturn(message);
@@ -196,6 +183,22 @@ class DBusClient {
     }
 
     return false;
+  }
+
+  _processMethodCall(DBusMessage message) async {
+    var handler = _findMethodHandler(message.interface);
+    if (handler == null) return;
+
+    var result = await handler.callback(
+        message.path, message.interface, message.member, message.values);
+    _lastSerial++;
+    var response = DBusMessage(
+        type: MessageType.MethodReturn,
+        serial: _lastSerial,
+        replySerial: message.serial,
+        destination: message.sender,
+        values: result);
+    _sendMessage(response);
   }
 
   _processMethodReturn(DBusMessage message) {
