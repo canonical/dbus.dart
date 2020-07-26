@@ -8,45 +8,47 @@ abstract class DBusValue {
   /// Creates a new D-Bus value from the given [signature].
   static DBusValue fromSignature(DBusSignature signature) {
     var s = signature.value;
-    if (s == 'y')
+    if (s == 'y') {
       return DBusByte(0);
-    else if (s == 'b')
+    } else if (s == 'b') {
       return DBusBoolean(false);
-    else if (s == 'n')
+    } else if (s == 'n') {
       return DBusInt16(0);
-    else if (s == 'q')
+    } else if (s == 'q') {
       return DBusUint16(0);
-    else if (s == 'i')
+    } else if (s == 'i') {
       return DBusInt32(0);
-    else if (s == 'u')
+    } else if (s == 'u') {
       return DBusUint32(0);
-    else if (s == 'x')
+    } else if (s == 'x') {
       return DBusInt64(0);
-    else if (s == 't')
+    } else if (s == 't') {
       return DBusUint64(0);
-    else if (s == 'd')
+    } else if (s == 'd') {
       return DBusDouble(0);
-    else if (s == 's')
+    } else if (s == 's') {
       return DBusString('');
-    else if (s == 'o')
+    } else if (s == 'o') {
       return DBusObjectPath('');
-    else if (s == 'g')
+    } else if (s == 'g') {
       return DBusSignature('');
-    else if (s == 'v')
+    } else if (s == 'v') {
       return DBusVariant(null);
-    else if (s.startsWith('a{') && s.endsWith('}')) {
+    } else if (s.startsWith('a{') && s.endsWith('}')) {
       var childSignature = DBusSignature(s.substring(2, s.length - 1));
       var signatures = childSignature.split(); // FIXME: Check two signatures
       return DBusDict(signatures[0], signatures[1]);
-    } else if (s.startsWith('a'))
+    } else if (s.startsWith('a')) {
       return DBusArray(DBusSignature(s.substring(1, s.length)));
-    else if (s.startsWith('(') && s.endsWith(')')) {
+    } else if (s.startsWith('(') && s.endsWith(')')) {
       var children = List<DBusValue>();
-      for (var i = 1; i < s.length - 1; i++)
+      for (var i = 1; i < s.length - 1; i++) {
         children.add(DBusValue.fromSignature(DBusSignature(s[i])));
+      }
       return DBusStruct(children);
-    } else
+    } else {
       throw "Unknown DBus data type '${s}'";
+    }
   }
 
   DBusSignature signature;
@@ -756,7 +758,9 @@ class DBusDict extends DBusValue {
 
   /// Gets the value in the dictionary using [key]. If no value exists null is returned.
   DBusValue lookup(DBusValue key) {
-    for (var child in children) if (child.children[0] == key) return child;
+    for (var child in children) {
+      if (child.children[0] == key) return child;
+    }
     return null;
   }
 

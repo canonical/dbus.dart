@@ -66,7 +66,9 @@ class DBusClient {
   /// Creates a new DBus client to communicate with the system bus.
   DBusClient.system() {
     var address = Platform.environment['DBUS_SYSTEM_BUS_ADDRESS'];
-    if (address == null) address = 'unix:path=/run/dbus/system_bus_socket';
+    if (address == null) {
+      address = 'unix:path=/run/dbus/system_bus_socket';
+    }
     _address = address;
   }
 
@@ -95,15 +97,17 @@ class DBusClient {
   /// Connects to the D-Bus server.
   connect() async {
     var address = DBusAddress(_address);
-    if (address.transport != 'unix')
+    if (address.transport != 'unix') {
       throw 'D-Bus address transport not supported: ${_address}';
+    }
 
     var paths = List<String>();
     for (var property in address.properties) {
       if (property.key == 'path') paths.add(property.value);
     }
-    if (paths.length == 0)
+    if (paths.length == 0) {
       throw 'Unable to determine D-Bus unix address path: ${_address}';
+    }
 
     var socket_address =
         InternetAddress(paths[0], type: InternetAddressType.unix);
@@ -127,8 +131,9 @@ class DBusClient {
 
     var uid = _getuid();
     var uidString = '';
-    for (var c in uid.toString().runes)
+    for (var c in uid.toString().runes) {
       uidString += c.toRadixString(16).padLeft(2, '0');
+    }
     _socket.write('AUTH EXTERNAL ${uidString}\r\n');
 
     return _authenticateCompleter.future;
@@ -139,10 +144,11 @@ class DBusClient {
 
     var complete = false;
     while (!complete) {
-      if (!_authenticateCompleter.isCompleted)
+      if (!_authenticateCompleter.isCompleted) {
         complete = _processAuth();
-      else
+      } else {
         complete = _processMessages();
+      }
       _readBuffer.flush();
     }
   }
@@ -154,8 +160,9 @@ class DBusClient {
     if (line.startsWith('OK ')) {
       _socket.write('BEGIN\r\n');
       _authenticateCompleter.complete();
-    } else
+    } else {
       throw 'Failed to authenticate: ${line}';
+    }
 
     return false;
   }
@@ -186,9 +193,10 @@ class DBusClient {
         message.type == MessageType.Error) {
       _processMethodReturn(message);
     } else if (message.type == MessageType.Signal) {
-      for (var handler in _signalHandlers)
+      for (var handler in _signalHandlers) {
         handler.callback(
             message.path, message.interface, message.member, message.values);
+      }
     }
 
     return false;
@@ -199,20 +207,23 @@ class DBusClient {
     if (methodCall == null) return;
     _methodCalls.remove(methodCall);
 
-    if (message.type == MessageType.Error)
+    if (message.type == MessageType.Error) {
       print('Error: ${message.errorName}'); // FIXME
+    }
     methodCall.completer.complete(message.values);
   }
 
   _MethodCall _findMethodCall(int serial) {
-    for (var methodCall in _methodCalls)
+    for (var methodCall in _methodCalls) {
       if (methodCall.serial == serial) return methodCall;
+    }
     return null;
   }
 
   _MethodHandler _findMethodHandler(String interface) {
-    for (var handler in _methodHandlers)
+    for (var handler in _methodHandlers) {
       if (handler.interface == interface) return handler;
+    }
     return null;
   }
 
@@ -247,8 +258,9 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         member: 'ListNames');
     var names = List<String>();
-    for (var name in (result[0] as DBusArray).children)
+    for (var name in (result[0] as DBusArray).children) {
       names.add((name as DBusString).value);
+    }
     return names;
   }
 
@@ -259,8 +271,9 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         member: 'ListActivatableNames');
     var names = List<String>();
-    for (var name in (result[0] as DBusArray).children)
+    for (var name in (result[0] as DBusArray).children) {
       names.add((name as DBusString).value);
+    }
     return names;
   }
 
