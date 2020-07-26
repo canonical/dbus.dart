@@ -1,5 +1,3 @@
-import "dbus_value.dart";
-
 class DBusBuffer {
   final int BYTE_ALIGNMENT = 1;
   final int BOOLEAN_ALIGNMENT = 4;

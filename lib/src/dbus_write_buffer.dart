@@ -63,55 +63,55 @@ class DBusWriteBuffer extends DBusBuffer {
 
   writeValue(DBusValue value) {
     if (value is DBusByte) {
-      writeByte((value as DBusByte).value);
+      writeByte(value.value);
     } else if (value is DBusBoolean) {
       align(BOOLEAN_ALIGNMENT);
-      writeUint32((value as DBusBoolean).value ? 1 : 0);
+      writeUint32(value.value ? 1 : 0);
     } else if (value is DBusInt16) {
       align(INT16_ALIGNMENT);
-      writeInt16((value as DBusInt16).value);
+      writeInt16(value.value);
     } else if (value is DBusUint16) {
       align(UINT16_ALIGNMENT);
-      writeUint16((value as DBusUint16).value);
+      writeUint16(value.value);
     } else if (value is DBusInt32) {
       align(INT32_ALIGNMENT);
-      writeInt32((value as DBusInt32).value);
+      writeInt32(value.value);
     } else if (value is DBusUint32) {
       align(UINT32_ALIGNMENT);
-      writeUint32((value as DBusUint32).value);
+      writeUint32(value.value);
     } else if (value is DBusInt64) {
       align(INT64_ALIGNMENT);
-      writeInt64((value as DBusInt64).value);
+      writeInt64(value.value);
     } else if (value is DBusUint64) {
       align(UINT64_ALIGNMENT);
-      writeUint64((value as DBusUint64).value);
+      writeUint64(value.value);
     } else if (value is DBusDouble) {
       align(DOUBLE_ALIGNMENT);
-      writeFloat64((value as DBusDouble).value);
+      writeFloat64(value.value);
     } else if (value is DBusString) {
-      var data = utf8.encode((value as DBusString).value);
+      var data = utf8.encode(value.value);
       writeValue(DBusUint32(data.length));
       for (var d in data) writeByte(d);
       writeByte(0); // Terminating nul.
     } else if (value is DBusSignature) {
-      var data = utf8.encode((value as DBusSignature).value);
+      var data = utf8.encode(value.value);
       writeByte(data.length);
       for (var d in data) writeByte(d);
       writeByte(0);
     } else if (value is DBusVariant) {
-      var childValue = (value as DBusVariant).value;
+      var childValue = value.value;
       writeValue(childValue.signature);
       writeValue(childValue);
     } else if (value is DBusStruct) {
       align(STRUCT_ALIGNMENT);
-      var children = (value as DBusStruct).children;
+      var children = value.children;
       for (var child in children) writeValue(child);
     } else if (value is DBusArray) {
       // Length will be overwritten later.
       writeValue(DBusUint32(0));
       var lengthOffset = data.length - 4;
 
-      var children = (value as DBusArray).children;
+      var children = value.children;
       if (children.length > 0) align(getAlignment(children[0]));
       var startOffset = data.length;
       for (var child in children) writeValue(child);
@@ -127,7 +127,7 @@ class DBusWriteBuffer extends DBusBuffer {
       writeValue(DBusUint32(0));
       var lengthOffset = data.length - 4;
 
-      var children = (value as DBusDict).children;
+      var children = value.children;
       if (children.length > 0) align(getAlignment(children[0]));
       var startOffset = data.length;
       children.forEach((key, value) {
@@ -174,6 +174,8 @@ class DBusWriteBuffer extends DBusBuffer {
       return ARRAY_ALIGNMENT;
     } else if (value is DBusDict) {
       return DICT_ALIGNMENT;
+    } else {
+      return 0;
     }
   }
 

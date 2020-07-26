@@ -1,5 +1,4 @@
 import "dart:collection";
-import "dart:convert";
 
 /// Base class for D-Bus values.
 abstract class DBusValue {
@@ -17,11 +16,6 @@ class DBusByte extends DBusValue {
   @override
   DBusSignature get signature {
     return DBusSignature('y');
-  }
-
-  @override
-  int get alignment {
-    return 1;
   }
 
   @override

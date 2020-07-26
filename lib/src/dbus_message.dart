@@ -109,11 +109,11 @@ class DBusMessage {
   bool unmarshal(DBusReadBuffer buffer) {
     if (buffer.remaining < 12) return false;
 
-    var endianess = buffer.readDBusByte();
+    buffer.readDBusByte(); // Endianess.
     this.type = buffer.readDBusByte().value;
     this.flags = buffer.readDBusByte().value;
     buffer.readDBusByte(); // Protocol version.
-    var dataLength = buffer.readDBusUint32();
+    buffer.readDBusUint32(); // Data length
     this.serial = buffer.readDBusUint32().value;
     var headers = buffer.readDBusArray(DBusSignature('(yv)'));
     if (headers == null) return false;
