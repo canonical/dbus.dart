@@ -1,4 +1,5 @@
 import 'package:dbus_client/dbus_client.dart';
+import 'dart:collection';
 
 main() async {
   var client = DBusClient.session();
@@ -11,8 +12,9 @@ main() async {
     new DBusString(''), // Icon
     new DBusString('Hello World!'), // Summary
     new DBusString(''), // Body
-    new DBusArray(new DBusSignature('s')), // Actions
-    new DBusDict(new DBusSignature('s'), new DBusSignature('v')), // Hints
+    new DBusArray(new DBusSignature('s'), []), // Actions
+    new DBusDict(new DBusSignature('s'), new DBusSignature('v'),
+        LinkedHashMap<DBusValue, DBusValue>()), // Hints
     new DBusInt32(-1), // Expire timeout
   ];
   var result =

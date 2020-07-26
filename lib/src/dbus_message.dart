@@ -64,41 +64,40 @@ class DBusMessage {
 
   marshal(DBusWriteBuffer buffer) {
     var valueBuffer = DBusWriteBuffer();
-    for (var value in values) value.marshal(valueBuffer);
+    for (var value in values) valueBuffer.writeValue(value);
 
     // FIXME(robert-ancell): Handle endianess - currently hard-coded to little
-    DBusByte(Endianess.Little).marshal(buffer);
-    DBusByte(type).marshal(buffer);
-    DBusByte(flags).marshal(buffer);
-    DBusByte(ProtocolVersion).marshal(buffer);
-    DBusUint32(valueBuffer.data.length).marshal(buffer);
-    DBusUint32(serial).marshal(buffer);
-    var headerArray = DBusArray(DBusSignature('(yv)'));
+    buffer.writeValue(DBusByte(Endianess.Little));
+    buffer.writeValue(DBusByte(type));
+    buffer.writeValue(DBusByte(flags));
+    buffer.writeValue(DBusByte(ProtocolVersion));
+    buffer.writeValue(DBusUint32(valueBuffer.data.length));
+    buffer.writeValue(DBusUint32(serial));
+    var headers = List<DBusValue>();
     if (this.path != null)
-      headerArray.add(_makeHeader(HeaderCode.Path, DBusObjectPath(this.path)));
+      headers.add(_makeHeader(HeaderCode.Path, DBusObjectPath(this.path)));
     if (this.interface != null)
-      headerArray
+      headers
           .add(_makeHeader(HeaderCode.Interface, DBusString(this.interface)));
     if (this.member != null)
-      headerArray.add(_makeHeader(HeaderCode.Member, DBusString(this.member)));
+      headers.add(_makeHeader(HeaderCode.Member, DBusString(this.member)));
     if (this.errorName != null)
-      headerArray
+      headers
           .add(_makeHeader(HeaderCode.ErrorName, DBusString(this.errorName)));
     if (this.replySerial != null)
-      headerArray.add(
+      headers.add(
           _makeHeader(HeaderCode.ReplySerial, DBusUint32(this.replySerial)));
     if (this.destination != null)
-      headerArray.add(
+      headers.add(
           _makeHeader(HeaderCode.Destination, DBusString(this.destination)));
     if (this.sender != null)
-      headerArray.add(_makeHeader(HeaderCode.Sender, DBusString(this.sender)));
+      headers.add(_makeHeader(HeaderCode.Sender, DBusString(this.sender)));
     if (this.values.length > 0) {
       String signature = '';
       for (var value in values) signature += value.signature.value;
-      headerArray
-          .add(_makeHeader(HeaderCode.Signature, DBusSignature(signature)));
+      headers.add(_makeHeader(HeaderCode.Signature, DBusSignature(signature)));
     }
-    headerArray.marshal(buffer);
+    buffer.writeValue(DBusArray(DBusSignature('(yv)'), headers));
     buffer.align(8);
     buffer.writeBytes(valueBuffer.data);
   }
@@ -110,23 +109,14 @@ class DBusMessage {
   bool unmarshal(DBusReadBuffer buffer) {
     if (buffer.remaining < 12) return false;
 
-    var endianess = DBusByte(0);
-    endianess.unmarshal(buffer);
-    var type = DBusByte(0);
-    type.unmarshal(buffer);
-    this.type = type.value;
-    var flags = DBusByte(0);
-    flags.unmarshal(buffer);
-    this.flags = flags.value;
-    var protocolVersion = DBusByte(0);
-    protocolVersion.unmarshal(buffer);
-    var dataLength = DBusUint32(0);
-    dataLength.unmarshal(buffer);
-    var serial = DBusUint32(0);
-    serial.unmarshal(buffer);
-    this.serial = serial.value;
-    var headers = DBusArray(DBusSignature('(yv)'));
-    if (!headers.unmarshal(buffer)) return false;
+    buffer.readDBusByte(); // Endianess.
+    this.type = buffer.readDBusByte().value;
+    this.flags = buffer.readDBusByte().value;
+    buffer.readDBusByte(); // Protocol version.
+    buffer.readDBusUint32(); // Data length
+    this.serial = buffer.readDBusUint32().value;
+    var headers = buffer.readDBusArray(DBusSignature('(yv)'));
+    if (headers == null) return false;
 
     DBusSignature signature;
     for (var child in headers.children) {
@@ -155,8 +145,8 @@ class DBusMessage {
     if (signature != null) {
       var signatures = signature.split();
       for (var s in signatures) {
-        var value = DBusValue.fromSignature(s);
-        if (!value.unmarshal(buffer)) return false;
+        var value = buffer.readDBusValue(s);
+        if (value == null) return false;
         values.add(value);
       }
     }
