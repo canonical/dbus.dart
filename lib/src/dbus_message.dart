@@ -74,27 +74,36 @@ class DBusMessage {
     buffer.writeValue(DBusUint32(valueBuffer.data.length));
     buffer.writeValue(DBusUint32(serial));
     var headers = List<DBusValue>();
-    if (this.path != null)
+    if (this.path != null) {
       headers.add(_makeHeader(HeaderCode.Path, DBusObjectPath(this.path)));
-    if (this.interface != null)
+    }
+    if (this.interface != null) {
       headers
           .add(_makeHeader(HeaderCode.Interface, DBusString(this.interface)));
-    if (this.member != null)
+    }
+    if (this.member != null) {
       headers.add(_makeHeader(HeaderCode.Member, DBusString(this.member)));
-    if (this.errorName != null)
+    }
+    if (this.errorName != null) {
       headers
           .add(_makeHeader(HeaderCode.ErrorName, DBusString(this.errorName)));
-    if (this.replySerial != null)
+    }
+    if (this.replySerial != null) {
       headers.add(
           _makeHeader(HeaderCode.ReplySerial, DBusUint32(this.replySerial)));
-    if (this.destination != null)
+    }
+    if (this.destination != null) {
       headers.add(
           _makeHeader(HeaderCode.Destination, DBusString(this.destination)));
-    if (this.sender != null)
+    }
+    if (this.sender != null) {
       headers.add(_makeHeader(HeaderCode.Sender, DBusString(this.sender)));
+    }
     if (this.values.length > 0) {
       String signature = '';
-      for (var value in values) signature += value.signature.value;
+      for (var value in values) {
+        signature += value.signature.value;
+      }
       headers.add(_makeHeader(HeaderCode.Signature, DBusSignature(signature)));
     }
     buffer.writeValue(DBusArray(DBusSignature('(yv)'), headers));
@@ -123,21 +132,23 @@ class DBusMessage {
       var header = child as DBusStruct;
       var code = (header.children[0] as DBusByte).value;
       var value = (header.children[1] as DBusVariant).value;
-      if (code == HeaderCode.Path)
+      if (code == HeaderCode.Path) {
         this.path = (value as DBusObjectPath).value;
-      else if (code == HeaderCode.Interface)
+      } else if (code == HeaderCode.Interface) {
         this.interface = (value as DBusString).value;
-      else if (code == HeaderCode.Member)
+      } else if (code == HeaderCode.Member) {
         this.member = (value as DBusString).value;
-      else if (code == HeaderCode.ErrorName)
+      } else if (code == HeaderCode.ErrorName) {
         this.errorName = (value as DBusString).value;
-      else if (code == HeaderCode.ReplySerial)
+      } else if (code == HeaderCode.ReplySerial) {
         this.replySerial = (value as DBusUint32).value;
-      else if (code == HeaderCode.Destination)
+      } else if (code == HeaderCode.Destination) {
         this.destination = (value as DBusString).value;
-      else if (code == HeaderCode.Sender)
+      } else if (code == HeaderCode.Sender) {
         this.sender = (value as DBusString).value;
-      else if (code == HeaderCode.Signature) signature = value as DBusSignature;
+      } else if (code == HeaderCode.Signature) {
+        signature = value as DBusSignature;
+      }
     }
     if (!buffer.align(8)) return false;
 
@@ -157,25 +168,31 @@ class DBusMessage {
   @override
   String toString() {
     var text = 'DBusMessage(type=';
-    if (type == MessageType.MethodCall)
+    if (type == MessageType.MethodCall) {
       text += 'MessageType.MethodCall';
-    else if (type == MessageType.MethodReturn)
+    } else if (type == MessageType.MethodReturn) {
       text += 'MessageType.MethodReturn';
-    else if (type == MessageType.Error)
+    } else if (type == MessageType.Error) {
       text += 'MessageType.Error';
-    else if (type == MessageType.Signal)
+    } else if (type == MessageType.Signal) {
       text += 'MessageType.Signal';
-    else
+    } else {
       text += '${type}';
+    }
     if (flags != 0) {
       var flagNames = List<String>();
-      if (flags & Flags.NoReplyExpected != 0)
+      if (flags & Flags.NoReplyExpected != 0) {
         flagNames.add('Flags.NoReplyExpected');
-      if (flags & Flags.NoAutoStart != 0) flagNames.add('Flags.NoAutoStart');
-      if (flags & Flags.AllowInteractiveAuthorization != 0)
+      }
+      if (flags & Flags.NoAutoStart != 0) {
+        flagNames.add('Flags.NoAutoStart');
+      }
+      if (flags & Flags.AllowInteractiveAuthorization != 0) {
         flagNames.add('Flags.AllowInteractiveAuthorization');
-      if (flags & 0xF8 != 0)
+      }
+      if (flags & 0xF8 != 0) {
         flagNames.add((flags & 0xF8).toRadixString(16).padLeft(2));
+      }
       text += ' flags=${flagNames.join('|')}';
     }
     text += ' serial=${serial}';
@@ -188,7 +205,9 @@ class DBusMessage {
     if (sender != null) text += ", sender='${sender}'";
     if (values.length > 0) {
       var valueText = List<String>();
-      for (var value in values) valueText.add(value.toString());
+      for (var value in values) {
+        valueText.add(value.toString());
+      }
       text += ", values=[${valueText.join(', ')}]";
     }
     text += ')';

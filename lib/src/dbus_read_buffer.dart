@@ -261,10 +261,11 @@ class DBusReadBuffer extends DBusBuffer {
   toString() {
     var s = '';
     for (var d in data) {
-      if (d >= 33 && d <= 126)
+      if (d >= 33 && d <= 126) {
         s += String.fromCharCode(d);
-      else
+      } else {
         s += '\\' + d.toRadixString(8);
+      }
     }
     return "DBusReadBuffer('${s}')";
   }
