@@ -1,5 +1,5 @@
-import "dbus_client.dart";
-import "dbus_value.dart";
+import 'dbus_client.dart';
+import 'dbus_value.dart';
 
 /// An object to simplify access to a D-Bus object.
 class DBusObjectProxy {

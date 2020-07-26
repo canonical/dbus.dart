@@ -1,4 +1,4 @@
-import "dart:collection";
+import 'dart:collection';
 
 /// Base class for D-Bus values.
 abstract class DBusValue {

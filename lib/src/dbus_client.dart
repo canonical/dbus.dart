@@ -1,13 +1,13 @@
-import "dart:async";
-import "dart:ffi";
-import "dart:io";
-import "dart:typed_data";
+import 'dart:async';
+import 'dart:ffi';
+import 'dart:io';
+import 'dart:typed_data';
 
-import "dbus_address.dart";
-import "dbus_message.dart";
-import "dbus_read_buffer.dart";
-import "dbus_value.dart";
-import "dbus_write_buffer.dart";
+import 'dbus_address.dart';
+import 'dbus_message.dart';
+import 'dbus_read_buffer.dart';
+import 'dbus_value.dart';
+import 'dbus_write_buffer.dart';
 
 // FIXME: Use more efficient data store than List<int>?
 // FIXME: Use ByteData more efficiently - don't copy when reading/writing
@@ -79,7 +79,7 @@ class DBusClient {
         var uid = _getuid();
         runtimeDir = '/run/user/${uid}';
       }
-      address = "unix:path=${runtimeDir}/bus";
+      address = 'unix:path=${runtimeDir}/bus';
     }
     _address = address;
   }
