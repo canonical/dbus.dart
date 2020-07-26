@@ -377,10 +377,12 @@ class DBusDict extends DBusValue {
   /// An exception will be thrown if the DBusValues in [children] don't have signatures matching [keySignature] and [valueSignature].
   DBusDict(this.keySignature, this.valueSignature, this.children) {
     children.forEach((key, value) {
-      if (key.signature.value != keySignature.value)
+      if (key.signature.value != keySignature.value) {
         throw "Provided key don't match signature";
-      if (value.signature.value != valueSignature.value)
+      }
+      if (value.signature.value != valueSignature.value) {
         throw "Provided value don't match signature";
+      }
     });
   }
 
