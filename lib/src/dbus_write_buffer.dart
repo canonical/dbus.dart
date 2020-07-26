@@ -1,4 +1,4 @@
-import "dart:typed_data";
+import 'dart:typed_data';
 
 class DBusWriteBuffer {
   var data = List<int>();

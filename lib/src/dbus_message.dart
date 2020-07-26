@@ -1,6 +1,6 @@
-import "dbus_value.dart";
-import "dbus_read_buffer.dart";
-import "dbus_write_buffer.dart";
+import 'dbus_value.dart';
+import 'dbus_read_buffer.dart';
+import 'dbus_write_buffer.dart';
 
 const ProtocolVersion = 1;
 
@@ -193,7 +193,7 @@ class DBusMessage {
     if (interface != null) text += ", interface='${interface}'";
     if (member != null) text += ", member='${member}'";
     if (errorName != null) text += ", errorName='${errorName}'";
-    if (replySerial != null) text += ", replySerial=${replySerial}";
+    if (replySerial != null) text += ', replySerial=${replySerial}';
     if (destination != null) text += ", destination='${destination}'";
     if (sender != null) text += ", sender='${sender}'";
     if (values.length > 0) {

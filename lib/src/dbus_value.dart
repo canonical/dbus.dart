@@ -1,7 +1,7 @@
-import "dart:convert";
+import 'dart:convert';
 
-import "dbus_read_buffer.dart";
-import "dbus_write_buffer.dart";
+import 'dbus_read_buffer.dart';
+import 'dbus_write_buffer.dart';
 
 /// Base class for D-Bus values.
 abstract class DBusValue {
