@@ -5,7 +5,7 @@ description:
   A native Dart implementation of the D-Bus message bus client. This package
   allows Dart applications to directly access services on the Linux desktop.
 
-homepage: https://github.com/CanonicalLtd/dbus_client.dart
+homepage: https://github.com/canonical/dbus_client.dart
 
 environment:
   sdk: '>=2.7.2 <3.0.0'
