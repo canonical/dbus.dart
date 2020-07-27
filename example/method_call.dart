@@ -7,8 +7,8 @@ main() async {
   var client = DBusClient.session();
   await client.connect();
   await client.requestName('com.canonical.DBusDart');
-  client.listenMethod('com.canonical.DBusDart',
-      (String path, String interface, String member, List<DBusValue> values) async {
+  client.listenMethod('com.canonical.DBusDart', (String path, String interface,
+      String member, List<DBusValue> values) async {
     if (member == 'Test') {
       return [new DBusString('Hello World!')];
     } else {
