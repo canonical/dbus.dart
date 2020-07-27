@@ -1,9 +1,9 @@
-import "dart:collection";
-import "dart:convert";
-import "dart:typed_data";
+import 'dart:collection';
+import 'dart:convert';
+import 'dart:typed_data';
 
-import "dbus_buffer.dart";
-import "dbus_value.dart";
+import 'dbus_buffer.dart';
+import 'dbus_value.dart';
 
 class DBusReadBuffer extends DBusBuffer {
   var data = List<int>();
@@ -261,10 +261,11 @@ class DBusReadBuffer extends DBusBuffer {
   toString() {
     var s = '';
     for (var d in data) {
-      if (d >= 33 && d <= 126)
+      if (d >= 33 && d <= 126) {
         s += String.fromCharCode(d);
-      else
+      } else {
         s += '\\' + d.toRadixString(8);
+      }
     }
     return "DBusReadBuffer('${s}')";
   }
