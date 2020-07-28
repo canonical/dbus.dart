@@ -9,3 +9,6 @@ homepage: https://github.com/canonical/dbus_client.dart
 
 environment:
   sdk: '>=2.7.2 <3.0.0'
+
+dependencies:
+  xml: ^4.3.0
