@@ -23,14 +23,14 @@ class DBusObjectProxy {
   }
 
   /// Gets a property on this object.
-  Future<DBusVariant> getProperty(String interface, String name) async {
+  Future<DBusValue> getProperty(String interface, String name) async {
     var result = await client.callMethod(
         destination: destination,
         path: path,
         interface: 'org.freedesktop.DBus.Properties',
         member: 'Get',
         values: [DBusString(interface), DBusString(name)]);
-    return result[0] as DBusVariant;
+    return (result[0] as DBusVariant).value;
   }
 
   /// Gets the values of all the properties on this object.
