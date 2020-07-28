@@ -11,6 +11,8 @@ class DBusObjectProxy {
   DBusObjectProxy(this.client, this.destination, this.path);
 
   /// Gets the introspection data for this object.
+  ///
+  /// The introspection data is an XML document that can be parsed using [parseDBusIntrospectXml].
   Future<String> introspect() async {
     var result = await client.callMethod(
         destination: destination,
