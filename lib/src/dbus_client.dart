@@ -199,14 +199,7 @@ class DBusClient {
 
     var result = await handler.callback(
         message.path.value, message.interface, message.member, message.values);
-    _lastSerial++;
-    var response = DBusMessage(
-        type: MessageType.MethodReturn,
-        serial: _lastSerial,
-        replySerial: message.serial,
-        destination: message.sender,
-        values: result);
-    _sendMessage(response);
+    _sendReturn(message.serial, message.sender, result);
   }
 
   _processMethodReturn(DBusMessage message) {
@@ -347,6 +340,16 @@ class DBusClient {
       String member,
       List<DBusValue> values}) async {
     if (values == null) values = List<DBusValue>();
+    _sendMethodCall(destination, path, interface, member, values);
+
+    var call = _MethodCall(_lastSerial);
+    _methodCalls.add(call);
+
+    return call.completer.future;
+  }
+
+  _sendMethodCall(String destination, String path, String interface,
+      String member, List<DBusValue> values) {
     _lastSerial++;
     var message = DBusMessage(
         type: MessageType.MethodCall,
@@ -357,11 +360,17 @@ class DBusClient {
         member: member,
         values: values);
     _sendMessage(message);
+  }
 
-    var call = _MethodCall(message.serial);
-    _methodCalls.add(call);
-
-    return call.completer.future;
+  _sendReturn(int serial, String destination, List<DBusValue> values) {
+    _lastSerial++;
+    var message = DBusMessage(
+        type: MessageType.MethodReturn,
+        serial: _lastSerial,
+        replySerial: serial,
+        destination: destination,
+        values: values);
+    _sendMessage(message);
   }
 
   _sendMessage(DBusMessage message) {
