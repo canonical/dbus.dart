@@ -233,7 +233,24 @@ class DBusString extends DBusValue {
 /// `/org/freedesktop/DBus` is a valid object path.
 class DBusObjectPath extends DBusString {
   /// Creates a new D-Bus object path with the given [value].
-  DBusObjectPath(String value) : super(value);
+  DBusObjectPath(String value) : super(value) {
+    if (value != '/') {
+      if (value.contains(RegExp('[^a-zA-Z0-9_/]')) ||
+          !value.startsWith('/') ||
+          value.endsWith('/')) {
+        throw 'Invalid object path: ${value}';
+      }
+    }
+  }
+
+  /// Splits an object path into separate elements, e.g. '/org/freedesktop/DBus' -> [ 'org', 'freedesktop', 'DBus' ].
+  List<String> split() {
+    if (value == '/') {
+      return [];
+    } else {
+      return value.substring(1).split('/');
+    }
+  }
 
   @override
   DBusSignature get signature {
