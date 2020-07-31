@@ -40,7 +40,7 @@ class DBusMessage {
   int type;
   int flags;
   int serial;
-  String path;
+  DBusObjectPath path;
   String interface;
   String member;
   String errorName;
@@ -75,7 +75,7 @@ class DBusMessage {
     buffer.writeValue(DBusUint32(serial));
     var headers = List<DBusValue>();
     if (this.path != null) {
-      headers.add(_makeHeader(HeaderCode.Path, DBusObjectPath(this.path)));
+      headers.add(_makeHeader(HeaderCode.Path, this.path));
     }
     if (this.interface != null) {
       headers
@@ -133,7 +133,7 @@ class DBusMessage {
       var code = (header.children[0] as DBusByte).value;
       var value = (header.children[1] as DBusVariant).value;
       if (code == HeaderCode.Path) {
-        this.path = (value as DBusObjectPath).value;
+        this.path = value as DBusObjectPath;
       } else if (code == HeaderCode.Interface) {
         this.interface = (value as DBusString).value;
       } else if (code == HeaderCode.Member) {
