@@ -185,8 +185,8 @@ class DBusClient {
       _processMethodReturn(message);
     } else if (message.type == MessageType.Signal) {
       for (var handler in _signalHandlers) {
-        handler.callback(
-            message.path, message.interface, message.member, message.values);
+        handler.callback(message.path.value, message.interface, message.member,
+            message.values);
       }
     }
 
@@ -198,7 +198,7 @@ class DBusClient {
     if (handler == null) return;
 
     var result = await handler.callback(
-        message.path, message.interface, message.member, message.values);
+        message.path.value, message.interface, message.member, message.values);
     _lastSerial++;
     var response = DBusMessage(
         type: MessageType.MethodReturn,
@@ -352,7 +352,7 @@ class DBusClient {
         type: MessageType.MethodCall,
         serial: _lastSerial,
         destination: destination,
-        path: path,
+        path: DBusObjectPath(path),
         interface: interface,
         member: member,
         values: values);
