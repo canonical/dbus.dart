@@ -12,7 +12,7 @@ main() async {
     if (member == 'Test') {
       return [new DBusString('Hello World!')];
     } else {
-      return [];
+      return null;
     }
   });
 }

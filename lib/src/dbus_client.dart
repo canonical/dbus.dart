@@ -195,10 +195,20 @@ class DBusClient {
 
   _processMethodCall(DBusMessage message) async {
     var handler = _findMethodHandler(message.interface);
-    if (handler == null) return;
+    if (handler == null) {
+      _sendError(message.serial, message.sender,
+          'org.freedesktop.DBus.Error.UnknownInterface', []);
+      return;
+    }
 
     var result = await handler.callback(
         message.path.value, message.interface, message.member, message.values);
+    if (result == null) {
+      _sendError(message.serial, message.sender,
+          'org.freedesktop.DBus.Error.UnknownMethod', []);
+      return;
+    }
+
     _sendReturn(message.serial, message.sender, result);
   }
 
@@ -358,6 +368,19 @@ class DBusClient {
         path: DBusObjectPath(path),
         interface: interface,
         member: member,
+        values: values);
+    _sendMessage(message);
+  }
+
+  _sendError(int serial, String destination, String errorName,
+      List<DBusValue> values) {
+    _lastSerial++;
+    var message = DBusMessage(
+        type: MessageType.Error,
+        serial: _lastSerial,
+        errorName: errorName,
+        replySerial: serial,
+        destination: destination,
         values: values);
     _sendMessage(message);
   }
