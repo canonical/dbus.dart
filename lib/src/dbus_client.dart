@@ -12,9 +12,9 @@ import 'dbus_write_buffer.dart';
 // FIXME: Use more efficient data store than List<int>?
 // FIXME: Use ByteData more efficiently - don't copy when reading/writing
 
-typedef SignalCallback(
+typedef SignalCallback = Function(
     String path, String interface, String member, List<DBusValue> values);
-typedef Future<List<DBusValue>> MethodCallback(
+typedef MethodCallback = Future<List<DBusValue>> Function(
     String path, String interface, String member, List<DBusValue> values);
 
 typedef _getuidC = Int32 Function();
@@ -30,7 +30,7 @@ class _MethodCall {
   int serial;
   var completer = Completer<List<DBusValue>>();
 
-  _MethodCall(this.serial) {}
+  _MethodCall(this.serial);
 }
 
 class _SignalHandler {
@@ -43,7 +43,7 @@ class _MethodHandler {
   String interface;
   MethodCallback callback;
 
-  _MethodHandler(this.interface, this.callback) {}
+  _MethodHandler(this.interface, this.callback);
 }
 
 /// A client connection to a D-Bus server.
@@ -51,12 +51,12 @@ class DBusClient {
   String _address;
   Socket _socket;
   DBusReadBuffer _readBuffer;
-  var _authenticateCompleter = Completer();
+  final _authenticateCompleter = Completer();
   var _lastSerial = 0;
-  var _methodCalls = List<_MethodCall>();
-  var _signalHandlers = List<_SignalHandler>();
-  var _methodHandlers = List<_MethodHandler>();
-  var _objects = Set<DBusObjectPath>();
+  final _methodCalls = <_MethodCall>[];
+  final _signalHandlers = <_SignalHandler>[];
+  final _methodHandlers = <_MethodHandler>[];
+  final _objects = <DBusObjectPath>{};
 
   /// Creates a new DBus client to connect on [address].
   DBusClient(String address) {
@@ -66,9 +66,7 @@ class DBusClient {
   /// Creates a new DBus client to communicate with the system bus.
   DBusClient.system() {
     var address = Platform.environment['DBUS_SYSTEM_BUS_ADDRESS'];
-    if (address == null) {
-      address = 'unix:path=/run/dbus/system_bus_socket';
-    }
+    address ??= 'unix:path=/run/dbus/system_bus_socket';
     _address = address;
   }
 
@@ -86,26 +84,26 @@ class DBusClient {
     _address = address;
   }
 
-  listenSignal(SignalCallback callback) {
+  void listenSignal(SignalCallback callback) {
     _signalHandlers.add(_SignalHandler(callback));
   }
 
-  listenMethod(String interface, MethodCallback callback) {
+  void listenMethod(String interface, MethodCallback callback) {
     _methodHandlers.add(_MethodHandler(interface, callback));
   }
 
   /// Connects to the D-Bus server.
-  connect() async {
+  void connect() async {
     var address = DBusAddress(_address);
     if (address.transport != 'unix') {
       throw 'D-Bus address transport not supported: ${_address}';
     }
 
-    var paths = List<String>();
+    var paths = <String>[];
     for (var property in address.properties) {
       if (property.key == 'path') paths.add(property.value);
     }
-    if (paths.length == 0) {
+    if (paths.isEmpty) {
       throw 'Unable to determine D-Bus unix address path: ${_address}';
     }
 
@@ -124,11 +122,11 @@ class DBusClient {
         member: 'Hello');
   }
 
-  disconnect() async {
+  void disconnect() async {
     await _socket.close();
   }
 
-  _authenticate() async {
+  Future<dynamic> _authenticate() async {
     // Send an empty byte, as this is required if sending the credentials as a socket control message.
     // We rely on the server using SO_PEERCRED to check out credentials.
     _socket.add([0]);
@@ -143,7 +141,7 @@ class DBusClient {
     return _authenticateCompleter.future;
   }
 
-  _processData(Uint8List data) {
+  void _processData(Uint8List data) {
     _readBuffer.writeBytes(data);
 
     var complete = false;
@@ -194,7 +192,7 @@ class DBusClient {
     return false;
   }
 
-  _processMethodCall(DBusMessage message) async {
+  void _processMethodCall(DBusMessage message) async {
     if (message.interface == 'org.freedesktop.DBus.Introspectable') {
       _processIntrospectable(message);
       return;
@@ -224,9 +222,9 @@ class DBusClient {
     _sendReturn(message.serial, message.sender, result);
   }
 
-  _processIntrospectable(DBusMessage message) async {
+  void _processIntrospectable(DBusMessage message) async {
     if (message.member == 'Introspect') {
-      var children = Set<String>();
+      var children = <String>{};
       var pathElements = message.path.split();
       for (var path in _objects) {
         var elements = path.split();
@@ -242,7 +240,9 @@ class DBusClient {
         xml += '</method>';
         xml += '</interface>';
       }
-      for (var node in children) xml += '<node name="${node}"/>';
+      for (var node in children) {
+        xml += '<node name="${node}"/>';
+      }
       xml += '</node>';
       _sendReturn(message.serial, message.sender, [DBusString(xml)]);
     } else {
@@ -251,14 +251,17 @@ class DBusClient {
     }
   }
 
-  _isSubnode(List<String> parent, List<String> child) {
+  bool _isSubnode(List<String> parent, List<String> child) {
     if (parent.length >= child.length) return false;
-    for (var i = 0; i < parent.length; i++)
-      if (child[i] != parent[i]) return false;
+    for (var i = 0; i < parent.length; i++) {
+      if (child[i] != parent[i]) {
+        return false;
+      }
+    }
     return true;
   }
 
-  _processMethodReturn(DBusMessage message) {
+  void _processMethodReturn(DBusMessage message) {
     var methodCall = _findMethodCall(message.replySerial);
     if (methodCall == null) return;
     _methodCalls.remove(methodCall);
@@ -313,7 +316,7 @@ class DBusClient {
         path: '/org/freedesktop/DBus',
         interface: 'org.freedesktop.DBus',
         member: 'ListNames');
-    var names = List<String>();
+    var names = <String>[];
     for (var name in (result[0] as DBusArray).children) {
       names.add((name as DBusString).value);
     }
@@ -326,7 +329,7 @@ class DBusClient {
         path: '/org/freedesktop/DBus',
         interface: 'org.freedesktop.DBus',
         member: 'ListActivatableNames');
-    var names = List<String>();
+    var names = <String>[];
     for (var name in (result[0] as DBusArray).children) {
       names.add((name as DBusString).value);
     }
@@ -343,7 +346,7 @@ class DBusClient {
     return (result[0] as DBusBoolean).value;
   }
 
-  addMatch(String rule) async {
+  void addMatch(String rule) async {
     await callMethod(
         destination: 'org.freedesktop.DBus',
         path: '/org/freedesktop/DBus',
@@ -352,7 +355,7 @@ class DBusClient {
         values: [DBusString(rule)]);
   }
 
-  removeMatch(String rule) async {
+  void removeMatch(String rule) async {
     await callMethod(
         destination: 'org.freedesktop.DBus',
         path: '/org/freedesktop/DBus',
@@ -370,7 +373,7 @@ class DBusClient {
     return (result[0] as DBusString).value;
   }
 
-  peerPing(String destination, String path) async {
+  void peerPing(String destination, String path) async {
     await callMethod(
         destination: destination,
         path: path,
@@ -395,7 +398,7 @@ class DBusClient {
       String interface,
       String member,
       List<DBusValue> values}) async {
-    if (values == null) values = List<DBusValue>();
+    values ??= <DBusValue>[];
     _sendMethodCall(destination, path, interface, member, values);
 
     var call = _MethodCall(_lastSerial);
@@ -405,11 +408,11 @@ class DBusClient {
   }
 
   /// Registers a new object on the bus with the given [path].
-  registerObject(String path) {
+  void registerObject(String path) {
     _objects.add(DBusObjectPath(path));
   }
 
-  _sendMethodCall(String destination, String path, String interface,
+  void _sendMethodCall(String destination, String path, String interface,
       String member, List<DBusValue> values) {
     _lastSerial++;
     var message = DBusMessage(
@@ -423,7 +426,7 @@ class DBusClient {
     _sendMessage(message);
   }
 
-  _sendError(int serial, String destination, String errorName,
+  void _sendError(int serial, String destination, String errorName,
       List<DBusValue> values) {
     _lastSerial++;
     var message = DBusMessage(
@@ -436,7 +439,7 @@ class DBusClient {
     _sendMessage(message);
   }
 
-  _sendReturn(int serial, String destination, List<DBusValue> values) {
+  void _sendReturn(int serial, String destination, List<DBusValue> values) {
     _lastSerial++;
     var message = DBusMessage(
         type: MessageType.MethodReturn,
@@ -447,7 +450,7 @@ class DBusClient {
     _sendMessage(message);
   }
 
-  _sendMessage(DBusMessage message) {
+  void _sendMessage(DBusMessage message) {
     var buffer = DBusWriteBuffer();
     message.marshal(buffer);
     _socket.add(buffer.data);

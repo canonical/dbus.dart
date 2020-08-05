@@ -1,6 +1,6 @@
 import 'package:dbus_client/dbus_client.dart';
 
-main() async {
+void main() async {
   var client = DBusClient.system();
   await client.connect();
   var proxy = DBusObjectProxy(

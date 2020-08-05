@@ -45,7 +45,7 @@ class DBusObjectProxy {
   }
 
   /// Sets a property on this object.
-  setProperty(String interface, String name, DBusValue value) async {
+  void setProperty(String interface, String name, DBusValue value) async {
     await client.callMethod(
         destination: destination,
         path: path,

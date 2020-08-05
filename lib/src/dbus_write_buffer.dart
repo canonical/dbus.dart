@@ -5,63 +5,63 @@ import 'dbus_buffer.dart';
 import 'dbus_value.dart';
 
 class DBusWriteBuffer extends DBusBuffer {
-  var data = List<int>();
+  var data = <int>[];
 
-  writeByte(int value) {
+  void writeByte(int value) {
     data.add(value);
   }
 
-  writeBytes(Iterable<int> value) {
+  void writeBytes(Iterable<int> value) {
     data.addAll(value);
   }
 
-  writeInt16(int value) {
+  void writeInt16(int value) {
     var bytes = Uint8List(2).buffer;
     ByteData.view(bytes).setInt16(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
-  writeUint16(int value) {
+  void writeUint16(int value) {
     var bytes = Uint8List(2).buffer;
     ByteData.view(bytes).setUint16(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
-  writeInt32(int value) {
+  void writeInt32(int value) {
     var bytes = Uint8List(4).buffer;
     ByteData.view(bytes).setInt32(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
-  writeUint32(int value) {
+  void writeUint32(int value) {
     var bytes = Uint8List(4).buffer;
     ByteData.view(bytes).setUint32(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
-  writeInt64(int value) {
+  void writeInt64(int value) {
     var bytes = Uint8List(8).buffer;
     ByteData.view(bytes).setInt64(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
-  writeUint64(int value) {
+  void writeUint64(int value) {
     var bytes = Uint8List(8).buffer;
     ByteData.view(bytes).setUint64(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
-  writeFloat64(double value) {
+  void writeFloat64(double value) {
     var bytes = Uint8List(8).buffer;
     ByteData.view(bytes).setFloat64(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
-  setByte(int offset, int value) {
+  void setByte(int offset, int value) {
     data[offset] = value;
   }
 
-  writeValue(DBusValue value) {
+  void writeValue(DBusValue value) {
     if (value is DBusByte) {
       writeByte(value.value);
     } else if (value is DBusBoolean) {
@@ -91,12 +91,16 @@ class DBusWriteBuffer extends DBusBuffer {
     } else if (value is DBusString) {
       var data = utf8.encode(value.value);
       writeValue(DBusUint32(data.length));
-      for (var d in data) writeByte(d);
+      for (var d in data) {
+        writeByte(d);
+      }
       writeByte(0); // Terminating nul.
     } else if (value is DBusSignature) {
       var data = utf8.encode(value.value);
       writeByte(data.length);
-      for (var d in data) writeByte(d);
+      for (var d in data) {
+        writeByte(d);
+      }
       writeByte(0);
     } else if (value is DBusVariant) {
       var childValue = value.value;
@@ -105,16 +109,20 @@ class DBusWriteBuffer extends DBusBuffer {
     } else if (value is DBusStruct) {
       align(STRUCT_ALIGNMENT);
       var children = value.children;
-      for (var child in children) writeValue(child);
+      for (var child in children) {
+        writeValue(child);
+      }
     } else if (value is DBusArray) {
       // Length will be overwritten later.
       writeValue(DBusUint32(0));
       var lengthOffset = data.length - 4;
 
       var children = value.children;
-      if (children.length > 0) align(getAlignment(children[0]));
+      if (children.isNotEmpty) align(getAlignment(children[0]));
       var startOffset = data.length;
-      for (var child in children) writeValue(child);
+      for (var child in children) {
+        writeValue(child);
+      }
 
       // Update the length that was written
       var length = data.length - startOffset;
@@ -128,7 +136,7 @@ class DBusWriteBuffer extends DBusBuffer {
       var lengthOffset = data.length - 4;
 
       var children = value.children;
-      if (children.length > 0) align(getAlignment(children[0]));
+      if (children.isNotEmpty) align(getAlignment(children[0]));
       var startOffset = data.length;
       children.forEach((key, value) {
         writeValue(DBusStruct([key, value]));
@@ -179,7 +187,9 @@ class DBusWriteBuffer extends DBusBuffer {
     }
   }
 
-  align(int boundary) {
-    while (data.length % boundary != 0) writeByte(0);
+  void align(int boundary) {
+    while (data.length % boundary != 0) {
+      writeByte(0);
+    }
   }
 }
