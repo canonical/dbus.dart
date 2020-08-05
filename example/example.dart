@@ -19,7 +19,7 @@ void main() async {
   ];
   var result =
       await proxy.callMethod('org.freedesktop.Notifications', 'Notify', values);
-  var id = (result[0] as DBusUint32).value;
+  var id = (result.returnValues[0] as DBusUint32).value;
   print('notify ${id}');
   await client.disconnect();
 }

@@ -12,9 +12,53 @@ import 'dbus_write_buffer.dart';
 // FIXME: Use more efficient data store than List<int>?
 // FIXME: Use ByteData more efficiently - don't copy when reading/writing
 
+/// A response to a method call.
+abstract class MethodResponse {
+  /// Gets the value returned from this method or throws an exception if an error received.
+  List<DBusValue> get returnValues;
+}
+
+/// A success response to a method call.
+class MethodSuccessResponse extends MethodResponse {
+  /// Values returned from the method.
+  List<DBusValue> values;
+
+  /// Creates a new success response to a method call returning [values].
+  MethodSuccessResponse([this.values = const []]) {}
+
+  List<DBusValue> get returnValues => values;
+}
+
+class MethodErrorResponse extends MethodResponse {
+  /// The name of the error that occurred.
+  String errorName;
+
+  /// Additional values passed with the error.
+  List<DBusValue> values;
+
+  /// Creates a new error response to a method call with the error [errorName] and optional [values].
+  MethodErrorResponse(String this.errorName, [this.values = const []]) {}
+
+  /// Creates a new error response indicating the request failed.
+  MethodErrorResponse.failed(String message)
+      : this('org.freedesktop.DBus.Error.Failed', [DBusString(message)]);
+
+  /// Creates a new error response indicating an unknown interface.
+  MethodErrorResponse.unknownInterface()
+      : this('org.freedesktop.DBus.Error.UnknownInterface',
+            [DBusString('Object does not implement the interface')]);
+
+  /// Creates a new error response indicating an unknown method.
+  MethodErrorResponse.unknownMethod()
+      : this('org.freedesktop.DBus.Error.UnknownMethod',
+            [DBusString('Unknown / invalid message')]);
+
+  List<DBusValue> get returnValues => throw 'Error: ${errorName}';
+}
+
 typedef SignalCallback = Function(
     String path, String interface, String member, List<DBusValue> values);
-typedef MethodCallback = Future<List<DBusValue>> Function(
+typedef MethodCallback = Future<MethodResponse> Function(
     String path, String interface, String member, List<DBusValue> values);
 
 typedef _getuidC = Int32 Function();
@@ -28,7 +72,7 @@ int _getuid() {
 
 class _MethodCall {
   int serial;
-  var completer = Completer<List<DBusValue>>();
+  var completer = Completer<MethodResponse>();
 
   _MethodCall(this.serial);
 }
@@ -193,36 +237,30 @@ class DBusClient {
   }
 
   void _processMethodCall(DBusMessage message) async {
+    MethodResponse response;
     if (message.interface == 'org.freedesktop.DBus.Introspectable') {
-      _processIntrospectable(message);
-      return;
+      response = _processIntrospectable(message);
+    } else if (!_objects.contains(message.path)) {
+      response = MethodErrorResponse.unknownInterface();
+    } else {
+      var handler = _findMethodHandler(message.interface);
+      if (handler != null) {
+        response = await handler.callback(message.path.value, message.interface,
+            message.member, message.values);
+      } else {
+        response = MethodErrorResponse.unknownInterface();
+      }
     }
 
-    if (!_objects.contains(message.path)) {
-      _sendError(message.serial, message.sender,
-          'org.freedesktop.DBus.Error.UnknownInterface', []);
-      return;
+    if (response is MethodErrorResponse) {
+      _sendError(
+          message.serial, message.sender, response.errorName, response.values);
+    } else if (response is MethodSuccessResponse) {
+      _sendReturn(message.serial, message.sender, response.values);
     }
-
-    var handler = _findMethodHandler(message.interface);
-    if (handler == null) {
-      _sendError(message.serial, message.sender,
-          'org.freedesktop.DBus.Error.UnknownInterface', []);
-      return;
-    }
-
-    var result = await handler.callback(
-        message.path.value, message.interface, message.member, message.values);
-    if (result == null) {
-      _sendError(message.serial, message.sender,
-          'org.freedesktop.DBus.Error.UnknownMethod', []);
-      return;
-    }
-
-    _sendReturn(message.serial, message.sender, result);
   }
 
-  void _processIntrospectable(DBusMessage message) async {
+  MethodResponse _processIntrospectable(DBusMessage message) {
     if (message.member == 'Introspect') {
       var children = <String>{};
       var pathElements = message.path.split();
@@ -244,10 +282,9 @@ class DBusClient {
         xml += '<node name="${node}"/>';
       }
       xml += '</node>';
-      _sendReturn(message.serial, message.sender, [DBusString(xml)]);
+      return MethodSuccessResponse([DBusString(xml)]);
     } else {
-      _sendError(message.serial, message.sender,
-          'org.freedesktop.DBus.Error.UnknownMethod', []);
+      return MethodErrorResponse.unknownMethod();
     }
   }
 
@@ -266,10 +303,13 @@ class DBusClient {
     if (methodCall == null) return;
     _methodCalls.remove(methodCall);
 
+    MethodResponse response;
     if (message.type == MessageType.Error) {
-      print('Error: ${message.errorName}'); // FIXME
+      response = MethodErrorResponse(message.errorName, message.values);
+    } else {
+      response = MethodSuccessResponse(message.values);
     }
-    methodCall.completer.complete(message.values);
+    methodCall.completer.complete(response);
   }
 
   _MethodCall _findMethodCall(int serial) {
@@ -295,7 +335,7 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         member: 'RequestName',
         values: [DBusString(name), DBusUint32(flags)]);
-    return (result[0] as DBusUint32).value;
+    return (result.returnValues[0] as DBusUint32).value;
   }
 
   /// Releases the D-Bus object name previously acquired using requestName().
@@ -306,7 +346,7 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         member: 'ReleaseName',
         values: [DBusString(name)]);
-    return (result[0] as DBusUint32).value;
+    return (result.returnValues[0] as DBusUint32).value;
   }
 
   /// Lists the registered names on the bus.
@@ -317,7 +357,7 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         member: 'ListNames');
     var names = <String>[];
-    for (var name in (result[0] as DBusArray).children) {
+    for (var name in (result.returnValues[0] as DBusArray).children) {
       names.add((name as DBusString).value);
     }
     return names;
@@ -330,7 +370,7 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         member: 'ListActivatableNames');
     var names = <String>[];
-    for (var name in (result[0] as DBusArray).children) {
+    for (var name in (result.returnValues[0] as DBusArray).children) {
       names.add((name as DBusString).value);
     }
     return names;
@@ -343,7 +383,7 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         member: 'NameHasOwner',
         values: [DBusString(name)]);
-    return (result[0] as DBusBoolean).value;
+    return (result.returnValues[0] as DBusBoolean).value;
   }
 
   void addMatch(String rule) async {
@@ -370,7 +410,7 @@ class DBusClient {
         path: '/org/freedesktop/DBus',
         interface: 'org.freedesktop.DBus',
         member: 'GetId');
-    return (result[0] as DBusString).value;
+    return (result.returnValues[0] as DBusString).value;
   }
 
   void peerPing(String destination, String path) async {
@@ -388,11 +428,11 @@ class DBusClient {
         path: path,
         interface: 'org.freedesktop.DBus.Peer',
         member: 'GetMachineId');
-    return (result[0] as DBusString).value;
+    return (result.returnValues[0] as DBusString).value;
   }
 
   /// Invokes a method on a D-Bus object.
-  Future<List<DBusValue>> callMethod(
+  Future<MethodResponse> callMethod(
       {String destination,
       String path,
       String interface,
