@@ -357,7 +357,7 @@ class DBusArray extends DBusValue {
   String toString() {
     var childrenText = List<String>();
     for (var child in children) childrenText.add(child.toString());
-    return "DBusArray([${childrenText.join(', ')}])";
+    return "DBusArray(${childSignature}, [${childrenText.join(', ')}])";
   }
 }
 
@@ -397,6 +397,6 @@ class DBusDict extends DBusValue {
     children.forEach((key, value) {
       childrenText.add('${key.toString()}: ${value.toString()}');
     });
-    return "DBusDict([${childrenText.join(', ')}])";
+    return "DBusDict(${keySignature}, ${valueSignature}, {${childrenText.join(', ')}})";
   }
 }
