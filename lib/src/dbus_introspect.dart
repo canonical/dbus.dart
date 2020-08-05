@@ -125,15 +125,16 @@ class DBusIntrospectAnnotation {
 /// Data can received from [DBusObjectProxy.introspect] or from an interface definition document.
 List<DBusIntrospectNode> parseDBusIntrospectXml(String xml) {
   var document = XmlDocument.parse(xml);
-  var nodes = List<DBusIntrospectNode>();
-  for (var node in document.findElements('node'))
+  var nodes = <DBusIntrospectNode>[];
+  for (var node in document.findElements('node')) {
     nodes.add(_parseIntrospectNode(node));
+  }
   return nodes;
 }
 
 DBusIntrospectNode _parseIntrospectNode(XmlNode node) {
   var name = node.getAttribute('name');
-  var interfaces = List<DBusIntrospectInterface>();
+  var interfaces = <DBusIntrospectInterface>[];
   for (var interface in node.findElements('interface')) {
     interfaces.add(_parseIntrospectInterface(interface));
   }
@@ -143,15 +144,18 @@ DBusIntrospectNode _parseIntrospectNode(XmlNode node) {
 
 DBusIntrospectInterface _parseIntrospectInterface(XmlNode node) {
   var name = node.getAttribute('name');
-  var methods = List<DBusIntrospectMethod>();
-  var signals = List<DBusIntrospectSignal>();
-  var properties = List<DBusIntrospectProperty>();
-  for (var method in node.findElements('method'))
+  var methods = <DBusIntrospectMethod>[];
+  var signals = <DBusIntrospectSignal>[];
+  var properties = <DBusIntrospectProperty>[];
+  for (var method in node.findElements('method')) {
     methods.add(_parseIntrospectMethod(method));
-  for (var signal in node.findElements('signal'))
+  }
+  for (var signal in node.findElements('signal')) {
     signals.add(_parseIntrospectSignal(signal));
-  for (var property in node.findElements('property'))
+  }
+  for (var property in node.findElements('property')) {
     properties.add(_parseIntrospectProperty(property));
+  }
   var annotations = _parseIntrospectAnnotations(node);
 
   return DBusIntrospectInterface(name,
@@ -163,18 +167,20 @@ DBusIntrospectInterface _parseIntrospectInterface(XmlNode node) {
 
 DBusIntrospectMethod _parseIntrospectMethod(XmlNode node) {
   var name = node.getAttribute('name');
-  var args = List<DBusIntrospectArgument>();
-  for (var arg in node.findElements('arg'))
+  var args = <DBusIntrospectArgument>[];
+  for (var arg in node.findElements('arg')) {
     args.add(_parseIntrospectArgument(arg));
+  }
   var annotations = _parseIntrospectAnnotations(node);
   return DBusIntrospectMethod(name, args: args, annotations: annotations);
 }
 
 DBusIntrospectSignal _parseIntrospectSignal(XmlNode node) {
   var name = node.getAttribute('name');
-  var args = List<DBusIntrospectArgument>();
-  for (var arg in node.findElements('arg'))
+  var args = <DBusIntrospectArgument>[];
+  for (var arg in node.findElements('arg')) {
     args.add(_parseIntrospectArgument(arg));
+  }
   var annotations = _parseIntrospectAnnotations(node);
   return DBusIntrospectSignal(name, args: args, annotations: annotations);
 }
@@ -206,8 +212,8 @@ DBusIntrospectArgument _parseIntrospectArgument(XmlNode node) {
 }
 
 List<DBusIntrospectAnnotation> _parseIntrospectAnnotations(XmlNode node) {
-  var annotations = List<DBusIntrospectAnnotation>();
-  for (var annotation in node.findElements('annotation')) {
+  var annotations = <DBusIntrospectAnnotation>[];
+  for (var _ in node.findElements('annotation')) {
     var name = node.getAttribute('name');
     var value = node.getAttribute('value');
     annotations.add(DBusIntrospectAnnotation(name, value));
