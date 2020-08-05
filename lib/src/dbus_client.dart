@@ -240,6 +240,8 @@ class DBusClient {
     MethodResponse response;
     if (message.interface == 'org.freedesktop.DBus.Introspectable') {
       response = _processIntrospectable(message);
+    } else if (message.interface == 'org.freedesktop.DBus.Peer') {
+      response = await _processPeer(message);
     } else if (!_objects.contains(message.path)) {
       response = MethodErrorResponse.unknownInterface();
     } else {
@@ -277,12 +279,29 @@ class DBusClient {
         xml += '<arg name="xml_data" type="s" direction="out"/>';
         xml += '</method>';
         xml += '</interface>';
+        xml += '<interface name="org.freedesktop.DBus.Peer">';
+        xml += '<method name="GetMachineId">';
+        xml += '<arg name="machine_uuid" type="s" direction="out"/>';
+        xml += '</method>';
+        xml += '<method name="Ping"/>';
+        xml += '</interface>';
       }
       for (var node in children) {
         xml += '<node name="${node}"/>';
       }
       xml += '</node>';
       return MethodSuccessResponse([DBusString(xml)]);
+    } else {
+      return MethodErrorResponse.unknownMethod();
+    }
+  }
+
+  Future<MethodResponse> _processPeer(DBusMessage message) async {
+    if (message.member == 'GetMachineId') {
+      final String machineId = await _getMachineId();
+      return MethodSuccessResponse([DBusString(machineId)]);
+    } else if (message.member == 'Ping') {
+      return MethodSuccessResponse();
     } else {
       return MethodErrorResponse.unknownMethod();
     }
@@ -519,4 +538,22 @@ class DBusClient {
     message.marshal(buffer);
     _socket.add(buffer.data);
   }
+}
+
+/// Returns the unique ID for this machine.
+Future<String> _getMachineId() async {
+  Future<String> readFirstLine(String path) async {
+    var file = File(path);
+    try {
+      var lines = await file.readAsLines();
+      return lines[0];
+    } on FileSystemException {
+      return '';
+    }
+  }
+
+  var machineId = await readFirstLine('/var/lib/dbus/machine-id');
+  if (machineId == '') machineId = await readFirstLine('/etc/machine-id');
+
+  return machineId;
 }
