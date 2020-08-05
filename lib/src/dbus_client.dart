@@ -407,6 +407,16 @@ class DBusClient {
     return call.completer.future;
   }
 
+  /// Emits a signal from a D-Bus object.
+  emitSignal(
+      {String destination,
+      String path,
+      String interface,
+      String member,
+      List<DBusValue> values}) {
+    _sendSignal(destination, path, interface, member, values);
+  }
+
   /// Registers a new object on the bus with the given [path].
   void registerObject(String path) {
     _objects.add(DBusObjectPath(path));
@@ -417,6 +427,20 @@ class DBusClient {
     _lastSerial++;
     var message = DBusMessage(
         type: MessageType.MethodCall,
+        serial: _lastSerial,
+        destination: destination,
+        path: DBusObjectPath(path),
+        interface: interface,
+        member: member,
+        values: values);
+    _sendMessage(message);
+  }
+
+  void _sendSignal(String destination, String path, String interface,
+      String member, List<DBusValue> values) {
+    _lastSerial++;
+    var message = DBusMessage(
+        type: MessageType.Signal,
         serial: _lastSerial,
         destination: destination,
         path: DBusObjectPath(path),
