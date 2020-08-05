@@ -19,7 +19,7 @@ class DBusObjectProxy {
         path: path,
         interface: 'org.freedesktop.DBus.Introspectable',
         member: 'Introspect');
-    return (result[0] as DBusString).value;
+    return (result.returnValues[0] as DBusString).value;
   }
 
   /// Gets a property on this object.
@@ -30,7 +30,7 @@ class DBusObjectProxy {
         interface: 'org.freedesktop.DBus.Properties',
         member: 'Get',
         values: [DBusString(interface), DBusString(name)]);
-    return (result[0] as DBusVariant).value;
+    return (result.returnValues[0] as DBusVariant).value;
   }
 
   /// Gets the values of all the properties on this object.
@@ -41,7 +41,7 @@ class DBusObjectProxy {
         interface: 'org.freedesktop.DBus.Properties',
         member: 'GetAll',
         values: [DBusString(interface)]);
-    return result[0] as DBusDict;
+    return result.returnValues[0] as DBusDict;
   }
 
   /// Sets a property on this object.
@@ -55,7 +55,7 @@ class DBusObjectProxy {
   }
 
   /// Invokes a method on this object.
-  Future<List<DBusValue>> callMethod(
+  Future<MethodResponse> callMethod(
       String interface, String member, List<DBusValue> values) async {
     return client.callMethod(
         destination: destination,
