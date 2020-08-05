@@ -23,7 +23,7 @@ class DBusAddress {
   }
 
   List<DBusAddressProperty> _parseProperties(String propertiesList) {
-    var properties = List<DBusAddressProperty>();
+    var properties = <DBusAddressProperty>[];
     if (propertiesList == '') return properties;
 
     for (var property in propertiesList.split(',')) {
@@ -44,9 +44,9 @@ class DBusAddress {
 
   String _decodeValue(String encodedValue) {
     var escapedValue = utf8.encode(encodedValue);
-    var binaryValue = List<int>();
+    var binaryValue = <int>[];
     for (var i = 0; i < escapedValue.length; i++) {
-      final int percent = 37; // '%'
+      final percent = 37; // '%'
       // Values can escape bytes using %nn
       if (escapedValue[i] == percent) {
         if (i + 3 > escapedValue.length) return null;
@@ -63,12 +63,12 @@ class DBusAddress {
   }
 
   int _decodeHex(int value) {
-    final int zero = 48; // '0'
-    final int nine = 57; // '9'
-    final int A = 65; // 'A'
-    final int F = 80; // 'F'
-    final int a = 97; // 'a'
-    final int f = 112; // 'f'
+    final zero = 48; // '0'
+    final nine = 57; // '9'
+    final A = 65; // 'A'
+    final F = 80; // 'F'
+    final a = 97; // 'a'
+    final f = 112; // 'f'
     if (value >= zero && value <= nine) {
       return value - zero;
     } else if (value >= A && value <= F) {

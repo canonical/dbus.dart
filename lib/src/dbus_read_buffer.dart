@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -6,14 +5,14 @@ import 'dbus_buffer.dart';
 import 'dbus_value.dart';
 
 class DBusReadBuffer extends DBusBuffer {
-  var data = List<int>();
+  var data = <int>[];
   int readOffset = 0;
 
   int get remaining {
     return data.length - readOffset;
   }
 
-  writeBytes(Iterable<int> value) {
+  void writeBytes(Iterable<int> value) {
     data.addAll(value);
   }
 
@@ -24,7 +23,9 @@ class DBusReadBuffer extends DBusBuffer {
 
   ByteBuffer readBytes(int length) {
     var bytes = Uint8List(length);
-    for (var i = 0; i < length; i++) bytes[i] = readByte();
+    for (var i = 0; i < length; i++) {
+      bytes[i] = readByte();
+    }
     return bytes.buffer;
   }
 
@@ -32,7 +33,9 @@ class DBusReadBuffer extends DBusBuffer {
     for (var i = readOffset; i < data.length - 1; i++) {
       if (data[i] == 13 /* '\r' */ && data[i + 1] == 10 /* '\n' */) {
         var bytes = List<int>(i - readOffset);
-        for (var j = readOffset; j < i; j++) bytes[j] = readByte();
+        for (var j = readOffset; j < i; j++) {
+          bytes[j] = readByte();
+        }
         readOffset = i + 2;
         return utf8.decode(bytes);
       }
@@ -125,8 +128,10 @@ class DBusReadBuffer extends DBusBuffer {
     var length = readDBusUint32();
     if (length == null) return null;
     if (remaining < (length.value + 1)) return null;
-    var values = List<int>();
-    for (var i = 0; i < length.value; i++) values.add(readByte());
+    var values = <int>[];
+    for (var i = 0; i < length.value; i++) {
+      values.add(readByte());
+    }
     readByte(); // Trailing nul
     return DBusString(utf8.decode(values));
   }
@@ -140,9 +145,11 @@ class DBusReadBuffer extends DBusBuffer {
   DBusSignature readDBusSignature() {
     if (remaining < 1) return null;
     var length = readByte();
-    var values = List<int>();
+    var values = <int>[];
     if (remaining < length + 1) return null;
-    for (var i = 0; i < length; i++) values.add(readByte());
+    for (var i = 0; i < length; i++) {
+      values.add(readByte());
+    }
     readByte(); // Trailing nul
     return DBusSignature(utf8.decode(values));
   }
@@ -157,7 +164,7 @@ class DBusReadBuffer extends DBusBuffer {
 
   DBusStruct readDBusStruct(List<DBusSignature> childSignatures) {
     if (!align(STRUCT_ALIGNMENT)) return null;
-    var children = List<DBusValue>();
+    var children = <DBusValue>[];
     for (var signature in childSignatures) {
       var child = readDBusValue(signature);
       if (child == null) return null;
@@ -172,7 +179,7 @@ class DBusReadBuffer extends DBusBuffer {
     if (length == null) return null;
     // FIXME: Align to first element (not in length)
     var end = readOffset + length.value;
-    var children = new List<DBusValue>();
+    var children = <DBusValue>[];
     while (readOffset < end) {
       var child = readDBusValue(childSignature);
       if (child == null) return null;
@@ -188,10 +195,10 @@ class DBusReadBuffer extends DBusBuffer {
     if (length == null) return null;
     // FIXME: Align to first element (not in length)
     var end = readOffset + length.value;
-    var childSignatures = List<DBusSignature>();
+    var childSignatures = <DBusSignature>[];
     childSignatures.add(keySignature);
     childSignatures.add(valueSignature);
-    var children = new LinkedHashMap<DBusValue, DBusValue>();
+    var children = <DBusValue, DBusValue>{};
     while (readOffset < end) {
       var child = readDBusStruct(childSignatures);
       if (child == null) return null;
@@ -203,45 +210,47 @@ class DBusReadBuffer extends DBusBuffer {
 
   DBusValue readDBusValue(DBusSignature signature) {
     var s = signature.value;
-    if (s == 'y')
+    if (s == 'y') {
       return readDBusByte();
-    else if (s == 'b')
+    } else if (s == 'b') {
       return readDBusBoolean();
-    else if (s == 'n')
+    } else if (s == 'n') {
       return readDBusInt16();
-    else if (s == 'q')
+    } else if (s == 'q') {
       return readDBusUint16();
-    else if (s == 'i')
+    } else if (s == 'i') {
       return readDBusInt32();
-    else if (s == 'u')
+    } else if (s == 'u') {
       return readDBusUint32();
-    else if (s == 'x')
+    } else if (s == 'x') {
       return readDBusInt64();
-    else if (s == 't')
+    } else if (s == 't') {
       return readDBusUint64();
-    else if (s == 'd')
+    } else if (s == 'd') {
       return readDBusDouble();
-    else if (s == 's')
+    } else if (s == 's') {
       return readDBusString();
-    else if (s == 'o')
+    } else if (s == 'o') {
       return readDBusObjectPath();
-    else if (s == 'g')
+    } else if (s == 'g') {
       return readDBusSignature();
-    else if (s == 'v')
+    } else if (s == 'v') {
       return readDBusVariant();
-    else if (s.startsWith('a{') && s.endsWith('}')) {
+    } else if (s.startsWith('a{') && s.endsWith('}')) {
       var childSignature = DBusSignature(s.substring(2, s.length - 1));
       var signatures = childSignature.split(); // FIXME: Check two signatures
       return readDBusDict(signatures[0], signatures[1]);
-    } else if (s.startsWith('a'))
+    } else if (s.startsWith('a')) {
       return readDBusArray(DBusSignature(s.substring(1, s.length)));
-    else if (s.startsWith('(') && s.endsWith(')')) {
-      var childSignatures = List<DBusSignature>();
-      for (var i = 1; i < s.length - 1; i++)
+    } else if (s.startsWith('(') && s.endsWith(')')) {
+      var childSignatures = <DBusSignature>[];
+      for (var i = 1; i < s.length - 1; i++) {
         childSignatures.add(DBusSignature(s[i]));
+      }
       return readDBusStruct(childSignatures);
-    } else
+    } else {
       throw "Unknown DBus data type '${s}'";
+    }
   }
 
   bool align(int boundary) {
@@ -252,13 +261,13 @@ class DBusReadBuffer extends DBusBuffer {
     return true;
   }
 
-  flush() {
+  void flush() {
     data.removeRange(0, readOffset);
     readOffset = 0;
   }
 
   @override
-  toString() {
+  String toString() {
     var s = '';
     for (var d in data) {
       if (d >= 33 && d <= 126) {

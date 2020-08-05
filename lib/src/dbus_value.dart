@@ -18,7 +18,10 @@ class DBusByte extends DBusValue {
     return DBusSignature('y');
   }
 
+  @override
   bool operator ==(other) => other is DBusByte && other.value == value;
+
+  @override
   int get hashCode => value.hashCode;
 
   @override
@@ -41,7 +44,10 @@ class DBusBoolean extends DBusValue {
     return DBusSignature('b');
   }
 
+  @override
   bool operator ==(other) => other is DBusBoolean && other.value == value;
+
+  @override
   int get hashCode => value.hashCode;
 
   @override
@@ -63,7 +69,10 @@ class DBusInt16 extends DBusValue {
     return DBusSignature('n');
   }
 
+  @override
   bool operator ==(other) => other is DBusInt16 && other.value == value;
+
+  @override
   int get hashCode => value.hashCode;
 
   @override
@@ -85,7 +94,10 @@ class DBusUint16 extends DBusValue {
     return DBusSignature('q');
   }
 
+  @override
   bool operator ==(other) => other is DBusUint16 && other.value == value;
+
+  @override
   int get hashCode => value.hashCode;
 
   @override
@@ -107,7 +119,10 @@ class DBusInt32 extends DBusValue {
     return DBusSignature('i');
   }
 
+  @override
   bool operator ==(other) => other is DBusInt32 && other.value == value;
+
+  @override
   int get hashCode => value.hashCode;
 
   @override
@@ -129,7 +144,10 @@ class DBusUint32 extends DBusValue {
     return DBusSignature('u');
   }
 
+  @override
   bool operator ==(other) => other is DBusUint32 && other.value == value;
+
+  @override
   int get hashCode => value.hashCode;
 
   @override
@@ -151,7 +169,10 @@ class DBusInt64 extends DBusValue {
     return DBusSignature('x');
   }
 
+  @override
   bool operator ==(other) => other is DBusInt64 && other.value == value;
+
+  @override
   int get hashCode => value.hashCode;
 
   @override
@@ -173,7 +194,10 @@ class DBusUint64 extends DBusValue {
     return DBusSignature('t');
   }
 
+  @override
   bool operator ==(other) => other is DBusUint64 && other.value == value;
+
+  @override
   int get hashCode => value.hashCode;
 
   @override
@@ -195,7 +219,10 @@ class DBusDouble extends DBusValue {
     return DBusSignature('d');
   }
 
+  @override
   bool operator ==(other) => other is DBusDouble && other.value == value;
+
+  @override
   int get hashCode => value.hashCode;
 
   @override
@@ -217,7 +244,10 @@ class DBusString extends DBusValue {
     return DBusSignature('s');
   }
 
+  @override
   bool operator ==(other) => other is DBusString && other.value == value;
+
+  @override
   int get hashCode => value.hashCode;
 
   @override
@@ -257,7 +287,10 @@ class DBusObjectPath extends DBusString {
     return DBusSignature('o');
   }
 
+  @override
   bool operator ==(other) => other is DBusObjectPath && other.value == value;
+
+  @override
   int get hashCode => value.hashCode;
 
   @override
@@ -294,7 +327,7 @@ class DBusSignature extends DBusValue {
   DBusSignature(this.value);
 
   List<DBusSignature> split() {
-    var signatures = List<DBusSignature>();
+    var signatures = <DBusSignature>[];
     for (var i = 0; i < value.length; i++) {
       if (value[i] == 'a') {
         if (value[i + 1] == '(') {
@@ -321,8 +354,9 @@ class DBusSignature extends DBusValue {
           signatures.add(DBusSignature(value.substring(i, i + 2)));
           i++;
         }
-      } else
+      } else {
         signatures.add(DBusSignature(value[i]));
+      }
     }
     return signatures;
   }
@@ -332,7 +366,10 @@ class DBusSignature extends DBusValue {
     return DBusSignature('g');
   }
 
+  @override
   bool operator ==(other) => other is DBusSignature && other.value == value;
+
+  @override
   int get hashCode => value.hashCode;
 
   @override
@@ -354,7 +391,10 @@ class DBusVariant extends DBusValue {
     return DBusSignature('v');
   }
 
+  @override
   bool operator ==(other) => other is DBusVariant && other.value == value;
+
+  @override
   int get hashCode => value.hashCode;
 
   @override
@@ -374,17 +414,24 @@ class DBusStruct extends DBusValue {
   @override
   DBusSignature get signature {
     var signature = '';
-    for (var child in children) signature += child.signature.value;
+    for (var child in children) {
+      signature += child.signature.value;
+    }
     return DBusSignature('(' + signature + ')');
   }
 
+  @override
   bool operator ==(other) => other is DBusStruct && other.children == children;
+
+  @override
   int get hashCode => children.hashCode;
 
   @override
   String toString() {
-    var childrenText = List<String>();
-    for (var child in children) childrenText.add(child.toString());
+    var childrenText = <String>[];
+    for (var child in children) {
+      childrenText.add(child.toString());
+    }
     return "DBusStruct([${childrenText.join(', ')}])";
   }
 }
@@ -402,8 +449,9 @@ class DBusArray extends DBusValue {
   /// An exception will be thrown if a DBusValue in [children] doesn't have a signature matching [childSignature].
   DBusArray(this.childSignature, this.children) {
     for (var child in children) {
-      if (child.signature.value != childSignature.value)
+      if (child.signature.value != childSignature.value) {
         throw "Provided children don't match array signature";
+      }
     }
   }
 
@@ -412,13 +460,18 @@ class DBusArray extends DBusValue {
     return DBusSignature('a' + childSignature.value);
   }
 
+  @override
   bool operator ==(other) => other is DBusArray && other.children == children;
+
+  @override
   int get hashCode => children.hashCode;
 
   @override
   String toString() {
-    var childrenText = List<String>();
-    for (var child in children) childrenText.add(child.toString());
+    var childrenText = <String>[];
+    for (var child in children) {
+      childrenText.add(child.toString());
+    }
     return "DBusArray(${childSignature}, [${childrenText.join(', ')}])";
   }
 }
@@ -453,12 +506,15 @@ class DBusDict extends DBusValue {
     return DBusSignature('a{${keySignature.value}${valueSignature.value}}');
   }
 
+  @override
   bool operator ==(other) => other is DBusDict && other.children == children;
+
+  @override
   int get hashCode => children.hashCode;
 
   @override
   String toString() {
-    var childrenText = List<String>();
+    var childrenText = <String>[];
     children.forEach((key, value) {
       childrenText.add('${key.toString()}: ${value.toString()}');
     });

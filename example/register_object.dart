@@ -3,7 +3,7 @@ import 'package:dbus_client/dbus_client.dart';
 // Test with:
 // $ gdbus call --session --dest com.canonical.DBusDart --object-path /com/canonical/DBusDart --method com.canonical.DBusDart.Test
 
-main() async {
+void main() async {
   var client = DBusClient.session();
   await client.connect();
   await client.requestName('com.canonical.DBusDart');
@@ -11,7 +11,7 @@ main() async {
   client.listenMethod('com.canonical.DBusDart', (String path, String interface,
       String member, List<DBusValue> values) async {
     if (member == 'Test') {
-      return [new DBusString('Hello World!')];
+      return [DBusString('Hello World!')];
     } else {
       return null;
     }

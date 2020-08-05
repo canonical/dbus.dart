@@ -47,7 +47,7 @@ class DBusMessage {
   int replySerial;
   String destination;
   String sender;
-  var values = List<DBusValue>();
+  var values = <DBusValue>[];
 
   DBusMessage(
       {this.type = MessageType.Invalid,
@@ -62,9 +62,11 @@ class DBusMessage {
       this.sender,
       this.values});
 
-  marshal(DBusWriteBuffer buffer) {
+  void marshal(DBusWriteBuffer buffer) {
     var valueBuffer = DBusWriteBuffer();
-    for (var value in values) valueBuffer.writeValue(value);
+    for (var value in values) {
+      valueBuffer.writeValue(value);
+    }
 
     // FIXME(robert-ancell): Handle endianess - currently hard-coded to little
     buffer.writeValue(DBusByte(Endianess.Little));
@@ -73,34 +75,30 @@ class DBusMessage {
     buffer.writeValue(DBusByte(ProtocolVersion));
     buffer.writeValue(DBusUint32(valueBuffer.data.length));
     buffer.writeValue(DBusUint32(serial));
-    var headers = List<DBusValue>();
-    if (this.path != null) {
-      headers.add(_makeHeader(HeaderCode.Path, this.path));
+    var headers = <DBusValue>[];
+    if (path != null) {
+      headers.add(_makeHeader(HeaderCode.Path, path));
     }
-    if (this.interface != null) {
-      headers
-          .add(_makeHeader(HeaderCode.Interface, DBusString(this.interface)));
+    if (interface != null) {
+      headers.add(_makeHeader(HeaderCode.Interface, DBusString(interface)));
     }
-    if (this.member != null) {
-      headers.add(_makeHeader(HeaderCode.Member, DBusString(this.member)));
+    if (member != null) {
+      headers.add(_makeHeader(HeaderCode.Member, DBusString(member)));
     }
-    if (this.errorName != null) {
-      headers
-          .add(_makeHeader(HeaderCode.ErrorName, DBusString(this.errorName)));
+    if (errorName != null) {
+      headers.add(_makeHeader(HeaderCode.ErrorName, DBusString(errorName)));
     }
-    if (this.replySerial != null) {
-      headers.add(
-          _makeHeader(HeaderCode.ReplySerial, DBusUint32(this.replySerial)));
+    if (replySerial != null) {
+      headers.add(_makeHeader(HeaderCode.ReplySerial, DBusUint32(replySerial)));
     }
-    if (this.destination != null) {
-      headers.add(
-          _makeHeader(HeaderCode.Destination, DBusString(this.destination)));
+    if (destination != null) {
+      headers.add(_makeHeader(HeaderCode.Destination, DBusString(destination)));
     }
-    if (this.sender != null) {
-      headers.add(_makeHeader(HeaderCode.Sender, DBusString(this.sender)));
+    if (sender != null) {
+      headers.add(_makeHeader(HeaderCode.Sender, DBusString(sender)));
     }
-    if (this.values.length > 0) {
-      String signature = '';
+    if (values.isNotEmpty) {
+      var signature = '';
       for (var value in values) {
         signature += value.signature.value;
       }
@@ -119,11 +117,11 @@ class DBusMessage {
     if (buffer.remaining < 12) return false;
 
     buffer.readDBusByte(); // Endianess.
-    this.type = buffer.readDBusByte().value;
-    this.flags = buffer.readDBusByte().value;
+    type = buffer.readDBusByte().value;
+    flags = buffer.readDBusByte().value;
     buffer.readDBusByte(); // Protocol version.
     buffer.readDBusUint32(); // Data length
-    this.serial = buffer.readDBusUint32().value;
+    serial = buffer.readDBusUint32().value;
     var headers = buffer.readDBusArray(DBusSignature('(yv)'));
     if (headers == null) return false;
 
@@ -133,26 +131,26 @@ class DBusMessage {
       var code = (header.children[0] as DBusByte).value;
       var value = (header.children[1] as DBusVariant).value;
       if (code == HeaderCode.Path) {
-        this.path = value as DBusObjectPath;
+        path = value as DBusObjectPath;
       } else if (code == HeaderCode.Interface) {
-        this.interface = (value as DBusString).value;
+        interface = (value as DBusString).value;
       } else if (code == HeaderCode.Member) {
-        this.member = (value as DBusString).value;
+        member = (value as DBusString).value;
       } else if (code == HeaderCode.ErrorName) {
-        this.errorName = (value as DBusString).value;
+        errorName = (value as DBusString).value;
       } else if (code == HeaderCode.ReplySerial) {
-        this.replySerial = (value as DBusUint32).value;
+        replySerial = (value as DBusUint32).value;
       } else if (code == HeaderCode.Destination) {
-        this.destination = (value as DBusString).value;
+        destination = (value as DBusString).value;
       } else if (code == HeaderCode.Sender) {
-        this.sender = (value as DBusString).value;
+        sender = (value as DBusString).value;
       } else if (code == HeaderCode.Signature) {
         signature = value as DBusSignature;
       }
     }
     if (!buffer.align(8)) return false;
 
-    this.values = List<DBusValue>();
+    values = <DBusValue>[];
     if (signature != null) {
       var signatures = signature.split();
       for (var s in signatures) {
@@ -180,7 +178,7 @@ class DBusMessage {
       text += '${type}';
     }
     if (flags != 0) {
-      var flagNames = List<String>();
+      var flagNames = <String>[];
       if (flags & Flags.NoReplyExpected != 0) {
         flagNames.add('Flags.NoReplyExpected');
       }
@@ -203,8 +201,8 @@ class DBusMessage {
     if (replySerial != null) text += ', replySerial=${replySerial}';
     if (destination != null) text += ", destination='${destination}'";
     if (sender != null) text += ", sender='${sender}'";
-    if (values.length > 0) {
-      var valueText = List<String>();
+    if (values.isNotEmpty) {
+      var valueText = <String>[];
       for (var value in values) {
         valueText.add(value.toString());
       }
