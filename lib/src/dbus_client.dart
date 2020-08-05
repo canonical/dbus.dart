@@ -56,6 +56,7 @@ class DBusClient {
   var _methodCalls = List<_MethodCall>();
   var _signalHandlers = List<_SignalHandler>();
   var _methodHandlers = List<_MethodHandler>();
+  var _objects = Set<DBusObjectPath>();
 
   /// Creates a new DBus client to connect on [address].
   DBusClient(String address) {
@@ -194,6 +195,17 @@ class DBusClient {
   }
 
   _processMethodCall(DBusMessage message) async {
+    if (message.interface == 'org.freedesktop.DBus.Introspectable') {
+      _processIntrospectable(message);
+      return;
+    }
+
+    if (!_objects.contains(message.path)) {
+      _sendError(message.serial, message.sender,
+          'org.freedesktop.DBus.Error.UnknownInterface', []);
+      return;
+    }
+
     var handler = _findMethodHandler(message.interface);
     if (handler == null) {
       _sendError(message.serial, message.sender,
@@ -210,6 +222,40 @@ class DBusClient {
     }
 
     _sendReturn(message.serial, message.sender, result);
+  }
+
+  _processIntrospectable(DBusMessage message) async {
+    if (message.member == 'Introspect') {
+      var children = Set<String>();
+      var pathElements = message.path.split();
+      for (var path in _objects) {
+        var elements = path.split();
+        if (!_isSubnode(pathElements, elements)) continue;
+        var x = elements[pathElements.length];
+        children.add(x);
+      }
+      var xml = '<node>';
+      if (_objects.contains(message.path)) {
+        xml += '<interface name="org.freedesktop.DBus.Introspectable">';
+        xml += '<method name="Introspect">';
+        xml += '<arg name="xml_data" type="s" direction="out"/>';
+        xml += '</method>';
+        xml += '</interface>';
+      }
+      for (var node in children) xml += '<node name="${node}"/>';
+      xml += '</node>';
+      _sendReturn(message.serial, message.sender, [DBusString(xml)]);
+    } else {
+      _sendError(message.serial, message.sender,
+          'org.freedesktop.DBus.Error.UnknownMethod', []);
+    }
+  }
+
+  _isSubnode(List<String> parent, List<String> child) {
+    if (parent.length >= child.length) return false;
+    for (var i = 0; i < parent.length; i++)
+      if (child[i] != parent[i]) return false;
+    return true;
   }
 
   _processMethodReturn(DBusMessage message) {
@@ -356,6 +402,11 @@ class DBusClient {
     _methodCalls.add(call);
 
     return call.completer.future;
+  }
+
+  /// Registers a new object on the bus with the given [path].
+  registerObject(String path) {
+    _objects.add(DBusObjectPath(path));
   }
 
   _sendMethodCall(String destination, String path, String interface,
