@@ -18,6 +18,9 @@ class DBusByte extends DBusValue {
     return DBusSignature('y');
   }
 
+  bool operator ==(other) => other is DBusByte && other.value == value;
+  int get hashCode => value.hashCode;
+
   @override
   String toString() {
     return 'DBusByte(${value})';
@@ -38,6 +41,9 @@ class DBusBoolean extends DBusValue {
     return DBusSignature('b');
   }
 
+  bool operator ==(other) => other is DBusBoolean && other.value == value;
+  int get hashCode => value.hashCode;
+
   @override
   String toString() {
     return 'DBusBoolean(${value})';
@@ -56,6 +62,9 @@ class DBusInt16 extends DBusValue {
   DBusSignature get signature {
     return DBusSignature('n');
   }
+
+  bool operator ==(other) => other is DBusInt16 && other.value == value;
+  int get hashCode => value.hashCode;
 
   @override
   String toString() {
@@ -76,6 +85,9 @@ class DBusUint16 extends DBusValue {
     return DBusSignature('q');
   }
 
+  bool operator ==(other) => other is DBusUint16 && other.value == value;
+  int get hashCode => value.hashCode;
+
   @override
   String toString() {
     return 'DBusUint16(${value})';
@@ -94,6 +106,9 @@ class DBusInt32 extends DBusValue {
   DBusSignature get signature {
     return DBusSignature('i');
   }
+
+  bool operator ==(other) => other is DBusInt32 && other.value == value;
+  int get hashCode => value.hashCode;
 
   @override
   String toString() {
@@ -114,6 +129,9 @@ class DBusUint32 extends DBusValue {
     return DBusSignature('u');
   }
 
+  bool operator ==(other) => other is DBusUint32 && other.value == value;
+  int get hashCode => value.hashCode;
+
   @override
   String toString() {
     return 'DBusUint32(${value})';
@@ -132,6 +150,9 @@ class DBusInt64 extends DBusValue {
   DBusSignature get signature {
     return DBusSignature('x');
   }
+
+  bool operator ==(other) => other is DBusInt64 && other.value == value;
+  int get hashCode => value.hashCode;
 
   @override
   String toString() {
@@ -152,6 +173,9 @@ class DBusUint64 extends DBusValue {
     return DBusSignature('t');
   }
 
+  bool operator ==(other) => other is DBusUint64 && other.value == value;
+  int get hashCode => value.hashCode;
+
   @override
   String toString() {
     return 'DBusUint64(${value})';
@@ -170,6 +194,9 @@ class DBusDouble extends DBusValue {
   DBusSignature get signature {
     return DBusSignature('d');
   }
+
+  bool operator ==(other) => other is DBusDouble && other.value == value;
+  int get hashCode => value.hashCode;
 
   @override
   String toString() {
@@ -190,6 +217,9 @@ class DBusString extends DBusValue {
     return DBusSignature('s');
   }
 
+  bool operator ==(other) => other is DBusString && other.value == value;
+  int get hashCode => value.hashCode;
+
   @override
   String toString() {
     return "DBusString('${value}')";
@@ -209,6 +239,9 @@ class DBusObjectPath extends DBusString {
   DBusSignature get signature {
     return DBusSignature('o');
   }
+
+  bool operator ==(other) => other is DBusObjectPath && other.value == value;
+  int get hashCode => value.hashCode;
 
   @override
   String toString() {
@@ -282,6 +315,9 @@ class DBusSignature extends DBusValue {
     return DBusSignature('g');
   }
 
+  bool operator ==(other) => other is DBusSignature && other.value == value;
+  int get hashCode => value.hashCode;
+
   @override
   String toString() {
     return "DBusSignature('${value}')";
@@ -300,6 +336,9 @@ class DBusVariant extends DBusValue {
   DBusSignature get signature {
     return DBusSignature('v');
   }
+
+  bool operator ==(other) => other is DBusVariant && other.value == value;
+  int get hashCode => value.hashCode;
 
   @override
   String toString() {
@@ -321,6 +360,9 @@ class DBusStruct extends DBusValue {
     for (var child in children) signature += child.signature.value;
     return DBusSignature('(' + signature + ')');
   }
+
+  bool operator ==(other) => other is DBusStruct && other.children == children;
+  int get hashCode => children.hashCode;
 
   @override
   String toString() {
@@ -352,6 +394,9 @@ class DBusArray extends DBusValue {
   DBusSignature get signature {
     return DBusSignature('a' + childSignature.value);
   }
+
+  bool operator ==(other) => other is DBusArray && other.children == children;
+  int get hashCode => children.hashCode;
 
   @override
   String toString() {
@@ -390,6 +435,9 @@ class DBusDict extends DBusValue {
   DBusSignature get signature {
     return DBusSignature('a{${keySignature.value}${valueSignature.value}}');
   }
+
+  bool operator ==(other) => other is DBusDict && other.children == children;
+  int get hashCode => children.hashCode;
 
   @override
   String toString() {
