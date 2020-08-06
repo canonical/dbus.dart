@@ -408,7 +408,7 @@ class DBusClient {
   }
 
   /// Emits a signal from a D-Bus object.
-  emitSignal(
+  void emitSignal(
       {String destination,
       String path,
       String interface,
