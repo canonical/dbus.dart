@@ -1,11 +1,11 @@
-[![Pub Package](https://img.shields.io/pub/v/dbus_client.svg)](https://pub.dev/packages/dbus_client)
+[![Pub Package](https://img.shields.io/pub/v/dbus.svg)](https://pub.dev/packages/dbus)
 
 A native Dart client implementation of [D-Bus](https://www.freedesktop.org/wiki/Software/dbus/).
 
 ## Example
 
 ```dart
-import 'package:dbus_client/dbus_client.dart';
+import 'package:dbus/dbus.dart';
 
 var client = DBusClient.system();
 await client.connect();
