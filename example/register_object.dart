@@ -11,9 +11,9 @@ void main() async {
   client.listenMethod('com.canonical.DBusDart', (String path, String interface,
       String member, List<DBusValue> values) async {
     if (member == 'Test') {
-      return MethodSuccessResponse([DBusString('Hello World!')]);
+      return [DBusString('Hello World!')];
     } else {
-      return MethodErrorResponse.unknownMethod();
+      return null;
     }
   });
 }
