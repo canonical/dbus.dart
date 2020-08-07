@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'dbus_address.dart';
+import 'dbus_introspect.dart';
 import 'dbus_introspectable.dart';
 import 'dbus_message.dart';
 import 'dbus_object_tree.dart';
@@ -68,8 +69,6 @@ class DBusMethodErrorResponse extends DBusMethodResponse {
 
 typedef SignalCallback = Function(
     String path, String interface, String member, List<DBusValue> values);
-typedef MethodCallback = Future<DBusMethodResponse> Function(
-    String path, String interface, String member, List<DBusValue> values);
 
 typedef _getuidC = Int32 Function();
 typedef _getuidDart = int Function();
@@ -93,11 +92,18 @@ class _SignalHandler {
   _SignalHandler(this.callback);
 }
 
-class _MethodHandler {
-  String interface;
-  MethodCallback callback;
+/// An object that is exported on the bus.
+class DBusObject {
+  /// Called to get introspection information about this object.
+  List<DBusIntrospectInterface> introspect() {
+    return [];
+  }
 
-  _MethodHandler(this.interface, this.callback);
+  /// Called when a method call is received on this object.
+  Future<DBusMethodResponse> handleMethodCall(
+      String interface, String member, List<DBusValue> values) async {
+    return DBusMethodErrorResponse.unknownInterface();
+  }
 }
 
 /// A client connection to a D-Bus server.
@@ -109,7 +115,6 @@ class DBusClient {
   var _lastSerial = 0;
   final _methodCalls = <_MethodCall>[];
   final _signalHandlers = <_SignalHandler>[];
-  final _methodHandlers = <_MethodHandler>[];
   final _objectTree = DBusObjectTree();
 
   /// Creates a new DBus client to connect on [address].
@@ -140,10 +145,6 @@ class DBusClient {
 
   void listenSignal(SignalCallback callback) {
     _signalHandlers.add(_SignalHandler(callback));
-  }
-
-  void listenMethod(String interface, MethodCallback callback) {
-    _methodHandlers.add(_MethodHandler(interface, callback));
   }
 
   /// Connects to the D-Bus server.
@@ -253,13 +254,11 @@ class DBusClient {
           _objectTree, message.path, message.member, message.values);
     } else if (message.interface == 'org.freedesktop.DBus.Peer') {
       response = await handlePeerMethodCall(message.member, message.values);
-    } else if (_objectTree.lookup(message.path) == null) {
-      response = DBusMethodErrorResponse.unknownInterface();
     } else {
-      var handler = _findMethodHandler(message.interface);
-      if (handler != null) {
-        response = await handler.callback(message.path.value, message.interface,
-            message.member, message.values);
+      var object = _objectTree.lookupObject(message.path);
+      if (object != null) {
+        response = await object.handleMethodCall(
+            message.interface, message.member, message.values);
       } else {
         response = DBusMethodErrorResponse.unknownInterface();
       }
@@ -290,13 +289,6 @@ class DBusClient {
   _MethodCall _findMethodCall(int serial) {
     for (var methodCall in _methodCalls) {
       if (methodCall.serial == serial) return methodCall;
-    }
-    return null;
-  }
-
-  _MethodHandler _findMethodHandler(String interface) {
-    for (var handler in _methodHandlers) {
-      if (handler.interface == interface) return handler;
     }
     return null;
   }
@@ -432,9 +424,9 @@ class DBusClient {
     _sendSignal(destination, path, interface, member, values);
   }
 
-  /// Registers a new object on the bus with the given [path].
-  void registerObject(String path) {
-    _objectTree.add(DBusObjectPath(path));
+  /// Registers an [object] on the bus with the given [path].
+  void registerObject(String path, DBusObject object) {
+    _objectTree.add(DBusObjectPath(path), object);
   }
 
   void _sendMethodCall(String destination, String path, String interface,
