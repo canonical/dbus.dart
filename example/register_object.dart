@@ -1,4 +1,4 @@
-import 'package:dbus_client/dbus_client.dart';
+import 'package:dbus/dbus.dart';
 
 // Test with:
 // $ gdbus call --session --dest com.canonical.DBusDart --object-path /com/canonical/DBusDart --method com.canonical.DBusDart.Test

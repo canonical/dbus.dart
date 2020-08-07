@@ -1,4 +1,4 @@
-import 'package:dbus_client/dbus_client.dart';
+import 'package:dbus/dbus.dart';
 import 'dart:collection';
 
 void main() async {
