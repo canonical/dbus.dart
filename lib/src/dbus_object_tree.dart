@@ -1,3 +1,4 @@
+import 'dbus_client.dart';
 import 'dbus_value.dart';
 
 /// Tree structure of registered objects.
@@ -5,7 +6,7 @@ class DBusObjectTree {
   final root = DBusObjectTreeNode('');
 
   /// Add the given [path] into the object tree.
-  void add(DBusObjectPath path) {
+  void add(DBusObjectPath path, DBusObject object) {
     var node = root;
     for (var element in path.split()) {
       var child = node.children[element];
@@ -15,7 +16,7 @@ class DBusObjectTree {
       }
       node = child;
     }
-    node.isObject = true;
+    node.object = object;
   }
 
   /// Find the node for the given [path], or return null if not in the tree.
@@ -31,6 +32,13 @@ class DBusObjectTree {
 
     return node;
   }
+
+  /// Find the object for the given [path], or return null if not in the tree.
+  DBusObject lookupObject(DBusObjectPath path) {
+    var node = lookup(path);
+    if (node == null) return null;
+    return node.object;
+  }
 }
 
 /// A node in a [DBusObjectTree].
@@ -38,12 +46,12 @@ class DBusObjectTreeNode {
   /// Name of this node, e.g. 'com'
   String name;
 
-  /// True if an object is on this node.
-  var isObject = false;
+  /// Object registered on this node.
+  DBusObject object;
 
   /// Child nodes
-  final children = Map<String, DBusObjectTreeNode>();
+  final children = <String, DBusObjectTreeNode>{};
 
   /// Creates a new tree node.
-  DBusObjectTreeNode(this.name) {}
+  DBusObjectTreeNode(this.name);
 }

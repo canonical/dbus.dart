@@ -22,10 +22,11 @@ DBusMethodResponse handleIntrospectableMethodCall(DBusObjectTree objectTree,
   if (member == 'Introspect') {
     var node = objectTree.lookup(path);
     var xml = '<node>';
-    if (node != null && node.isObject) {
+    if (node != null && node.object != null) {
       var interfaces = <DBusIntrospectInterface>[];
       interfaces.add(introspectIntrospectable());
       interfaces.add(introspectPeer());
+      interfaces.addAll(node.object.introspect());
       for (var interface in interfaces) {
         xml += '<interface name="${interface.name}">';
         for (var method in interface.methods) {
