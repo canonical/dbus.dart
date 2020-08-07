@@ -13,23 +13,23 @@ import 'dbus_write_buffer.dart';
 // FIXME: Use ByteData more efficiently - don't copy when reading/writing
 
 /// A response to a method call.
-abstract class MethodResponse {
+abstract class DBusMethodResponse {
   /// Gets the value returned from this method or throws an exception if an error received.
   List<DBusValue> get returnValues;
 }
 
 /// A success response to a method call.
-class MethodSuccessResponse extends MethodResponse {
+class DBusMethodSuccessResponse extends DBusMethodResponse {
   /// Values returned from the method.
   List<DBusValue> values;
 
   /// Creates a new success response to a method call returning [values].
-  MethodSuccessResponse([this.values = const []]) {}
+  DBusMethodSuccessResponse([this.values = const []]) {}
 
   List<DBusValue> get returnValues => values;
 }
 
-class MethodErrorResponse extends MethodResponse {
+class DBusMethodErrorResponse extends DBusMethodResponse {
   /// The name of the error that occurred.
   String errorName;
 
@@ -37,24 +37,24 @@ class MethodErrorResponse extends MethodResponse {
   List<DBusValue> values;
 
   /// Creates a new error response to a method call with the error [errorName] and optional [values].
-  MethodErrorResponse(String this.errorName, [this.values = const []]) {}
+  DBusMethodErrorResponse(String this.errorName, [this.values = const []]) {}
 
   /// Creates a new error response indicating the request failed.
-  MethodErrorResponse.failed(String message)
+  DBusMethodErrorResponse.failed(String message)
       : this('org.freedesktop.DBus.Error.Failed', [DBusString(message)]);
 
   /// Creates a new error response indicating an unknown interface.
-  MethodErrorResponse.unknownInterface()
+  DBusMethodErrorResponse.unknownInterface()
       : this('org.freedesktop.DBus.Error.UnknownInterface',
             [DBusString('Object does not implement the interface')]);
 
   /// Creates a new error response indicating an unknown method.
-  MethodErrorResponse.unknownMethod()
+  DBusMethodErrorResponse.unknownMethod()
       : this('org.freedesktop.DBus.Error.UnknownMethod',
             [DBusString('Unknown / invalid message')]);
 
   /// Creates a new error response indicating the arguments passed were invalid.
-  MethodErrorResponse.invalidArgs()
+  DBusMethodErrorResponse.invalidArgs()
       : this('org.freedesktop.DBus.Error.InvalidArgs',
             [DBusString('Invalid type / number of args')]);
 
@@ -63,7 +63,7 @@ class MethodErrorResponse extends MethodResponse {
 
 typedef SignalCallback = Function(
     String path, String interface, String member, List<DBusValue> values);
-typedef MethodCallback = Future<MethodResponse> Function(
+typedef MethodCallback = Future<DBusMethodResponse> Function(
     String path, String interface, String member, List<DBusValue> values);
 
 typedef _getuidC = Int32 Function();
@@ -77,7 +77,7 @@ int _getuid() {
 
 class _MethodCall {
   int serial;
-  var completer = Completer<MethodResponse>();
+  var completer = Completer<DBusMethodResponse>();
 
   _MethodCall(this.serial);
 }
@@ -242,32 +242,32 @@ class DBusClient {
   }
 
   void _processMethodCall(DBusMessage message) async {
-    MethodResponse response;
+    DBusMethodResponse response;
     if (message.interface == 'org.freedesktop.DBus.Introspectable') {
       response = _processIntrospectable(message);
     } else if (message.interface == 'org.freedesktop.DBus.Peer') {
       response = await _processPeer(message);
     } else if (!_objects.contains(message.path)) {
-      response = MethodErrorResponse.unknownInterface();
+      response = DBusMethodErrorResponse.unknownInterface();
     } else {
       var handler = _findMethodHandler(message.interface);
       if (handler != null) {
         response = await handler.callback(message.path.value, message.interface,
             message.member, message.values);
       } else {
-        response = MethodErrorResponse.unknownInterface();
+        response = DBusMethodErrorResponse.unknownInterface();
       }
     }
 
-    if (response is MethodErrorResponse) {
+    if (response is DBusMethodErrorResponse) {
       _sendError(
           message.serial, message.sender, response.errorName, response.values);
-    } else if (response is MethodSuccessResponse) {
+    } else if (response is DBusMethodSuccessResponse) {
       _sendReturn(message.serial, message.sender, response.values);
     }
   }
 
-  MethodResponse _processIntrospectable(DBusMessage message) {
+  DBusMethodResponse _processIntrospectable(DBusMessage message) {
     if (message.member == 'Introspect') {
       var children = <String>{};
       var pathElements = message.path.split();
@@ -295,20 +295,20 @@ class DBusClient {
         xml += '<node name="${node}"/>';
       }
       xml += '</node>';
-      return MethodSuccessResponse([DBusString(xml)]);
+      return DBusMethodSuccessResponse([DBusString(xml)]);
     } else {
-      return MethodErrorResponse.unknownMethod();
+      return DBusMethodErrorResponse.unknownMethod();
     }
   }
 
-  Future<MethodResponse> _processPeer(DBusMessage message) async {
+  Future<DBusMethodResponse> _processPeer(DBusMessage message) async {
     if (message.member == 'GetMachineId') {
       final String machineId = await _getMachineId();
-      return MethodSuccessResponse([DBusString(machineId)]);
+      return DBusMethodSuccessResponse([DBusString(machineId)]);
     } else if (message.member == 'Ping') {
-      return MethodSuccessResponse();
+      return DBusMethodSuccessResponse();
     } else {
-      return MethodErrorResponse.unknownMethod();
+      return DBusMethodErrorResponse.unknownMethod();
     }
   }
 
@@ -327,11 +327,11 @@ class DBusClient {
     if (methodCall == null) return;
     _methodCalls.remove(methodCall);
 
-    MethodResponse response;
+    DBusMethodResponse response;
     if (message.type == MessageType.Error) {
-      response = MethodErrorResponse(message.errorName, message.values);
+      response = DBusMethodErrorResponse(message.errorName, message.values);
     } else {
-      response = MethodSuccessResponse(message.values);
+      response = DBusMethodSuccessResponse(message.values);
     }
     methodCall.completer.complete(response);
   }
@@ -456,7 +456,7 @@ class DBusClient {
   }
 
   /// Invokes a method on a D-Bus object.
-  Future<MethodResponse> callMethod(
+  Future<DBusMethodResponse> callMethod(
       {String destination,
       String path,
       String interface,
