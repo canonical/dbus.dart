@@ -55,7 +55,7 @@ class DBusObjectProxy {
   }
 
   /// Invokes a method on this object.
-  Future<MethodResponse> callMethod(
+  Future<DBusMethodResponse> callMethod(
       String interface, String member, List<DBusValue> values) async {
     return client.callMethod(
         destination: destination,
