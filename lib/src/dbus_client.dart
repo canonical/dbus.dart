@@ -24,8 +24,9 @@ class MethodSuccessResponse extends MethodResponse {
   List<DBusValue> values;
 
   /// Creates a new success response to a method call returning [values].
-  MethodSuccessResponse([this.values = const []]) {}
+  MethodSuccessResponse([this.values = const []]);
 
+  @override
   List<DBusValue> get returnValues => values;
 }
 
@@ -37,7 +38,7 @@ class MethodErrorResponse extends MethodResponse {
   List<DBusValue> values;
 
   /// Creates a new error response to a method call with the error [errorName] and optional [values].
-  MethodErrorResponse(String this.errorName, [this.values = const []]) {}
+  MethodErrorResponse(this.errorName, [this.values = const []]);
 
   /// Creates a new error response indicating the request failed.
   MethodErrorResponse.failed(String message)
@@ -58,6 +59,7 @@ class MethodErrorResponse extends MethodResponse {
       : this('org.freedesktop.DBus.Error.InvalidArgs',
             [DBusString('Invalid type / number of args')]);
 
+  @override
   List<DBusValue> get returnValues => throw 'Error: ${errorName}';
 }
 
@@ -303,7 +305,7 @@ class DBusClient {
 
   Future<MethodResponse> _processPeer(DBusMessage message) async {
     if (message.member == 'GetMachineId') {
-      final String machineId = await _getMachineId();
+      final machineId = await _getMachineId();
       return MethodSuccessResponse([DBusString(machineId)]);
     } else if (message.member == 'Ping') {
       return MethodSuccessResponse();

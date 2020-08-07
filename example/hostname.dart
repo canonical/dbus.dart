@@ -1,4 +1,4 @@
-import 'package:dbus_client/dbus_client.dart';
+import 'package:dbus/dbus.dart';
 
 void main() async {
   var client = DBusClient.system();
