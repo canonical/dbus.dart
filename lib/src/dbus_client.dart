@@ -4,7 +4,9 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'dbus_address.dart';
+import 'dbus_introspectable.dart';
 import 'dbus_message.dart';
+import 'dbus_peer.dart';
 import 'dbus_read_buffer.dart';
 import 'dbus_value.dart';
 import 'dbus_write_buffer.dart';
@@ -246,9 +248,10 @@ class DBusClient {
   void _processMethodCall(DBusMessage message) async {
     DBusMethodResponse response;
     if (message.interface == 'org.freedesktop.DBus.Introspectable') {
-      response = _processIntrospectable(message);
+      response = await handleIntrospectableMethodCall(
+          _objects, message.path, message.member, message.values);
     } else if (message.interface == 'org.freedesktop.DBus.Peer') {
-      response = await _processPeer(message);
+      response = await handlePeerMethodCall(message.member, message.values);
     } else if (!_objects.contains(message.path)) {
       response = DBusMethodErrorResponse.unknownInterface();
     } else {
@@ -267,61 +270,6 @@ class DBusClient {
     } else if (response is DBusMethodSuccessResponse) {
       _sendReturn(message.serial, message.sender, response.values);
     }
-  }
-
-  DBusMethodResponse _processIntrospectable(DBusMessage message) {
-    if (message.member == 'Introspect') {
-      var children = <String>{};
-      var pathElements = message.path.split();
-      for (var path in _objects) {
-        var elements = path.split();
-        if (!_isSubnode(pathElements, elements)) continue;
-        var x = elements[pathElements.length];
-        children.add(x);
-      }
-      var xml = '<node>';
-      if (_objects.contains(message.path)) {
-        xml += '<interface name="org.freedesktop.DBus.Introspectable">';
-        xml += '<method name="Introspect">';
-        xml += '<arg name="xml_data" type="s" direction="out"/>';
-        xml += '</method>';
-        xml += '</interface>';
-        xml += '<interface name="org.freedesktop.DBus.Peer">';
-        xml += '<method name="GetMachineId">';
-        xml += '<arg name="machine_uuid" type="s" direction="out"/>';
-        xml += '</method>';
-        xml += '<method name="Ping"/>';
-        xml += '</interface>';
-      }
-      for (var node in children) {
-        xml += '<node name="${node}"/>';
-      }
-      xml += '</node>';
-      return DBusMethodSuccessResponse([DBusString(xml)]);
-    } else {
-      return DBusMethodErrorResponse.unknownMethod();
-    }
-  }
-
-  Future<DBusMethodResponse> _processPeer(DBusMessage message) async {
-    if (message.member == 'GetMachineId') {
-      final machineId = await _getMachineId();
-      return DBusMethodSuccessResponse([DBusString(machineId)]);
-    } else if (message.member == 'Ping') {
-      return DBusMethodSuccessResponse();
-    } else {
-      return DBusMethodErrorResponse.unknownMethod();
-    }
-  }
-
-  bool _isSubnode(List<String> parent, List<String> child) {
-    if (parent.length >= child.length) return false;
-    for (var i = 0; i < parent.length; i++) {
-      if (child[i] != parent[i]) {
-        return false;
-      }
-    }
-    return true;
   }
 
   void _processMethodReturn(DBusMessage message) {
@@ -545,22 +493,4 @@ class DBusClient {
     message.marshal(buffer);
     _socket.add(buffer.data);
   }
-}
-
-/// Returns the unique ID for this machine.
-Future<String> _getMachineId() async {
-  Future<String> readFirstLine(String path) async {
-    var file = File(path);
-    try {
-      var lines = await file.readAsLines();
-      return lines[0];
-    } on FileSystemException {
-      return '';
-    }
-  }
-
-  var machineId = await readFirstLine('/var/lib/dbus/machine-id');
-  if (machineId == '') machineId = await readFirstLine('/etc/machine-id');
-
-  return machineId;
 }
