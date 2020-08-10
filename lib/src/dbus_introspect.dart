@@ -9,13 +9,17 @@ enum DBusArgumentDirection { in_, out }
 
 /// Introspection information about a D-Bus node.
 class DBusIntrospectNode {
-  /// D-Bus object this node represents (optional).
-  final DBusObjectPath name;
+  /// D-Bus object this node represents, either absolute or relative (optional).
+  final String name;
 
   /// Interfaces this node uses.
   final List<DBusIntrospectInterface> interfaces;
 
-  DBusIntrospectNode(this.name, this.interfaces);
+  /// Child nodes.
+  final List<DBusIntrospectNode> children;
+
+  DBusIntrospectNode(this.name,
+      [this.interfaces = const [], this.children = const []]);
 
   factory DBusIntrospectNode.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
@@ -23,14 +27,22 @@ class DBusIntrospectNode {
     for (var interface in node.findElements('interface')) {
       interfaces.add(DBusIntrospectInterface.fromXml(interface));
     }
-    return DBusIntrospectNode(DBusObjectPath(name), interfaces);
+    var children = <DBusIntrospectNode>[];
+    for (var child in node.findElements('node')) {
+      children.add(DBusIntrospectNode.fromXml(child));
+    }
+    return DBusIntrospectNode(name, interfaces, children);
   }
 
   XmlNode toXml() {
-    return XmlElement(
-        XmlName('node'),
-        [XmlAttribute(XmlName('name'), name.value)],
-        interfaces.map((i) => i.toXml()));
+    var attributes = <XmlAttribute>[];
+    if (name != null) {
+      attributes.add(XmlAttribute(XmlName('name'), name));
+    }
+    var children_ = <XmlNode>[];
+    children_.addAll(interfaces.map((i) => i.toXml()));
+    children_.addAll(children.map((c) => c.toXml()));
+    return XmlElement(XmlName('node'), attributes, children_);
   }
 }
 
@@ -203,7 +215,9 @@ class DBusIntrospectProperty {
 
   XmlNode toXml() {
     var attributes = <XmlAttribute>[];
-    if (name != null) attributes.add(XmlAttribute(XmlName('name'), name));
+    if (name != null) {
+      attributes.add(XmlAttribute(XmlName('name'), name));
+    }
     attributes.add(XmlAttribute(XmlName('type'), type.value));
     if (access == DBusPropertyAccess.readwrite) {
       attributes.add(XmlAttribute(XmlName('access'), 'readwrite'));
@@ -250,7 +264,9 @@ class DBusIntrospectArgument {
 
   XmlNode toXml() {
     var attributes = <XmlAttribute>[];
-    if (name != null) attributes.add(XmlAttribute(XmlName('name'), name));
+    if (name != null) {
+      attributes.add(XmlAttribute(XmlName('name'), name));
+    }
     attributes.add(XmlAttribute(XmlName('type'), type.value));
     if (direction == DBusArgumentDirection.in_) {
       attributes.add(XmlAttribute(XmlName('direction'), 'in'));
