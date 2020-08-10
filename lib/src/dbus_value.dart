@@ -445,7 +445,7 @@ class DBusArray extends DBusValue {
   /// Creates a new empty D-Bus array containing [children].
   ///
   /// An exception will be thrown if a DBusValue in [children] doesn't have a signature matching [childSignature].
-  DBusArray(this.childSignature, this.children) {
+  DBusArray(this.childSignature, [this.children = const []]) {
     for (var child in children) {
       if (child.signature.value != childSignature.value) {
         throw "Provided children don't match array signature";
@@ -488,7 +488,7 @@ class DBusDict extends DBusValue {
   /// Creates a new dictionary with keys of the type [keySignature] and values of the type [valueSignature].
   ///
   /// An exception will be thrown if the DBusValues in [children] don't have signatures matching [keySignature] and [valueSignature].
-  DBusDict(this.keySignature, this.valueSignature, this.children) {
+  DBusDict(this.keySignature, this.valueSignature, [this.children = const {}]) {
     children.forEach((key, value) {
       if (key.signature.value != keySignature.value) {
         throw "Provided key don't match signature";

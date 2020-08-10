@@ -11,8 +11,8 @@ void main() async {
     DBusString(''), // Icon
     DBusString('Hello World!'), // Summary
     DBusString(''), // Body
-    DBusArray(DBusSignature('s'), []), // Actions
-    DBusDict(DBusSignature('s'), DBusSignature('v'), {}), // Hints
+    DBusArray(DBusSignature('s')), // Actions
+    DBusDict(DBusSignature('s'), DBusSignature('v')), // Hints
     DBusInt32(-1), // Expire timeout
   ];
   var result =
