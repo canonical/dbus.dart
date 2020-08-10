@@ -1,5 +1,6 @@
 import 'dbus_client.dart';
 import 'dbus_introspect.dart';
+import 'dbus_object_tree.dart';
 import 'dbus_peer.dart';
 import 'dbus_value.dart';
 
@@ -16,19 +17,12 @@ DBusIntrospectInterface introspectIntrospectable() {
 }
 
 /// Handles method calls on the org.freedesktop.DBus.Introspectable interface.
-DBusMethodResponse handleIntrospectableMethodCall(Set<DBusObjectPath> objects,
+DBusMethodResponse handleIntrospectableMethodCall(DBusObjectTree objectTree,
     DBusObjectPath path, String member, List<DBusValue> values) {
   if (member == 'Introspect') {
-    var children = <String>{};
-    var pathElements = path.split();
-    for (var path in objects) {
-      var elements = path.split();
-      if (!_isSubnode(pathElements, elements)) continue;
-      var x = elements[pathElements.length];
-      children.add(x);
-    }
+    var node = objectTree.lookup(path);
     var xml = '<node>';
-    if (objects.contains(path)) {
+    if (node != null && node.isObject) {
       var interfaces = <DBusIntrospectInterface>[];
       interfaces.add(introspectIntrospectable());
       interfaces.add(introspectPeer());
@@ -52,22 +46,12 @@ DBusMethodResponse handleIntrospectableMethodCall(Set<DBusObjectPath> objects,
         xml += '</interface>';
       }
     }
-    for (var node in children) {
-      xml += '<node name="${node}"/>';
+    for (var child in node.children.keys) {
+      xml += '<node name="${child}"/>';
     }
     xml += '</node>';
     return DBusMethodSuccessResponse([DBusString(xml)]);
   } else {
     return DBusMethodErrorResponse.unknownMethod();
   }
-}
-
-bool _isSubnode(List<String> parent, List<String> child) {
-  if (parent.length >= child.length) return false;
-  for (var i = 0; i < parent.length; i++) {
-    if (child[i] != parent[i]) {
-      return false;
-    }
-  }
-  return true;
 }

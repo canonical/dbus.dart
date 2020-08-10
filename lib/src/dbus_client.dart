@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'dbus_address.dart';
 import 'dbus_introspectable.dart';
 import 'dbus_message.dart';
+import 'dbus_object_tree.dart';
 import 'dbus_peer.dart';
 import 'dbus_read_buffer.dart';
 import 'dbus_value.dart';
@@ -109,7 +110,7 @@ class DBusClient {
   final _methodCalls = <_MethodCall>[];
   final _signalHandlers = <_SignalHandler>[];
   final _methodHandlers = <_MethodHandler>[];
-  final _objects = <DBusObjectPath>{};
+  final _objectTree = DBusObjectTree();
 
   /// Creates a new DBus client to connect on [address].
   DBusClient(String address) {
@@ -249,10 +250,10 @@ class DBusClient {
     DBusMethodResponse response;
     if (message.interface == 'org.freedesktop.DBus.Introspectable') {
       response = await handleIntrospectableMethodCall(
-          _objects, message.path, message.member, message.values);
+          _objectTree, message.path, message.member, message.values);
     } else if (message.interface == 'org.freedesktop.DBus.Peer') {
       response = await handlePeerMethodCall(message.member, message.values);
-    } else if (!_objects.contains(message.path)) {
+    } else if (_objectTree.lookup(message.path) == null) {
       response = DBusMethodErrorResponse.unknownInterface();
     } else {
       var handler = _findMethodHandler(message.interface);
@@ -433,7 +434,7 @@ class DBusClient {
 
   /// Registers a new object on the bus with the given [path].
   void registerObject(String path) {
-    _objects.add(DBusObjectPath(path));
+    _objectTree.add(DBusObjectPath(path));
   }
 
   void _sendMethodCall(String destination, String path, String interface,
