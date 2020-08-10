@@ -23,14 +23,11 @@ class DBusIntrospectNode {
 
   factory DBusIntrospectNode.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
-    var interfaces = <DBusIntrospectInterface>[];
-    for (var interface in node.findElements('interface')) {
-      interfaces.add(DBusIntrospectInterface.fromXml(interface));
-    }
-    var children = <DBusIntrospectNode>[];
-    for (var child in node.findElements('node')) {
-      children.add(DBusIntrospectNode.fromXml(child));
-    }
+    var interfaces = node
+        .findElements('interface')
+        .map((n) => DBusIntrospectInterface.fromXml(n));
+    var children =
+        node.findElements('node').map((n) => DBusIntrospectNode.fromXml(n));
     return DBusIntrospectNode(name, interfaces, children);
   }
 
@@ -71,22 +68,16 @@ class DBusIntrospectInterface {
 
   factory DBusIntrospectInterface.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
-    var methods = <DBusIntrospectMethod>[];
-    for (var method in node.findElements('method')) {
-      methods.add(DBusIntrospectMethod.fromXml(method));
-    }
-    var signals = <DBusIntrospectSignal>[];
-    for (var signal in node.findElements('signal')) {
-      signals.add(DBusIntrospectSignal.fromXml(signal));
-    }
-    var properties = <DBusIntrospectProperty>[];
-    for (var property in node.findElements('property')) {
-      properties.add(DBusIntrospectProperty.fromXml(property));
-    }
-    var annotations = <DBusIntrospectAnnotation>[];
-    for (var annotation in node.findElements('annotation')) {
-      annotations.add(DBusIntrospectAnnotation.fromXml(annotation));
-    }
+    var methods =
+        node.findElements('method').map((n) => DBusIntrospectMethod.fromXml(n));
+    var signals =
+        node.findElements('signal').map((n) => DBusIntrospectSignal.fromXml(n));
+    var properties = node
+        .findElements('property')
+        .map((n) => DBusIntrospectProperty.fromXml(n));
+    var annotations = node
+        .findElements('annotation')
+        .map((n) => DBusIntrospectAnnotation.fromXml(n));
     return DBusIntrospectInterface(name,
         methods: methods,
         signals: signals,
@@ -121,14 +112,11 @@ class DBusIntrospectMethod {
 
   factory DBusIntrospectMethod.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
-    var args = <DBusIntrospectArgument>[];
-    for (var arg in node.findElements('arg')) {
-      args.add(DBusIntrospectArgument.fromXml(arg));
-    }
-    var annotations = <DBusIntrospectAnnotation>[];
-    for (var annotation in node.findElements('annotation')) {
-      annotations.add(DBusIntrospectAnnotation.fromXml(annotation));
-    }
+    var args =
+        node.findElements('arg').map((n) => DBusIntrospectArgument.fromXml(n));
+    var annotations = node
+        .findElements('annotation')
+        .map((n) => DBusIntrospectAnnotation.fromXml(n));
     return DBusIntrospectMethod(name, args: args, annotations: annotations);
   }
 
@@ -157,14 +145,11 @@ class DBusIntrospectSignal {
 
   factory DBusIntrospectSignal.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
-    var args = <DBusIntrospectArgument>[];
-    for (var arg in node.findElements('arg')) {
-      args.add(DBusIntrospectArgument.fromXml(arg));
-    }
-    var annotations = <DBusIntrospectAnnotation>[];
-    for (var annotation in node.findElements('annotation')) {
-      annotations.add(DBusIntrospectAnnotation.fromXml(annotation));
-    }
+    var args =
+        node.findElements('arg').map((n) => DBusIntrospectArgument.fromXml(n));
+    var annotations = node
+        .findElements('annotation')
+        .map((n) => DBusIntrospectAnnotation.fromXml(n));
     return DBusIntrospectSignal(name, args: args, annotations: annotations);
   }
 
@@ -205,10 +190,9 @@ class DBusIntrospectProperty {
     } else if (accessText == 'write') {
       access = DBusPropertyAccess.write;
     }
-    var annotations = <DBusIntrospectAnnotation>[];
-    for (var annotation in node.findElements('annotation')) {
-      annotations.add(DBusIntrospectAnnotation.fromXml(annotation));
-    }
+    var annotations = node
+        .findElements('annotation')
+        .map((n) => DBusIntrospectAnnotation.fromXml(n));
     return DBusIntrospectProperty(name, type,
         access: access, annotations: annotations);
   }
@@ -254,10 +238,9 @@ class DBusIntrospectArgument {
     var directionText = node.getAttribute('direction');
     var direction = DBusArgumentDirection.in_;
     if (directionText == 'out') direction = DBusArgumentDirection.out;
-    var annotations = <DBusIntrospectAnnotation>[];
-    for (var annotation in node.findElements('annotation')) {
-      annotations.add(DBusIntrospectAnnotation.fromXml(annotation));
-    }
+    var annotations = node
+        .findElements('annotation')
+        .map((n) => DBusIntrospectAnnotation.fromXml(n));
     return DBusIntrospectArgument(name, type, direction,
         annotations: annotations);
   }
@@ -307,9 +290,7 @@ class DBusIntrospectAnnotation {
 /// Data can received from [DBusObjectProxy.introspect] or from an interface definition document.
 List<DBusIntrospectNode> parseDBusIntrospectXml(String xml) {
   var document = XmlDocument.parse(xml);
-  var nodes = <DBusIntrospectNode>[];
-  for (var node in document.findElements('node')) {
-    nodes.add(DBusIntrospectNode.fromXml(node));
-  }
-  return nodes;
+  return document
+      .findElements('node')
+      .map((n) => DBusIntrospectNode.fromXml(n));
 }
