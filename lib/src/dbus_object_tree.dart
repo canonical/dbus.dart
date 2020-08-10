@@ -1,4 +1,4 @@
-import 'dbus_client.dart';
+import 'dbus_object.dart';
 import 'dbus_value.dart';
 
 /// Tree structure of registered objects.
