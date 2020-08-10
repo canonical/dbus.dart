@@ -1,7 +1,20 @@
 import 'dart:io';
 
 import 'dbus_client.dart';
+import 'dbus_introspect.dart';
 import 'dbus_value.dart';
+
+/// Returns introspection data for the org.freedesktop.DBus.Peer interface.
+DBusIntrospectInterface introspectPeer() {
+  final getMachineIdMethod = DBusIntrospectMethod('GetMachineId', args: [
+    DBusIntrospectArgument(
+        'machine_uuid', DBusSignature('s'), DBusArgumentDirection.out)
+  ]);
+  final pingMethod = DBusIntrospectMethod('Ping');
+  final peer = DBusIntrospectInterface('org.freedesktop.DBus.Peer',
+      methods: [getMachineIdMethod, pingMethod]);
+  return peer;
+}
 
 /// Handles method calls on the org.freedesktop.DBus.Peer interface.
 Future<DBusMethodResponse> handlePeerMethodCall(
