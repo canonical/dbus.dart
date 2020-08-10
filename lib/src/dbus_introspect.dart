@@ -257,7 +257,7 @@ class DBusIntrospectArgument {
       attributes.add(XmlAttribute(XmlName('direction'), 'out'));
     }
     return XmlElement(
-        XmlName('argument'), attributes, annotations.map((a) => a.toXml()));
+        XmlName('arg'), attributes, annotations.map((a) => a.toXml()));
   }
 }
 
