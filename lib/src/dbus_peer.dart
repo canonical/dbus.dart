@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'dbus_client.dart';
 import 'dbus_introspect.dart';
+import 'dbus_method_response.dart';
 import 'dbus_value.dart';
 
 /// Returns introspection data for the org.freedesktop.DBus.Peer interface.
