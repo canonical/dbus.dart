@@ -25,6 +25,13 @@ class DBusIntrospectNode {
     }
     return DBusIntrospectNode(DBusObjectPath(name), interfaces);
   }
+
+  XmlNode toXml() {
+    return XmlElement(
+        XmlName('node'),
+        [XmlAttribute(XmlName('name'), name.value)],
+        interfaces.map((i) => i.toXml()));
+  }
 }
 
 /// Introspection information about a D-Bus interface.
@@ -74,6 +81,16 @@ class DBusIntrospectInterface {
         properties: properties,
         annotations: annotations);
   }
+
+  XmlNode toXml() {
+    var children = <XmlNode>[];
+    children.addAll(methods.map((m) => m.toXml()));
+    children.addAll(signals.map((s) => s.toXml()));
+    children.addAll(properties.map((p) => p.toXml()));
+    children.addAll(annotations.map((a) => a.toXml()));
+    return XmlElement(
+        XmlName('interface'), [XmlAttribute(XmlName('name'), name)], children);
+  }
 }
 
 /// Introspection information about a D-Bus method.
@@ -102,6 +119,14 @@ class DBusIntrospectMethod {
     }
     return DBusIntrospectMethod(name, args: args, annotations: annotations);
   }
+
+  XmlNode toXml() {
+    var children = <XmlNode>[];
+    children.addAll(args.map((a) => a.toXml()));
+    children.addAll(annotations.map((a) => a.toXml()));
+    return XmlElement(
+        XmlName('method'), [XmlAttribute(XmlName('name'), name)], children);
+  }
 }
 
 /// Introspection information about a D-Bus signal.
@@ -129,6 +154,14 @@ class DBusIntrospectSignal {
       annotations.add(DBusIntrospectAnnotation.fromXml(annotation));
     }
     return DBusIntrospectSignal(name, args: args, annotations: annotations);
+  }
+
+  XmlNode toXml() {
+    var children = <XmlNode>[];
+    children.addAll(args.map((a) => a.toXml()));
+    children.addAll(annotations.map((a) => a.toXml()));
+    return XmlElement(
+        XmlName('signal'), [XmlAttribute(XmlName('name'), name)], children);
   }
 }
 
@@ -167,6 +200,21 @@ class DBusIntrospectProperty {
     return DBusIntrospectProperty(name, type,
         access: access, annotations: annotations);
   }
+
+  XmlNode toXml() {
+    var attributes = <XmlAttribute>[];
+    if (name != null) attributes.add(XmlAttribute(XmlName('name'), name));
+    attributes.add(XmlAttribute(XmlName('type'), type.value));
+    if (access == DBusPropertyAccess.readwrite) {
+      attributes.add(XmlAttribute(XmlName('access'), 'readwrite'));
+    } else if (access == DBusPropertyAccess.read) {
+      attributes.add(XmlAttribute(XmlName('access'), 'read'));
+    } else if (access == DBusPropertyAccess.write) {
+      attributes.add(XmlAttribute(XmlName('access'), 'write'));
+    }
+    return XmlElement(
+        XmlName('property'), attributes, annotations.map((a) => a.toXml()));
+  }
 }
 
 /// Introspection information about a D-Bus argument.
@@ -199,6 +247,19 @@ class DBusIntrospectArgument {
     return DBusIntrospectArgument(name, type, direction,
         annotations: annotations);
   }
+
+  XmlNode toXml() {
+    var attributes = <XmlAttribute>[];
+    if (name != null) attributes.add(XmlAttribute(XmlName('name'), name));
+    attributes.add(XmlAttribute(XmlName('type'), type.value));
+    if (direction == DBusArgumentDirection.in_) {
+      attributes.add(XmlAttribute(XmlName('direction'), 'in'));
+    } else if (direction == DBusArgumentDirection.out) {
+      attributes.add(XmlAttribute(XmlName('direction'), 'out'));
+    }
+    return XmlElement(
+        XmlName('argument'), attributes, annotations.map((a) => a.toXml()));
+  }
 }
 
 /// Annotation that applies to a D-Bus interface, method, signal, property or argument.
@@ -214,8 +275,14 @@ class DBusIntrospectAnnotation {
   factory DBusIntrospectAnnotation.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
     var value = node.getAttribute('value');
-
     return DBusIntrospectAnnotation(name, value);
+  }
+
+  XmlNode toXml() {
+    return XmlElement(XmlName('method'), [
+      XmlAttribute(XmlName('name'), name),
+      XmlAttribute(XmlName('value'), value)
+    ]);
   }
 }
 
