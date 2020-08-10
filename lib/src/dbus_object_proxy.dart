@@ -1,4 +1,5 @@
 import 'dbus_client.dart';
+import 'dbus_method_response.dart';
 import 'dbus_value.dart';
 
 /// An object to simplify access to a D-Bus object.
