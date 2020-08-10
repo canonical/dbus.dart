@@ -4,10 +4,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'dbus_address.dart';
-import 'dbus_introspect.dart';
 import 'dbus_introspectable.dart';
 import 'dbus_message.dart';
 import 'dbus_method_response.dart';
+import 'dbus_object.dart';
 import 'dbus_object_tree.dart';
 import 'dbus_peer.dart';
 import 'dbus_read_buffer.dart';
@@ -40,20 +40,6 @@ class _SignalHandler {
   SignalCallback callback;
 
   _SignalHandler(this.callback);
-}
-
-/// An object that is exported on the bus.
-class DBusObject {
-  /// Called to get introspection information about this object.
-  List<DBusIntrospectInterface> introspect() {
-    return [];
-  }
-
-  /// Called when a method call is received on this object.
-  Future<DBusMethodResponse> handleMethodCall(
-      String interface, String member, List<DBusValue> values) async {
-    return DBusMethodErrorResponse.unknownInterface();
-  }
 }
 
 /// A client connection to a D-Bus server.
