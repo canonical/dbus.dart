@@ -10,6 +10,7 @@ import 'dbus_method_response.dart';
 import 'dbus_object.dart';
 import 'dbus_object_tree.dart';
 import 'dbus_peer.dart';
+import 'dbus_properties.dart';
 import 'dbus_read_buffer.dart';
 import 'dbus_value.dart';
 import 'dbus_write_buffer.dart';
@@ -190,6 +191,9 @@ class DBusClient {
           _objectTree, message.path, message.member, message.values);
     } else if (message.interface == 'org.freedesktop.DBus.Peer') {
       response = await handlePeerMethodCall(message.member, message.values);
+    } else if (message.interface == 'org.freedesktop.DBus.Properties') {
+      response = await handlePropertiesMethodCall(
+          _objectTree, message.path, message.member, message.values);
     } else {
       var object = _objectTree.lookupObject(message.path);
       if (object != null) {

@@ -18,6 +18,7 @@ class DBusMethodSuccessResponse extends DBusMethodResponse {
   List<DBusValue> get returnValues => values;
 }
 
+/// An error response to a method call.
 class DBusMethodErrorResponse extends DBusMethodResponse {
   /// The name of the error that occurred.
   String errorName;
@@ -31,6 +32,11 @@ class DBusMethodErrorResponse extends DBusMethodResponse {
   /// Creates a new error response indicating the request failed.
   DBusMethodErrorResponse.failed(String message)
       : this('org.freedesktop.DBus.Error.Failed', [DBusString(message)]);
+
+  /// Creates a new error response indicating an unknown object.
+  DBusMethodErrorResponse.unknownObject()
+      : this('org.freedesktop.DBus.Error.UnknownObject',
+            [DBusString('Unknown object')]);
 
   /// Creates a new error response indicating an unknown interface.
   DBusMethodErrorResponse.unknownInterface()
@@ -47,6 +53,33 @@ class DBusMethodErrorResponse extends DBusMethodResponse {
       : this('org.freedesktop.DBus.Error.InvalidArgs',
             [DBusString('Invalid type / number of args')]);
 
+  /// Creates a new error response indicating an unknown property.
+  DBusMethodErrorResponse.unknownProperty()
+      : this('org.freedesktop.DBus.Error.UnknownProperty',
+            [DBusString('Unknown property')]);
+
+  /// Creates a new error response when attempting to write to a read-only property.
+  DBusMethodErrorResponse.propertyReadOnly()
+      : this('org.freedesktop.DBus.Error.PropertyReadOnly',
+            [DBusString('Property is read-only')]);
+
   @override
   List<DBusValue> get returnValues => throw 'Error: ${errorName}';
+}
+
+/// A successful response to [DBusObject.getProperty].
+class DBusGetPropertyResponse extends DBusMethodSuccessResponse {
+  DBusGetPropertyResponse(DBusValue value) : super([DBusVariant(value)]);
+}
+
+/// A successful response to [DBusObject.getAllProperties].
+class DBusGetAllPropertiesResponse extends DBusMethodSuccessResponse {
+  DBusGetAllPropertiesResponse(Map<String, DBusValue> values)
+      : super([
+          DBusDict(
+              DBusSignature('s'),
+              DBusSignature('v'),
+              Map.fromIterables(values.keys.map((k) => DBusString(k)),
+                  values.values.map((v) => DBusVariant(v))))
+        ]);
 }
