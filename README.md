@@ -16,7 +16,7 @@ print('hostname: ${hostname}');
 await client.disconnect();
 ```
 
-### Exporting an object on the bus
+## Exporting an object on the bus
 
 ```dart
 import 'package:dbus/dbus.dart';
