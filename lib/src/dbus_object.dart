@@ -14,4 +14,22 @@ class DBusObject {
       String interface, String member, List<DBusValue> values) async {
     return DBusMethodErrorResponse.unknownInterface();
   }
+
+  /// Called when a property is requested on this object. On success, return [DBusGetPropertyResponse].
+  Future<DBusMethodResponse> getProperty(
+      String interface, String member) async {
+    return DBusMethodErrorResponse.unknownProperty();
+  }
+
+  /// Called when a property is set on this object.
+  Future<DBusMethodResponse> setProperty(
+      String interface, String member, DBusValue value) async {
+    return DBusMethodErrorResponse.unknownProperty();
+  }
+
+  /// Called when all properties are requested on this object. On success, return [DBusGetAllPropertiesResponse].
+  Future<DBusMethodResponse> getAllProperties(String interface) async {
+    return DBusMethodSuccessResponse(
+        [DBusDict(DBusSignature('s'), DBusSignature('v'), {})]);
+  }
 }
