@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 /// Base class for D-Bus values.
 abstract class DBusValue {
   DBusSignature signature;
@@ -485,7 +483,7 @@ class DBusDict extends DBusValue {
   final DBusSignature valueSignature;
 
   /// The child values in this dictionary.
-  final LinkedHashMap<DBusValue, DBusValue> children;
+  final Map<DBusValue, DBusValue> children;
 
   /// Creates a new dictionary with keys of the type [keySignature] and values of the type [valueSignature].
   ///
