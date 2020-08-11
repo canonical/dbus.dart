@@ -117,10 +117,9 @@ class DBusWriteBuffer extends DBusBuffer {
       writeValue(DBusUint32(0));
       var lengthOffset = data.length - 4;
 
-      var children = value.children;
-      if (children.isNotEmpty) align(getAlignment(children[0]));
+      align(getAlignment(value.childSignature));
       var startOffset = data.length;
-      for (var child in children) {
+      for (var child in value.children) {
         writeValue(child);
       }
 
@@ -135,10 +134,9 @@ class DBusWriteBuffer extends DBusBuffer {
       writeValue(DBusUint32(0));
       var lengthOffset = data.length - 4;
 
-      var children = value.children;
-      if (children.isNotEmpty) align(getAlignment(children[0]));
+      align(DICT_ENTRY_ALIGNMENT);
       var startOffset = data.length;
-      children.forEach((key, value) {
+      value.children.forEach((key, value) {
         writeValue(DBusStruct([key, value]));
       });
 
@@ -151,39 +149,39 @@ class DBusWriteBuffer extends DBusBuffer {
     }
   }
 
-  int getAlignment(DBusValue value) {
-    if (value is DBusByte) {
+  int getAlignment(DBusSignature signature) {
+    if (signature.value == 'y') {
       return BYTE_ALIGNMENT;
-    } else if (value is DBusBoolean) {
+    } else if (signature.value == 'b') {
       return BOOLEAN_ALIGNMENT;
-    } else if (value is DBusInt16) {
+    } else if (signature.value == 'n') {
       return INT16_ALIGNMENT;
-    } else if (value is DBusUint16) {
+    } else if (signature.value == 'q') {
       return UINT16_ALIGNMENT;
-    } else if (value is DBusInt32) {
+    } else if (signature.value == 'i') {
       return INT32_ALIGNMENT;
-    } else if (value is DBusUint32) {
+    } else if (signature.value == 'u') {
       return UINT32_ALIGNMENT;
-    } else if (value is DBusInt64) {
+    } else if (signature.value == 'x') {
       return INT64_ALIGNMENT;
-    } else if (value is DBusUint64) {
+    } else if (signature.value == 't') {
       return UINT64_ALIGNMENT;
-    } else if (value is DBusDouble) {
+    } else if (signature.value == 'd') {
       return DOUBLE_ALIGNMENT;
-    } else if (value is DBusString) {
+    } else if (signature.value == 's') {
       return STRING_ALIGNMENT;
-    } else if (value is DBusSignature) {
+    } else if (signature.value == 'o') {
+      return OBJECT_PATH_ALIGNMENT;
+    } else if (signature.value == 'h') {
       return SIGNATURE_ALIGNMENT;
-    } else if (value is DBusVariant) {
+    } else if (signature.value == 'v') {
       return VARIANT_ALIGNMENT;
-    } else if (value is DBusStruct) {
+    } else if (signature.value.startsWith('(')) {
       return STRUCT_ALIGNMENT;
-    } else if (value is DBusArray) {
+    } else if (signature.value.startsWith('a')) {
       return ARRAY_ALIGNMENT;
-    } else if (value is DBusDict) {
-      return DICT_ALIGNMENT;
     } else {
-      return 0;
+      return 1;
     }
   }
 
