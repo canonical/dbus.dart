@@ -21,6 +21,10 @@ DBusIntrospectInterface introspectIntrospectable() {
 DBusMethodResponse handleIntrospectableMethodCall(DBusObjectTree objectTree,
     DBusObjectPath path, String member, List<DBusValue> values) {
   if (member == 'Introspect') {
+    if (values.isNotEmpty) {
+      return DBusMethodErrorResponse.invalidArgs();
+    }
+
     var node = objectTree.lookup(path);
     var interfaces = <DBusIntrospectInterface>[];
     if (node != null && node.object != null) {
