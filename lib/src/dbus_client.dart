@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -14,21 +13,13 @@ import 'dbus_properties.dart';
 import 'dbus_read_buffer.dart';
 import 'dbus_value.dart';
 import 'dbus_write_buffer.dart';
+import 'getuid.dart';
 
 // FIXME: Use more efficient data store than List<int>?
 // FIXME: Use ByteData more efficiently - don't copy when reading/writing
 
 typedef SignalCallback = Function(DBusObjectPath path, String interface,
     String member, List<DBusValue> values);
-
-typedef _getuidC = Int32 Function();
-typedef _getuidDart = int Function();
-
-int _getuid() {
-  final dylib = DynamicLibrary.open('libc.so.6');
-  final getuidP = dylib.lookupFunction<_getuidC, _getuidDart>('getuid');
-  return getuidP();
-}
 
 class _MethodCall {
   int serial;
@@ -72,7 +63,7 @@ class DBusClient {
     if (address == null) {
       var runtimeDir = Platform.environment['XDG_USER_DIR'];
       if (runtimeDir == null) {
-        var uid = _getuid();
+        var uid = getuid();
         runtimeDir = '/run/user/${uid}';
       }
       address = 'unix:path=${runtimeDir}/bus';
@@ -124,7 +115,7 @@ class DBusClient {
     // We rely on the server using SO_PEERCRED to check out credentials.
     _socket.add([0]);
 
-    var uid = _getuid();
+    var uid = getuid();
     var uidString = '';
     for (var c in uid.toString().runes) {
       uidString += c.toRadixString(16).padLeft(2, '0');
