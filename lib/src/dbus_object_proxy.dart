@@ -65,14 +65,4 @@ class DBusObjectProxy {
         member: member,
         values: values);
   }
-
-  /// Emits a signal on this object.
-  void emitSignal(String interface, String member, List<DBusValue> values) {
-    client.emitSignal(
-        destination: destination,
-        path: path,
-        interface: interface,
-        member: member,
-        values: values);
-  }
 }
