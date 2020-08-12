@@ -18,8 +18,8 @@ import 'dbus_write_buffer.dart';
 // FIXME: Use more efficient data store than List<int>?
 // FIXME: Use ByteData more efficiently - don't copy when reading/writing
 
-typedef SignalCallback = Function(
-    String path, String interface, String member, List<DBusValue> values);
+typedef SignalCallback = Function(DBusObjectPath path, String interface,
+    String member, List<DBusValue> values);
 
 typedef _getuidC = Int32 Function();
 typedef _getuidDart = int Function();
@@ -109,7 +109,7 @@ class DBusClient {
 
     await callMethod(
         destination: 'org.freedesktop.DBus',
-        path: '/org/freedesktop/DBus',
+        path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
         member: 'Hello');
   }
@@ -177,8 +177,8 @@ class DBusClient {
       _processMethodReturn(message);
     } else if (message.type == MessageType.Signal) {
       for (var handler in _signalHandlers) {
-        handler.callback(message.path.value, message.interface, message.member,
-            message.values);
+        handler.callback(
+            message.path, message.interface, message.member, message.values);
       }
     }
 
@@ -239,7 +239,7 @@ class DBusClient {
   Future<int> requestName(String name, {int flags = 0}) async {
     var result = await callMethod(
         destination: 'org.freedesktop.DBus',
-        path: '/org/freedesktop/DBus',
+        path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
         member: 'RequestName',
         values: [DBusString(name), DBusUint32(flags)]);
@@ -254,7 +254,7 @@ class DBusClient {
   Future<int> releaseName(String name) async {
     var result = await callMethod(
         destination: 'org.freedesktop.DBus',
-        path: '/org/freedesktop/DBus',
+        path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
         member: 'ReleaseName',
         values: [DBusString(name)]);
@@ -269,7 +269,7 @@ class DBusClient {
   Future<List<String>> listNames() async {
     var result = await callMethod(
         destination: 'org.freedesktop.DBus',
-        path: '/org/freedesktop/DBus',
+        path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
         member: 'ListNames');
     var values = result.returnValues;
@@ -286,7 +286,7 @@ class DBusClient {
   Future<List<String>> listActivatableNames() async {
     var result = await callMethod(
         destination: 'org.freedesktop.DBus',
-        path: '/org/freedesktop/DBus',
+        path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
         member: 'ListActivatableNames');
     var values = result.returnValues;
@@ -303,7 +303,7 @@ class DBusClient {
   Future<bool> nameHasOwner(String name) async {
     var result = await callMethod(
         destination: 'org.freedesktop.DBus',
-        path: '/org/freedesktop/DBus',
+        path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
         member: 'NameHasOwner',
         values: [DBusString(name)]);
@@ -317,7 +317,7 @@ class DBusClient {
   void addMatch(String rule) async {
     await callMethod(
         destination: 'org.freedesktop.DBus',
-        path: '/org/freedesktop/DBus',
+        path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
         member: 'AddMatch',
         values: [DBusString(rule)]);
@@ -326,7 +326,7 @@ class DBusClient {
   void removeMatch(String rule) async {
     await callMethod(
         destination: 'org.freedesktop.DBus',
-        path: '/org/freedesktop/DBus',
+        path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
         member: 'RemoveMatch',
         values: [DBusString(rule)]);
@@ -336,7 +336,7 @@ class DBusClient {
   Future<String> getId() async {
     var result = await callMethod(
         destination: 'org.freedesktop.DBus',
-        path: '/org/freedesktop/DBus',
+        path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
         member: 'GetId');
     var values = result.returnValues;
@@ -350,7 +350,7 @@ class DBusClient {
   Future ping(String destination) async {
     var result = await callMethod(
         destination: destination,
-        path: '/',
+        path: DBusObjectPath('/'),
         interface: 'org.freedesktop.DBus.Peer',
         member: 'Ping');
     if (result.returnValues.isNotEmpty) {
@@ -362,7 +362,7 @@ class DBusClient {
   Future<String> getMachineId(String destination) async {
     var result = await callMethod(
         destination: destination,
-        path: '/',
+        path: DBusObjectPath('/'),
         interface: 'org.freedesktop.DBus.Peer',
         member: 'GetMachineId');
     var values = result.returnValues;
@@ -375,7 +375,7 @@ class DBusClient {
   /// Invokes a method on a D-Bus object.
   Future<DBusMethodResponse> callMethod(
       {String destination,
-      String path,
+      DBusObjectPath path,
       String interface,
       String member,
       List<DBusValue> values}) async {
@@ -391,7 +391,7 @@ class DBusClient {
   /// Emits a signal from a D-Bus object.
   void emitSignal(
       {String destination,
-      String path,
+      DBusObjectPath path,
       String interface,
       String member,
       List<DBusValue> values}) {
@@ -399,32 +399,32 @@ class DBusClient {
   }
 
   /// Registers an [object] on the bus with the given [path].
-  void registerObject(String path, DBusObject object) {
-    _objectTree.add(DBusObjectPath(path), object);
+  void registerObject(DBusObjectPath path, DBusObject object) {
+    _objectTree.add(path, object);
   }
 
-  void _sendMethodCall(String destination, String path, String interface,
-      String member, List<DBusValue> values) {
+  void _sendMethodCall(String destination, DBusObjectPath path,
+      String interface, String member, List<DBusValue> values) {
     _lastSerial++;
     var message = DBusMessage(
         type: MessageType.MethodCall,
         serial: _lastSerial,
         destination: destination,
-        path: DBusObjectPath(path),
+        path: path,
         interface: interface,
         member: member,
         values: values);
     _sendMessage(message);
   }
 
-  void _sendSignal(String destination, String path, String interface,
+  void _sendSignal(String destination, DBusObjectPath path, String interface,
       String member, List<DBusValue> values) {
     _lastSerial++;
     var message = DBusMessage(
         type: MessageType.Signal,
         serial: _lastSerial,
         destination: destination,
-        path: DBusObjectPath(path),
+        path: path,
         interface: interface,
         member: member,
         values: values);

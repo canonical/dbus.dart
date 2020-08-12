@@ -4,7 +4,7 @@ void main() async {
   var client = DBusClient.session();
   await client.connect();
   var proxy = DBusObjectProxy(client, 'org.freedesktop.Notifications',
-      '/org/freedesktop/Notifications');
+      DBusObjectPath('/org/freedesktop/Notifications'));
   var values = [
     DBusString(''), // App name
     DBusUint32(0), // Replaces
