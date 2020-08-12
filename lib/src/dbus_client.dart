@@ -110,114 +110,6 @@ class DBusClient {
     await _socket.close();
   }
 
-  Future<dynamic> _authenticate() async {
-    // Send an empty byte, as this is required if sending the credentials as a socket control message.
-    // We rely on the server using SO_PEERCRED to check out credentials.
-    _socket.add([0]);
-
-    var uid = getuid();
-    var uidString = '';
-    for (var c in uid.toString().runes) {
-      uidString += c.toRadixString(16).padLeft(2, '0');
-    }
-    _socket.write('AUTH EXTERNAL ${uidString}\r\n');
-
-    return _authenticateCompleter.future;
-  }
-
-  void _processData(Uint8List data) {
-    _readBuffer.writeBytes(data);
-
-    var complete = false;
-    while (!complete) {
-      if (!_authenticateCompleter.isCompleted) {
-        complete = _processAuth();
-      } else {
-        complete = _processMessages();
-      }
-      _readBuffer.flush();
-    }
-  }
-
-  bool _processAuth() {
-    var line = _readBuffer.readLine();
-    if (line == null) return true;
-
-    if (line.startsWith('OK ')) {
-      _socket.write('BEGIN\r\n');
-      _authenticateCompleter.complete();
-    } else {
-      throw 'Failed to authenticate: ${line}';
-    }
-
-    return false;
-  }
-
-  bool _processMessages() {
-    var message = DBusMessage();
-    var start = _readBuffer.readOffset;
-    if (!message.unmarshal(_readBuffer)) {
-      _readBuffer.readOffset = start;
-      return true;
-    }
-
-    if (message.type == MessageType.MethodCall) {
-      _processMethodCall(message);
-    } else if (message.type == MessageType.MethodReturn ||
-        message.type == MessageType.Error) {
-      _processMethodReturn(message);
-    } else if (message.type == MessageType.Signal) {
-      for (var handler in _signalHandlers) {
-        handler.callback(
-            message.path, message.interface, message.member, message.values);
-      }
-    }
-
-    return false;
-  }
-
-  void _processMethodCall(DBusMessage message) async {
-    DBusMethodResponse response;
-    if (message.interface == 'org.freedesktop.DBus.Introspectable') {
-      response = await handleIntrospectableMethodCall(
-          _objectTree, message.path, message.member, message.values);
-    } else if (message.interface == 'org.freedesktop.DBus.Peer') {
-      response = await handlePeerMethodCall(message.member, message.values);
-    } else if (message.interface == 'org.freedesktop.DBus.Properties') {
-      response = await handlePropertiesMethodCall(
-          _objectTree, message.path, message.member, message.values);
-    } else {
-      var object = _objectTree.lookupObject(message.path);
-      if (object != null) {
-        response = await object.handleMethodCall(
-            message.interface, message.member, message.values);
-      } else {
-        response = DBusMethodErrorResponse.unknownInterface();
-      }
-    }
-
-    if (response is DBusMethodErrorResponse) {
-      _sendError(
-          message.serial, message.sender, response.errorName, response.values);
-    } else if (response is DBusMethodSuccessResponse) {
-      _sendReturn(message.serial, message.sender, response.values);
-    }
-  }
-
-  void _processMethodReturn(DBusMessage message) {
-    var methodCall = _methodCalls.firstWhere((c) => c.serial == message.replySerial);
-    if (methodCall == null) return;
-    _methodCalls.remove(methodCall);
-
-    DBusMethodResponse response;
-    if (message.type == MessageType.Error) {
-      response = DBusMethodErrorResponse(message.errorName, message.values);
-    } else {
-      response = DBusMethodSuccessResponse(message.values);
-    }
-    methodCall.completer.complete(response);
-  }
-
   /// Requests usage of [name] as a D-Bus object name.
   // FIXME(robert-ancell): Use an enum for flags.
   Future<int> requestName(String name, {int flags = 0}) async {
@@ -387,6 +279,122 @@ class DBusClient {
     _objectTree.add(path, object);
   }
 
+  /// Performs authentication with D-Bus server.
+  Future<dynamic> _authenticate() async {
+    // Send an empty byte, as this is required if sending the credentials as a socket control message.
+    // We rely on the server using SO_PEERCRED to check out credentials.
+    _socket.add([0]);
+
+    var uid = getuid();
+    var uidString = '';
+    for (var c in uid.toString().runes) {
+      uidString += c.toRadixString(16).padLeft(2, '0');
+    }
+    _socket.write('AUTH EXTERNAL ${uidString}\r\n');
+
+    return _authenticateCompleter.future;
+  }
+
+  /// Processes incoming data from the D-Bus server.
+  void _processData(Uint8List data) {
+    _readBuffer.writeBytes(data);
+
+    var complete = false;
+    while (!complete) {
+      if (!_authenticateCompleter.isCompleted) {
+        complete = _processAuth();
+      } else {
+        complete = _processMessages();
+      }
+      _readBuffer.flush();
+    }
+  }
+
+  /// Processes authentication messages received from the D-Bus server.
+  bool _processAuth() {
+    var line = _readBuffer.readLine();
+    if (line == null) return true;
+
+    if (line.startsWith('OK ')) {
+      _socket.write('BEGIN\r\n');
+      _authenticateCompleter.complete();
+    } else {
+      throw 'Failed to authenticate: ${line}';
+    }
+
+    return false;
+  }
+
+  /// Processes messages (method calls/returns/errors/signals) received from the D-Bus server.
+  bool _processMessages() {
+    var message = DBusMessage();
+    var start = _readBuffer.readOffset;
+    if (!message.unmarshal(_readBuffer)) {
+      _readBuffer.readOffset = start;
+      return true;
+    }
+
+    if (message.type == MessageType.MethodCall) {
+      _processMethodCall(message);
+    } else if (message.type == MessageType.MethodReturn ||
+        message.type == MessageType.Error) {
+      _processMethodResponse(message);
+    } else if (message.type == MessageType.Signal) {
+      for (var handler in _signalHandlers) {
+        handler.callback(
+            message.path, message.interface, message.member, message.values);
+      }
+    }
+
+    return false;
+  }
+
+  /// Processes a method call from the D-Bus server.
+  void _processMethodCall(DBusMessage message) async {
+    DBusMethodResponse response;
+    if (message.interface == 'org.freedesktop.DBus.Introspectable') {
+      response = await handleIntrospectableMethodCall(
+          _objectTree, message.path, message.member, message.values);
+    } else if (message.interface == 'org.freedesktop.DBus.Peer') {
+      response = await handlePeerMethodCall(message.member, message.values);
+    } else if (message.interface == 'org.freedesktop.DBus.Properties') {
+      response = await handlePropertiesMethodCall(
+          _objectTree, message.path, message.member, message.values);
+    } else {
+      var object = _objectTree.lookupObject(message.path);
+      if (object != null) {
+        response = await object.handleMethodCall(
+            message.interface, message.member, message.values);
+      } else {
+        response = DBusMethodErrorResponse.unknownInterface();
+      }
+    }
+
+    if (response is DBusMethodErrorResponse) {
+      _sendError(
+          message.serial, message.sender, response.errorName, response.values);
+    } else if (response is DBusMethodSuccessResponse) {
+      _sendReturn(message.serial, message.sender, response.values);
+    }
+  }
+
+  /// Processes a method return or error result from the D-Bus server.
+  void _processMethodResponse(DBusMessage message) {
+    var methodCall =
+        _methodCalls.firstWhere((c) => c.serial == message.replySerial);
+    if (methodCall == null) return;
+    _methodCalls.remove(methodCall);
+
+    DBusMethodResponse response;
+    if (message.type == MessageType.Error) {
+      response = DBusMethodErrorResponse(message.errorName, message.values);
+    } else {
+      response = DBusMethodSuccessResponse(message.values);
+    }
+    methodCall.completer.complete(response);
+  }
+
+  /// Sends a method call to the D-Bus server.
   void _sendMethodCall(String destination, DBusObjectPath path,
       String interface, String member, List<DBusValue> values) {
     _lastSerial++;
@@ -401,6 +409,33 @@ class DBusClient {
     _sendMessage(message);
   }
 
+  /// Sends a method return to the D-Bus server.
+  void _sendReturn(int serial, String destination, List<DBusValue> values) {
+    _lastSerial++;
+    var message = DBusMessage(
+        type: MessageType.MethodReturn,
+        serial: _lastSerial,
+        replySerial: serial,
+        destination: destination,
+        values: values);
+    _sendMessage(message);
+  }
+
+  /// Sends an error to the D-Bus server.
+  void _sendError(int serial, String destination, String errorName,
+      List<DBusValue> values) {
+    _lastSerial++;
+    var message = DBusMessage(
+        type: MessageType.Error,
+        serial: _lastSerial,
+        errorName: errorName,
+        replySerial: serial,
+        destination: destination,
+        values: values);
+    _sendMessage(message);
+  }
+
+  /// Sends a signal to the D-Bus server.
   void _sendSignal(String destination, DBusObjectPath path, String interface,
       String member, List<DBusValue> values) {
     _lastSerial++;
@@ -415,30 +450,7 @@ class DBusClient {
     _sendMessage(message);
   }
 
-  void _sendError(int serial, String destination, String errorName,
-      List<DBusValue> values) {
-    _lastSerial++;
-    var message = DBusMessage(
-        type: MessageType.Error,
-        serial: _lastSerial,
-        errorName: errorName,
-        replySerial: serial,
-        destination: destination,
-        values: values);
-    _sendMessage(message);
-  }
-
-  void _sendReturn(int serial, String destination, List<DBusValue> values) {
-    _lastSerial++;
-    var message = DBusMessage(
-        type: MessageType.MethodReturn,
-        serial: _lastSerial,
-        replySerial: serial,
-        destination: destination,
-        values: values);
-    _sendMessage(message);
-  }
-
+  /// Sends a message (method call/return/error/signal) to the D-Bus server.
   void _sendMessage(DBusMessage message) {
     var buffer = DBusWriteBuffer();
     message.marshal(buffer);
