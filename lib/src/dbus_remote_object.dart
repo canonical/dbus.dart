@@ -3,13 +3,13 @@ import 'dbus_method_response.dart';
 import 'dbus_value.dart';
 
 /// An object to simplify access to a D-Bus object.
-class DBusObjectProxy {
+class DBusRemoteObject {
   final DBusClient client;
   final String destination;
   final DBusObjectPath path;
 
-  /// Creates a new DBus object proxy to access the object at [destination], [path].
-  DBusObjectProxy(this.client, this.destination, this.path);
+  /// Creates an object that access accesses a remote D-Bus object at [destination], [path].
+  DBusRemoteObject(this.client, this.destination, this.path);
 
   /// Gets the introspection data for this object.
   ///
