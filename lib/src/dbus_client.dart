@@ -205,7 +205,7 @@ class DBusClient {
   }
 
   void _processMethodReturn(DBusMessage message) {
-    var methodCall = _findMethodCall(message.replySerial);
+    var methodCall = _methodCalls.firstWhere((c) => c.serial == message.replySerial);
     if (methodCall == null) return;
     _methodCalls.remove(methodCall);
 
@@ -216,13 +216,6 @@ class DBusClient {
       response = DBusMethodSuccessResponse(message.values);
     }
     methodCall.completer.complete(response);
-  }
-
-  _MethodCall _findMethodCall(int serial) {
-    for (var methodCall in _methodCalls) {
-      if (methodCall.serial == serial) return methodCall;
-    }
-    return null;
   }
 
   /// Requests usage of [name] as a D-Bus object name.
