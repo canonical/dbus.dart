@@ -114,6 +114,7 @@ class DBusClient {
         member: 'Hello');
   }
 
+  /// Disconnects the client from the D-Bus server.
   void disconnect() async {
     await _socket.close();
   }
@@ -242,7 +243,11 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         member: 'RequestName',
         values: [DBusString(name), DBusUint32(flags)]);
-    return (result.returnValues[0] as DBusUint32).value;
+    var values = result.returnValues;
+    if (values.length != 1 || values[0].signature != DBusSignature('u')) {
+      throw 'RequestName returned invalid result: ${values}';
+    }
+    return (values[0] as DBusUint32).value;
   }
 
   /// Releases the D-Bus object name previously acquired using requestName().
@@ -253,6 +258,10 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         member: 'ReleaseName',
         values: [DBusString(name)]);
+    var values = result.returnValues;
+    if (values.length != 1 || values[0].signature != DBusSignature('u')) {
+      throw 'ReleaseName returned invalid result: ${values}';
+    }
     return (result.returnValues[0] as DBusUint32).value;
   }
 
@@ -263,26 +272,34 @@ class DBusClient {
         path: '/org/freedesktop/DBus',
         interface: 'org.freedesktop.DBus',
         member: 'ListNames');
-    var names = <String>[];
-    for (var name in (result.returnValues[0] as DBusArray).children) {
-      names.add((name as DBusString).value);
+    var values = result.returnValues;
+    if (values.length != 1 || values[0].signature != DBusSignature('as')) {
+      throw 'ListNames returned invalid result: ${values}';
     }
-    return names;
+    return (values[0] as DBusArray)
+        .children
+        .map((v) => (v as DBusString).value)
+        .toList();
   }
 
+  /// Returns a list of names that activate services.
   Future<List<String>> listActivatableNames() async {
     var result = await callMethod(
         destination: 'org.freedesktop.DBus',
         path: '/org/freedesktop/DBus',
         interface: 'org.freedesktop.DBus',
         member: 'ListActivatableNames');
-    var names = <String>[];
-    for (var name in (result.returnValues[0] as DBusArray).children) {
-      names.add((name as DBusString).value);
+    var values = result.returnValues;
+    if (values.length != 1 || values[0].signature != DBusSignature('as')) {
+      throw 'ListActivatableNames returned invalid result: ${values}';
     }
-    return names;
+    return (values[0] as DBusArray)
+        .children
+        .map((v) => (v as DBusString).value)
+        .toList();
   }
 
+  /// Returns true if the [name] is currently registered on the bus.
   Future<bool> nameHasOwner(String name) async {
     var result = await callMethod(
         destination: 'org.freedesktop.DBus',
@@ -290,7 +307,11 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         member: 'NameHasOwner',
         values: [DBusString(name)]);
-    return (result.returnValues[0] as DBusBoolean).value;
+    var values = result.returnValues;
+    if (values.length != 1 || values[0].signature != DBusSignature('b')) {
+      throw 'NameHasOwner returned invalid result: ${values}';
+    }
+    return (values[0] as DBusBoolean).value;
   }
 
   void addMatch(String rule) async {
@@ -311,31 +332,44 @@ class DBusClient {
         values: [DBusString(rule)]);
   }
 
+  /// Gets the unique ID of the bus.
   Future<String> getId() async {
     var result = await callMethod(
         destination: 'org.freedesktop.DBus',
         path: '/org/freedesktop/DBus',
         interface: 'org.freedesktop.DBus',
         member: 'GetId');
-    return (result.returnValues[0] as DBusString).value;
+    var values = result.returnValues;
+    if (values.length != 1 || values[0].signature != DBusSignature('s')) {
+      throw 'GetId returned invalid result: ${values}';
+    }
+    return (values[0] as DBusString).value;
   }
 
-  void peerPing(String destination, String path) async {
-    await callMethod(
-        destination: destination,
-        path: path,
-        interface: 'org.freedesktop.DBus.Peer',
-        member: 'Ping');
-  }
-
-  /// Gets the machine ID of a D-Bus object.
-  Future<String> peerGetMachineId(String destination, String path) async {
+  /// Sends a ping request to the client at the given [destination].
+  Future ping(String destination) async {
     var result = await callMethod(
         destination: destination,
-        path: path,
+        path: '/',
+        interface: 'org.freedesktop.DBus.Peer',
+        member: 'Ping');
+    if (result.returnValues.isNotEmpty) {
+      throw 'Ping returned invalid result: ${result.returnValues}';
+    }
+  }
+
+  /// Gets the machine ID of the client at the given [destination].
+  Future<String> getMachineId(String destination) async {
+    var result = await callMethod(
+        destination: destination,
+        path: '/',
         interface: 'org.freedesktop.DBus.Peer',
         member: 'GetMachineId');
-    return (result.returnValues[0] as DBusString).value;
+    var values = result.returnValues;
+    if (values.length != 1 || values[0].signature != DBusSignature('s')) {
+      throw 'GetMachineId returned invalid result: ${values}';
+    }
+    return (values[0] as DBusString).value;
   }
 
   /// Invokes a method on a D-Bus object.
