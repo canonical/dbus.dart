@@ -2,7 +2,6 @@ import 'package:dbus/dbus.dart';
 
 void main() async {
   var client = DBusClient.session();
-  await client.connect();
   var object = DBusRemoteObject(client, 'org.freedesktop.Notifications',
       DBusObjectPath('/org/freedesktop/Notifications'));
   var values = [

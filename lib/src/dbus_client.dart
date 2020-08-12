@@ -75,36 +75,6 @@ class DBusClient {
     _signalHandlers.add(_SignalHandler(callback));
   }
 
-  /// Connects to the D-Bus server.
-  void connect() async {
-    var address = DBusAddress(_address);
-    if (address.transport != 'unix') {
-      throw 'D-Bus address transport not supported: ${_address}';
-    }
-
-    var paths = <String>[];
-    for (var property in address.properties) {
-      if (property.key == 'path') paths.add(property.value);
-    }
-    if (paths.isEmpty) {
-      throw 'Unable to determine D-Bus unix address path: ${_address}';
-    }
-
-    var socket_address =
-        InternetAddress(paths[0], type: InternetAddressType.unix);
-    _socket = await Socket.connect(socket_address, 0);
-    _readBuffer = DBusReadBuffer();
-    _socket.listen(_processData);
-
-    await _authenticate();
-
-    await callMethod(
-        destination: 'org.freedesktop.DBus',
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: 'org.freedesktop.DBus',
-        member: 'Hello');
-  }
-
   /// Disconnects the client from the D-Bus server.
   void disconnect() async {
     await _socket.close();
@@ -270,8 +240,8 @@ class DBusClient {
       DBusObjectPath path,
       String interface,
       String member,
-      List<DBusValue> values}) {
-    _sendSignal(destination, path, interface, member, values);
+      List<DBusValue> values}) async {
+    await _sendSignal(destination, path, interface, member, values);
   }
 
   /// Registers an [object] on the bus with the given [path].
@@ -293,6 +263,40 @@ class DBusClient {
     _socket.write('AUTH EXTERNAL ${uidString}\r\n');
 
     return _authenticateCompleter.future;
+  }
+
+  /// Connects to the D-Bus server.
+  void _connect() async {
+    if (_authenticateCompleter.isCompleted) {
+      return;
+    }
+
+    var address = DBusAddress(_address);
+    if (address.transport != 'unix') {
+      throw 'D-Bus address transport not supported: ${_address}';
+    }
+
+    var paths = <String>[];
+    for (var property in address.properties) {
+      if (property.key == 'path') paths.add(property.value);
+    }
+    if (paths.isEmpty) {
+      throw 'Unable to determine D-Bus unix address path: ${_address}';
+    }
+
+    var socket_address =
+        InternetAddress(paths[0], type: InternetAddressType.unix);
+    _socket = await Socket.connect(socket_address, 0);
+    _readBuffer = DBusReadBuffer();
+    _socket.listen(_processData);
+
+    await _authenticate();
+
+    await callMethod(
+        destination: 'org.freedesktop.DBus',
+        path: DBusObjectPath('/org/freedesktop/DBus'),
+        interface: 'org.freedesktop.DBus',
+        member: 'Hello');
   }
 
   /// Processes incoming data from the D-Bus server.
@@ -396,7 +400,7 @@ class DBusClient {
 
   /// Sends a method call to the D-Bus server.
   void _sendMethodCall(String destination, DBusObjectPath path,
-      String interface, String member, List<DBusValue> values) {
+      String interface, String member, List<DBusValue> values) async {
     _lastSerial++;
     var message = DBusMessage(
         type: MessageType.MethodCall,
@@ -406,11 +410,12 @@ class DBusClient {
         interface: interface,
         member: member,
         values: values);
-    _sendMessage(message);
+    await _sendMessage(message);
   }
 
   /// Sends a method return to the D-Bus server.
-  void _sendReturn(int serial, String destination, List<DBusValue> values) {
+  void _sendReturn(
+      int serial, String destination, List<DBusValue> values) async {
     _lastSerial++;
     var message = DBusMessage(
         type: MessageType.MethodReturn,
@@ -418,12 +423,12 @@ class DBusClient {
         replySerial: serial,
         destination: destination,
         values: values);
-    _sendMessage(message);
+    await _sendMessage(message);
   }
 
   /// Sends an error to the D-Bus server.
   void _sendError(int serial, String destination, String errorName,
-      List<DBusValue> values) {
+      List<DBusValue> values) async {
     _lastSerial++;
     var message = DBusMessage(
         type: MessageType.Error,
@@ -432,12 +437,12 @@ class DBusClient {
         replySerial: serial,
         destination: destination,
         values: values);
-    _sendMessage(message);
+    await _sendMessage(message);
   }
 
   /// Sends a signal to the D-Bus server.
   void _sendSignal(String destination, DBusObjectPath path, String interface,
-      String member, List<DBusValue> values) {
+      String member, List<DBusValue> values) async {
     _lastSerial++;
     var message = DBusMessage(
         type: MessageType.Signal,
@@ -447,11 +452,12 @@ class DBusClient {
         interface: interface,
         member: member,
         values: values);
-    _sendMessage(message);
+    await _sendMessage(message);
   }
 
   /// Sends a message (method call/return/error/signal) to the D-Bus server.
-  void _sendMessage(DBusMessage message) {
+  void _sendMessage(DBusMessage message) async {
+    await _connect();
     var buffer = DBusWriteBuffer();
     message.marshal(buffer);
     _socket.add(buffer.data);

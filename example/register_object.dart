@@ -72,7 +72,6 @@ class TestObject extends DBusObject {
 
 void main() async {
   var client = DBusClient.session();
-  await client.connect();
   await client.requestName('com.canonical.DBusDart');
   client.registerObject(
       DBusObjectPath('/com/canonical/DBusDart'), TestObject());
