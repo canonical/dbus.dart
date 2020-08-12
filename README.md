@@ -9,7 +9,7 @@ import 'package:dbus/dbus.dart';
 
 var client = DBusClient.system();
 await client.connect();
-var proxy = DBusObjectProxy(client, 'org.freedesktop.hostname1', '/org/freedesktop/hostname1');
+var proxy = DBusObjectProxy(client, 'org.freedesktop.hostname1', DBusObjectPath('/org/freedesktop/hostname1'));
 var result = await proxy.getProperty('org.freedesktop.hostname1', 'Hostname');
 var hostname = (result as DBusString).value;
 print('hostname: ${hostname}');
@@ -38,5 +38,5 @@ class TestObject extends DBusObject {
 
 var client = DBusClient.session();
 await client.connect();
-client.registerObject('/com/example/Test', TestObject());
+client.registerObject(DBusObjectPath('/com/example/Test'), TestObject());
 ```

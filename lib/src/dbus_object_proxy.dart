@@ -6,7 +6,7 @@ import 'dbus_value.dart';
 class DBusObjectProxy {
   final DBusClient client;
   final String destination;
-  final String path;
+  final DBusObjectPath path;
 
   /// Creates a new DBus object proxy to access the object at [destination], [path].
   DBusObjectProxy(this.client, this.destination, this.path);

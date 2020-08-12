@@ -74,5 +74,6 @@ void main() async {
   var client = DBusClient.session();
   await client.connect();
   await client.requestName('com.canonical.DBusDart');
-  client.registerObject('/com/canonical/DBusDart', TestObject());
+  client.registerObject(
+      DBusObjectPath('/com/canonical/DBusDart'), TestObject());
 }
