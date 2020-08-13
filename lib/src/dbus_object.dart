@@ -1,9 +1,13 @@
+import 'dbus_client.dart';
 import 'dbus_introspect.dart';
 import 'dbus_method_response.dart';
 import 'dbus_value.dart';
 
 /// An object that is exported on the bus.
 class DBusObject {
+  /// The client this object is being exported by.
+  DBusClient client;
+
   /// The path this object is registered on.
   DBusObjectPath get path {
     return DBusObjectPath('/');
@@ -36,5 +40,12 @@ class DBusObject {
   Future<DBusMethodResponse> getAllProperties(String interface) async {
     return DBusMethodSuccessResponse(
         [DBusDict(DBusSignature('s'), DBusSignature('v'), {})]);
+  }
+
+  /// Emits a signal on this object.
+  void emitSignal(String interface, String member,
+      [List<DBusValue> values = const []]) {
+    client.emitSignal(
+        path: path, interface: interface, member: member, values: values);
   }
 }
