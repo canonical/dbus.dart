@@ -28,10 +28,26 @@ class _MethodCall {
   _MethodCall(this.serial);
 }
 
-class _SignalHandler {
+/// A subscription to D-Bus signals.
+class DBusSignalSubscription {
+  /// Senders sibscribed to.
+  final String sender;
+
+  /// Interface subscribed to.
+  final String interface;
+
+  /// Member subscribed to.
+  final String member;
+
+  /// Path subscribed to.
+  final DBusObjectPath path;
+
+  /// Function called when signala are received.
   SignalCallback callback;
 
-  _SignalHandler(this.callback);
+  /// Creates
+  DBusSignalSubscription(
+      this.sender, this.interface, this.member, this.path, this.callback);
 }
 
 /// A client connection to a D-Bus server.
@@ -42,8 +58,10 @@ class DBusClient {
   final _authenticateCompleter = Completer();
   var _lastSerial = 0;
   final _methodCalls = <_MethodCall>[];
-  final _signalHandlers = <_SignalHandler>[];
+  final _signalSubscriptions = <DBusSignalSubscription>[];
   final _objectTree = DBusObjectTree();
+  final _matchRules = <String, int>{};
+  final _ownedNames = <String, String>{};
 
   /// Creates a new DBus client to connect on [address].
   DBusClient(String address) {
@@ -69,10 +87,6 @@ class DBusClient {
       address = 'unix:path=${runtimeDir}/bus';
     }
     _address = address;
-  }
-
-  void listenSignal(SignalCallback callback) {
-    _signalHandlers.add(_SignalHandler(callback));
   }
 
   /// Disconnects the client from the D-Bus server.
@@ -160,22 +174,23 @@ class DBusClient {
     return (values[0] as DBusBoolean).value;
   }
 
-  void addMatch(String rule) async {
-    await callMethod(
+  /// Returns the unique connection name of the client that owns [name].
+  Future<String> getNameOwner(String name) async {
+    var result = await callMethod(
         destination: 'org.freedesktop.DBus',
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
-        member: 'AddMatch',
-        values: [DBusString(rule)]);
-  }
-
-  void removeMatch(String rule) async {
-    await callMethod(
-        destination: 'org.freedesktop.DBus',
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: 'org.freedesktop.DBus',
-        member: 'RemoveMatch',
-        values: [DBusString(rule)]);
+        member: 'GetNameOwner',
+        values: [DBusString(name)]);
+    if (result is DBusMethodErrorResponse &&
+        result.errorName == 'org.freedesktop.DBus.Error.NameHasNoOwner') {
+      return null;
+    }
+    var values = result.returnValues;
+    if (values.length != 1 || values[0].signature != DBusSignature('s')) {
+      throw 'GetNameOwner returned invalid result: ${values}';
+    }
+    return (values[0] as DBusString).value;
   }
 
   /// Gets the unique ID of the bus.
@@ -234,18 +249,65 @@ class DBusClient {
     return call.completer.future;
   }
 
+  /// Subscribe to signals on the D-Bus and call [callback] when one is received.
+  ///
+  /// Setting [sender], [interface], [member] or [path] will filter signals that match the given values.
+  ///
+  /// When the subscription is no longer needed call [unsubscribeSignals].
+  Future<DBusSignalSubscription> subscribeSignals(SignalCallback callback,
+      {String sender,
+      String interface,
+      String member,
+      DBusObjectPath path}) async {
+    var subscription =
+        DBusSignalSubscription(sender, interface, member, path, callback);
+
+    // Update match rules on the D-Bus server.
+    await _addMatch(_makeMatchRule('signal', subscription.sender,
+        subscription.interface, subscription.member, subscription.path));
+
+    // Get the unique name of the sender (as this is the name the messages will use).
+    if (sender != null && !_ownedNames.containsValue(sender)) {
+      var uniqueName = await getNameOwner(sender);
+      if (uniqueName != null) {
+        _ownedNames[sender] = uniqueName;
+      }
+    }
+
+    _signalSubscriptions.add(subscription);
+
+    return subscription;
+  }
+
+  /// Unsubscribe a [subscription] previously set using [subscribeSignals].
+  void unsubscribeSignals(DBusSignalSubscription subscription) async {
+    if (!_signalSubscriptions.contains(subscription)) {
+      throw 'Attempted to remove unknown signal subscription';
+    }
+
+    /// Unsubscribe on the server
+    await _removeMatch(_makeMatchRule('signal', subscription.sender,
+        subscription.interface, subscription.member, subscription.path));
+
+    _signalSubscriptions.remove(subscription);
+  }
+
   /// Emits a signal from a D-Bus object.
   void emitSignal(
       {String destination,
       DBusObjectPath path,
       String interface,
       String member,
-      List<DBusValue> values}) async {
+      List<DBusValue> values = const []}) async {
     await _sendSignal(destination, path, interface, member, values);
   }
 
   /// Registers an [object] on the bus.
   void registerObject(DBusObject object) {
+    if (object.client != null) {
+      throw 'Client already registered';
+    }
+    object.client = this;
     _objectTree.add(object.path, object);
   }
 
@@ -297,6 +359,96 @@ class DBusClient {
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
         member: 'Hello');
+
+    // Listen for name ownership changes - we need these to match incoming signals.
+    await subscribeSignals(_handleNameOwnerChanged,
+        sender: 'org.freedesktop.DBus',
+        interface: 'org.freedesktop.DBus',
+        member: 'NameOwnerChanged');
+  }
+
+  /// Handles the org.freedesktop.DBus.NameOwnerChanged signal and updates the table of known names.
+  void _handleNameOwnerChanged(DBusObjectPath path, String interface,
+      String member, List<DBusValue> values) {
+    if (values.length != 3 ||
+        values[0].signature != DBusSignature('s') ||
+        values[1].signature != DBusSignature('s') ||
+        values[2].signature != DBusSignature('s')) {
+      throw 'AddMatch returned invalid result: ${values}';
+    }
+
+    var name = (values[0] as DBusString).value;
+    var newOwner = (values[2] as DBusString).value;
+    if (newOwner != '') {
+      _ownedNames[name] = newOwner;
+    } else {
+      _ownedNames.remove(name);
+    }
+  }
+
+  /// Match a match rule for the given filter.
+  String _makeMatchRule(String type, String sender, String interface,
+      String member, DBusObjectPath path) {
+    var rules = <String>[];
+    rules.add("type='${type}'");
+    if (sender != null) {
+      rules.add("sender='${sender}'");
+    }
+    if (interface != null) {
+      rules.add("interface='${interface}'");
+    }
+    if (member != null) {
+      rules.add("member='${member}'");
+    }
+    if (path != null) {
+      rules.add("path='${path.value}'");
+    }
+    return rules.join(',');
+  }
+
+  /// Adds a rule to match which messages to receive.
+  void _addMatch(String rule) async {
+    var count = _matchRules[rule];
+    if (count == null) {
+      var result = await callMethod(
+          destination: 'org.freedesktop.DBus',
+          path: DBusObjectPath('/org/freedesktop/DBus'),
+          interface: 'org.freedesktop.DBus',
+          member: 'AddMatch',
+          values: [DBusString(rule)]);
+      var values = result.returnValues;
+      if (values.isNotEmpty) {
+        throw 'AddMatch returned invalid result: ${values}';
+      }
+      count = 1;
+    } else {
+      count = count + 1;
+    }
+    _matchRules[rule] = count;
+  }
+
+  /// Removes an existing rule to match which messages to receive.
+  void _removeMatch(String rule) async {
+    var count = _matchRules[rule];
+    if (count == null) {
+      throw 'Attempted to remove match that is not added: ${rule}';
+    }
+
+    if (count == 1) {
+      var result = await callMethod(
+          destination: 'org.freedesktop.DBus',
+          path: DBusObjectPath('/org/freedesktop/DBus'),
+          interface: 'org.freedesktop.DBus',
+          member: 'RemoveMatch',
+          values: [DBusString(rule)]);
+      var values = result.returnValues;
+      if (values.isNotEmpty) {
+        throw 'RemoveMatch returned invalid result: ${values}';
+      }
+      _matchRules.remove(rule);
+    } else {
+      _matchRules[rule] = count - 1;
+    }
   }
 
   /// Processes incoming data from the D-Bus server.
@@ -344,10 +496,7 @@ class DBusClient {
         message.type == MessageType.Error) {
       _processMethodResponse(message);
     } else if (message.type == MessageType.Signal) {
-      for (var handler in _signalHandlers) {
-        handler.callback(
-            message.path, message.interface, message.member, message.values);
-      }
+      _processSignal(message);
     }
 
     return false;
@@ -396,6 +545,38 @@ class DBusClient {
       response = DBusMethodSuccessResponse(message.values);
     }
     methodCall.completer.complete(response);
+  }
+
+  /// Processes a signal received from the D-Bus server.
+  void _processSignal(DBusMessage message) {
+    for (var subscription in _signalSubscriptions) {
+      String makeUnique(String sender) {
+        var uniqueSender = _ownedNames[sender];
+        if (uniqueSender != null) {
+          return uniqueSender;
+        }
+        return sender;
+      }
+
+      var sender = makeUnique(subscription.sender);
+      if (sender != null && sender != message.sender) {
+        continue;
+      }
+      if (subscription.interface != null &&
+          subscription.interface != message.interface) {
+        continue;
+      }
+      if (subscription.member != null &&
+          subscription.member != message.member) {
+        continue;
+      }
+      if (subscription.path != null && subscription.path != message.path) {
+        continue;
+      }
+
+      subscription.callback(
+          message.path, message.interface, message.member, message.values);
+    }
   }
 
   /// Sends a method call to the D-Bus server.

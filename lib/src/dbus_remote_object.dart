@@ -65,4 +65,11 @@ class DBusRemoteObject {
         member: member,
         values: values);
   }
+
+  /// Subscribes to the signal [interface].[member] from this object and calls [callback] when received.
+  void subscribeSignal(
+      String interface, String member, SignalCallback callback) async {
+    await client.subscribeSignals(callback,
+        sender: destination, path: path, interface: interface, member: member);
+  }
 }
