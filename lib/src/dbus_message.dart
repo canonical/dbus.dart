@@ -128,8 +128,8 @@ class DBusMessage {
     DBusSignature signature;
     for (var child in headers.children) {
       var header = child as DBusStruct;
-      var code = (header.children[0] as DBusByte).value;
-      var value = (header.children[1] as DBusVariant).value;
+      var code = (header.children.elementAt(0) as DBusByte).value;
+      var value = (header.children.elementAt(1) as DBusVariant).value;
       if (code == HeaderCode.Path) {
         path = value as DBusObjectPath;
       } else if (code == HeaderCode.Interface) {

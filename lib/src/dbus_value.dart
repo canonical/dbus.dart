@@ -404,7 +404,7 @@ class DBusVariant extends DBusValue {
 /// D-Bus value that contains a fixed set of other values.
 class DBusStruct extends DBusValue {
   /// Child values in this structure.
-  final List<DBusValue> children;
+  final Iterable<DBusValue> children;
 
   /// Creates a new D-Bus structure containing [children] values.
   DBusStruct(this.children);
@@ -440,7 +440,7 @@ class DBusArray extends DBusValue {
   final DBusSignature childSignature;
 
   /// Ordered list of children in this array.
-  final List<DBusValue> children;
+  final Iterable<DBusValue> children;
 
   /// Creates a new empty D-Bus array containing [children].
   ///
