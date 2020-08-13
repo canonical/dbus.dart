@@ -244,9 +244,9 @@ class DBusClient {
     await _sendSignal(destination, path, interface, member, values);
   }
 
-  /// Registers an [object] on the bus with the given [path].
-  void registerObject(DBusObjectPath path, DBusObject object) {
-    _objectTree.add(path, object);
+  /// Registers an [object] on the bus.
+  void registerObject(DBusObject object) {
+    _objectTree.add(object.path, object);
   }
 
   /// Performs authentication with D-Bus server.

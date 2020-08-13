@@ -22,6 +22,11 @@ import 'package:dbus/dbus.dart';
 
 class TestObject extends DBusObject {
   @override
+  DBusObjectPath get path {
+    return DBusObjectPath('/com/example/Test');
+  }
+
+  @override
   Future<MethodResponse> handleMethodCall(String interface, String member, List<DBusValue> values) async {
     if (interface == 'com.example.Test') {
       if (member == 'Test') {
@@ -36,5 +41,5 @@ class TestObject extends DBusObject {
 }
 
 var client = DBusClient.session();
-client.registerObject(DBusObjectPath('/com/example/Test'), TestObject());
+client.registerObject(TestObject());
 ```

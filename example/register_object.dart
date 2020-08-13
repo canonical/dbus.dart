@@ -7,6 +7,11 @@ class TestObject extends DBusObject {
   var callCount = 0;
 
   @override
+  DBusObjectPath get path {
+    return DBusObjectPath('/com/canonical/DBusDart');
+  }
+
+  @override
   List<DBusIntrospectInterface> introspect() {
     final testMethod = DBusIntrospectMethod('Test');
     final countProperty = DBusIntrospectProperty('Count', DBusSignature('x'),
@@ -73,6 +78,5 @@ class TestObject extends DBusObject {
 void main() async {
   var client = DBusClient.session();
   await client.requestName('com.canonical.DBusDart');
-  client.registerObject(
-      DBusObjectPath('/com/canonical/DBusDart'), TestObject());
+  client.registerObject(TestObject());
 }
