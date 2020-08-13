@@ -239,7 +239,7 @@ class DBusClient {
       DBusObjectPath path,
       String interface,
       String member,
-      List<DBusValue> values}) async {
+      Iterable<DBusValue> values}) async {
     values ??= <DBusValue>[];
     _sendMethodCall(destination, path, interface, member, values);
 
@@ -298,7 +298,7 @@ class DBusClient {
       DBusObjectPath path,
       String interface,
       String member,
-      List<DBusValue> values = const []}) async {
+      Iterable<DBusValue> values = const []}) async {
     await _sendSignal(destination, path, interface, member, values);
   }
 
@@ -581,7 +581,7 @@ class DBusClient {
 
   /// Sends a method call to the D-Bus server.
   void _sendMethodCall(String destination, DBusObjectPath path,
-      String interface, String member, List<DBusValue> values) async {
+      String interface, String member, Iterable<DBusValue> values) async {
     _lastSerial++;
     var message = DBusMessage(
         type: MessageType.MethodCall,
@@ -596,7 +596,7 @@ class DBusClient {
 
   /// Sends a method return to the D-Bus server.
   void _sendReturn(
-      int serial, String destination, List<DBusValue> values) async {
+      int serial, String destination, Iterable<DBusValue> values) async {
     _lastSerial++;
     var message = DBusMessage(
         type: MessageType.MethodReturn,
@@ -609,7 +609,7 @@ class DBusClient {
 
   /// Sends an error to the D-Bus server.
   void _sendError(int serial, String destination, String errorName,
-      List<DBusValue> values) async {
+      Iterable<DBusValue> values) async {
     _lastSerial++;
     var message = DBusMessage(
         type: MessageType.Error,
@@ -623,7 +623,7 @@ class DBusClient {
 
   /// Sends a signal to the D-Bus server.
   void _sendSignal(String destination, DBusObjectPath path, String interface,
-      String member, List<DBusValue> values) async {
+      String member, Iterable<DBusValue> values) async {
     _lastSerial++;
     var message = DBusMessage(
         type: MessageType.Signal,

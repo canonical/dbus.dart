@@ -202,7 +202,8 @@ class DBusReadBuffer extends DBusBuffer {
     while (readOffset < end) {
       var child = readDBusStruct(childSignatures);
       if (child == null) return null;
-      children.update(child.children[0], (e) => child.children[1]);
+      children.update(
+          child.children.elementAt(0), (e) => child.children.elementAt(1));
     }
 
     return DBusDict(keySignature, valueSignature, children);

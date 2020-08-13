@@ -292,5 +292,6 @@ List<DBusIntrospectNode> parseDBusIntrospectXml(String xml) {
   var document = XmlDocument.parse(xml);
   return document
       .findElements('node')
-      .map((n) => DBusIntrospectNode.fromXml(n));
+      .map((n) => DBusIntrospectNode.fromXml(n))
+      .toList();
 }
