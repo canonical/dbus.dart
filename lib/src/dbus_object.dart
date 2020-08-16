@@ -19,8 +19,8 @@ class DBusObject {
   }
 
   /// Called when a method call is received on this object.
-  Future<DBusMethodResponse> handleMethodCall(
-      String interface, String member, List<DBusValue> values) async {
+  Future<DBusMethodResponse> handleMethodCall(String sender, String interface,
+      String member, List<DBusValue> values) async {
     return DBusMethodErrorResponse.unknownInterface();
   }
 

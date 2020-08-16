@@ -27,7 +27,7 @@ class TestObject extends DBusObject {
   }
 
   @override
-  Future<MethodResponse> handleMethodCall(String interface, String member, List<DBusValue> values) async {
+  Future<MethodResponse> handleMethodCall(String sender, String interface, String member, List<DBusValue> values) async {
     if (interface == 'com.example.Test') {
       if (member == 'Test') {
         return DBusMethodSuccessResponse([DBusString('Hello World!')]);
