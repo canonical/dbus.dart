@@ -1,4 +1,5 @@
 import 'dbus_client.dart';
+import 'dbus_introspect.dart';
 import 'dbus_method_response.dart';
 import 'dbus_value.dart';
 
@@ -12,15 +13,14 @@ class DBusRemoteObject {
   DBusRemoteObject(this.client, this.destination, this.path);
 
   /// Gets the introspection data for this object.
-  ///
-  /// The introspection data is an XML document that can be parsed using [parseDBusIntrospectXml].
-  Future<String> introspect() async {
+  Future<List<DBusIntrospectNode>> introspect() async {
     var result = await client.callMethod(
         destination: destination,
         path: path,
         interface: 'org.freedesktop.DBus.Introspectable',
         member: 'Introspect');
-    return (result.returnValues[0] as DBusString).value;
+    var xml = await (result.returnValues[0] as DBusString).value;
+    return parseDBusIntrospectXml(xml);
   }
 
   /// Gets a property on this object.
