@@ -303,8 +303,6 @@ class DBusIntrospectAnnotation {
 }
 
 /// Parse D-Bus introspection data.
-///
-/// Data can received from [DBusRemoteObject.introspect] or from an interface definition document.
 List<DBusIntrospectNode> parseDBusIntrospectXml(String xml) {
   var document = XmlDocument.parse(xml);
   return document
