@@ -517,7 +517,7 @@ class DBusClient {
       var object = _objectTree.lookupObject(message.path);
       if (object != null) {
         response = await object.handleMethodCall(
-            message.interface, message.member, message.values);
+            message.sender, message.interface, message.member, message.values);
       } else {
         response = DBusMethodErrorResponse.unknownInterface();
       }
