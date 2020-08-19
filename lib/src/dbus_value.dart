@@ -1,6 +1,8 @@
 /// Base class for D-Bus values.
 abstract class DBusValue {
-  DBusSignature signature;
+  DBusSignature get signature;
+
+  const DBusValue();
 }
 
 /// D-Bus representation of an unsigned 8 bit value.
@@ -9,7 +11,7 @@ class DBusByte extends DBusValue {
   final int value;
 
   /// Creates a new byte with the given [value].
-  DBusByte(this.value);
+  const DBusByte(this.value);
 
   @override
   DBusSignature get signature {
@@ -35,7 +37,7 @@ class DBusBoolean extends DBusValue {
   final bool value;
 
   /// Creates a new boolean with the given [value].
-  DBusBoolean(this.value);
+  const DBusBoolean(this.value);
 
   @override
   DBusSignature get signature {
@@ -60,7 +62,7 @@ class DBusInt16 extends DBusValue {
   final int value;
 
   /// Creates a new signed 16 bit integer with the given [value].
-  DBusInt16(this.value);
+  const DBusInt16(this.value);
 
   @override
   DBusSignature get signature {
@@ -85,7 +87,7 @@ class DBusUint16 extends DBusValue {
   final int value;
 
   /// Creates a new unsigned 16 bit integer with the given [value].
-  DBusUint16(this.value);
+  const DBusUint16(this.value);
 
   @override
   DBusSignature get signature {
@@ -110,7 +112,7 @@ class DBusInt32 extends DBusValue {
   final int value;
 
   /// Creates a new signed 32 bit integer with the given [value].
-  DBusInt32(this.value);
+  const DBusInt32(this.value);
 
   @override
   DBusSignature get signature {
@@ -135,7 +137,7 @@ class DBusUint32 extends DBusValue {
   final int value;
 
   /// Creates a new unsigned 32 bit integer with the given [value].
-  DBusUint32(this.value);
+  const DBusUint32(this.value);
 
   @override
   DBusSignature get signature {
@@ -160,7 +162,7 @@ class DBusInt64 extends DBusValue {
   final int value;
 
   /// Creates a new signed 64 bit integer with the given [value].
-  DBusInt64(this.value);
+  const DBusInt64(this.value);
 
   @override
   DBusSignature get signature {
@@ -185,7 +187,7 @@ class DBusUint64 extends DBusValue {
   final int value;
 
   /// Creates a new unsigned 64 bit integer with the given [value].
-  DBusUint64(this.value);
+  const DBusUint64(this.value);
 
   @override
   DBusSignature get signature {
@@ -210,7 +212,7 @@ class DBusDouble extends DBusValue {
   final double value;
 
   /// Creates a new 64 bit floating point number the given [value].
-  DBusDouble(this.value);
+  const DBusDouble(this.value);
 
   @override
   DBusSignature get signature {
@@ -235,7 +237,7 @@ class DBusString extends DBusValue {
   final String value;
 
   /// Creates a new Unicode text string with the given [value].
-  DBusString(this.value);
+  const DBusString(this.value);
 
   @override
   DBusSignature get signature {
@@ -261,6 +263,8 @@ class DBusString extends DBusValue {
 /// `/org/freedesktop/DBus` is a valid object path.
 class DBusObjectPath extends DBusString {
   /// Creates a new D-Bus object path with the given [value].
+  ///
+  /// An exception is shown if [value] is not a valid object path.
   DBusObjectPath(String value) : super(value) {
     if (value != '/') {
       if (value.contains(RegExp('[^a-zA-Z0-9_/]')) ||
@@ -270,6 +274,13 @@ class DBusObjectPath extends DBusString {
       }
     }
   }
+
+  /// Creates a new D-Bus object path with the given [value].
+  ///
+  /// No checking is performed on the validity of [value].
+  /// This function is useful when you need a constant value (e.g. for a
+  /// parameter default value). In all other cases use the standard constructor.
+  const DBusObjectPath.unchecked(String value) : super(value);
 
   /// Splits an object path into separate elements, e.g. '/org/freedesktop/DBus' -> [ 'org', 'freedesktop', 'DBus' ].
   List<String> split() {
@@ -322,7 +333,7 @@ class DBusSignature extends DBusValue {
   final String value;
 
   /// Create a new D-Bus signature with the given [value].
-  DBusSignature(this.value);
+  const DBusSignature(this.value);
 
   List<DBusSignature> split() {
     var signatures = <DBusSignature>[];
@@ -382,7 +393,7 @@ class DBusVariant extends DBusValue {
   final DBusValue value;
 
   /// Creates a new D-Bus variant containing [value].
-  DBusVariant(this.value);
+  const DBusVariant(this.value);
 
   @override
   DBusSignature get signature {
@@ -407,7 +418,7 @@ class DBusStruct extends DBusValue {
   final Iterable<DBusValue> children;
 
   /// Creates a new D-Bus structure containing [children] values.
-  DBusStruct(this.children);
+  const DBusStruct(this.children);
 
   @override
   DBusSignature get signature {
@@ -452,6 +463,13 @@ class DBusArray extends DBusValue {
       }
     }
   }
+
+  /// Creates a new empty D-Bus array containing [children].
+  ///
+  /// No checking is performed on the validity of [children].
+  /// This function is useful when you need a constant value (e.g. for a
+  /// parameter default value). In all other cases use the standard constructor.
+  const DBusArray.unchecked(this.childSignature, [this.children = const []]);
 
   @override
   DBusSignature get signature {
@@ -498,6 +516,14 @@ class DBusDict extends DBusValue {
       }
     });
   }
+
+  /// Creates a new dictionary with keys of the type [keySignature] and values of the type [valueSignature].
+  ///
+  /// No checking is performed on the validity of [children].
+  /// This function is useful when you need a constant value (e.g. for a
+  /// parameter default value). In all other cases use the standard constructor.
+  const DBusDict.unchecked(this.keySignature, this.valueSignature,
+      [this.children = const {}]);
 
   @override
   DBusSignature get signature {
