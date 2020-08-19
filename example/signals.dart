@@ -27,8 +27,7 @@ void main(List<String> args) async {
   if (mode == 'client') {
     var object = DBusRemoteObject(client, 'com.canonical.DBusDart',
         DBusObjectPath('/com/canonical/DBusDart'));
-    object.subscribeSignal('com.canonical.DBusDart', 'Ping',
-        (path, interface, member, values) {
+    object.subscribeSignal('com.canonical.DBusDart', 'Ping', (values) {
       var count = (values[0] as DBusUint64).value;
       print('Ping ${count}!');
     });
