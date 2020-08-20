@@ -218,9 +218,9 @@ String generateRemoteSignalSubscription(
   var code = '';
   code += '  /// Subscribes to ${interface.name}.${signal.name}\n';
   code +=
-      '  void subscribe${signal.name}(void Function(${argsList.join(', ')}) callback) async {\n';
+      '  Future<DBusSignalSubscription> subscribe${signal.name}(void Function(${argsList.join(', ')}) callback) async {\n';
   code +=
-      "    subscribeSignal('${interface.name}', '${signal.name}', (values) {\n";
+      "    return await subscribeSignal('${interface.name}', '${signal.name}', (values) {\n";
   code += '      if (${valueChecks.join(' && ')}) {\n';
   code += '        callback(${argValues.join(', ')});\n';
   code += '      }\n';
