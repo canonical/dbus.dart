@@ -32,7 +32,7 @@ var client = DBusClient.system();
 var hostname1 = OrgFreeDesktopHostname1(client, 'org.freedesktop.hostname1');
 var hostname = await hostname1.hostname;
 print('hostname: ${hostname}')
-await client.disconnect();
+await client.close();
 ```
 
 ## Accessing a remote object manually
@@ -49,7 +49,7 @@ var object = DBusRemoteObject(client, 'org.freedesktop.hostname1', DBusObjectPat
 var result = await object.getProperty('org.freedesktop.hostname1', 'Hostname');
 var hostname = (result as DBusString).value;
 print('hostname: ${hostname}');
-await client.disconnect();
+await client.close();
 ```
 
 ## Exporting an object on the bus

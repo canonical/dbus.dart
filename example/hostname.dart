@@ -8,5 +8,5 @@ void main() async {
       await object.getProperty('org.freedesktop.hostname1', 'Hostname');
   var hostname = (result as DBusString).value;
   print('hostname: ${hostname}');
-  await client.disconnect();
+  await client.close();
 }

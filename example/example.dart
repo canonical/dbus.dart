@@ -18,5 +18,5 @@ void main() async {
       'org.freedesktop.Notifications', 'Notify', values);
   var id = (result.returnValues[0] as DBusUint32).value;
   print('notify ${id}');
-  await client.disconnect();
+  await client.close();
 }
