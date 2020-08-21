@@ -89,8 +89,8 @@ class DBusClient {
     _address = address;
   }
 
-  /// Disconnects the client from the D-Bus server.
-  void disconnect() async {
+  /// Terminates all active connections. If a client remains unclosed, the Dart process may not terminate.
+  void close() async {
     await _socket.close();
   }
 
