@@ -177,7 +177,7 @@ class DBusReadBuffer extends DBusBuffer {
   DBusArray readDBusArray(DBusSignature childSignature) {
     var length = readDBusUint32();
     if (length == null) return null;
-    // FIXME: Align to first element (not in length)
+    if (!align(getAlignment(childSignature))) return null;
     var end = readOffset + length.value;
     var children = <DBusValue>[];
     while (readOffset < end) {
@@ -193,17 +193,16 @@ class DBusReadBuffer extends DBusBuffer {
       DBusSignature keySignature, DBusSignature valueSignature) {
     var length = readDBusUint32();
     if (length == null) return null;
-    // FIXME: Align to first element (not in length)
+    if (!align(DICT_ENTRY_ALIGNMENT)) return null;
     var end = readOffset + length.value;
-    var childSignatures = <DBusSignature>[];
-    childSignatures.add(keySignature);
-    childSignatures.add(valueSignature);
+    var childSignatures = [keySignature, valueSignature];
     var children = <DBusValue, DBusValue>{};
     while (readOffset < end) {
       var child = readDBusStruct(childSignatures);
       if (child == null) return null;
-      children.update(
-          child.children.elementAt(0), (e) => child.children.elementAt(1));
+      var key = child.children.elementAt(0);
+      var value = child.children.elementAt(1);
+      children[key] = value;
     }
 
     return DBusDict(keySignature, valueSignature, children);
