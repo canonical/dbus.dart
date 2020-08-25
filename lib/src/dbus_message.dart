@@ -120,7 +120,7 @@ class DBusMessage {
     type = buffer.readDBusByte().value;
     flags = buffer.readDBusByte().value;
     buffer.readDBusByte(); // Protocol version.
-    buffer.readDBusUint32(); // Data length
+    var dataLength = buffer.readDBusUint32();
     serial = buffer.readDBusUint32().value;
     var headers = buffer.readDBusArray(DBusSignature('(yv)'));
     if (headers == null) return false;
@@ -149,6 +149,10 @@ class DBusMessage {
       }
     }
     if (!buffer.align(8)) return false;
+
+    if (buffer.remaining < dataLength.value) {
+      return false;
+    }
 
     values = <DBusValue>[];
     if (signature != null) {
