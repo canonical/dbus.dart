@@ -513,26 +513,26 @@ List<String> generateRemotePropertyMethods(
   if (property.access == DBusPropertyAccess.readwrite ||
       property.access == DBusPropertyAccess.read) {
     var convertedValue = type.dbusToNative('value');
-    var code = '';
-    code += '  /// Gets ${interface.name}.${property.name}\n';
-    code += '  Future<${type.nativeType}> get ${property.name} async {\n';
-    code +=
+    var source = '';
+    source += '  /// Gets ${interface.name}.${property.name}\n';
+    source += '  Future<${type.nativeType}> get ${property.name} async {\n';
+    source +=
         "    var value = await getProperty('${interface.name}', '${property.name}');\n";
-    code += '    return ${convertedValue};\n';
-    code += '  }\n';
-    methods.add(code);
+    source += '    return ${convertedValue};\n';
+    source += '  }\n';
+    methods.add(source);
   }
 
   if (property.access == DBusPropertyAccess.readwrite ||
       property.access == DBusPropertyAccess.write) {
     var convertedValue = type.nativeToDBus('value');
-    var code = '';
-    code += '  /// Sets ${interface.name}.${property.name}\n';
-    code += '  set ${property.name} (${type.nativeType} value) {\n';
-    code +=
+    var source = '';
+    source += '  /// Sets ${interface.name}.${property.name}\n';
+    source += '  set ${property.name} (${type.nativeType} value) {\n';
+    source +=
         "    setProperty('${interface.name}', '${property.name}', ${convertedValue});\n";
-    code += '  }\n';
-    methods.add(code);
+    source += '  }\n';
+    methods.add(source);
   }
 
   return methods;
@@ -581,21 +581,21 @@ String generateRemoteMethodCall(
   var methodCall =
       "await callMethod('${interface.name}', '${method.name}', [${argValues.join(', ')}]);";
 
-  var code = '';
-  code += '  /// Invokes ${interface.name}.${method.name}()\n';
-  code += '  ${returnType} ${method.name}(${argsList.join(', ')}) async {\n';
+  var source = '';
+  source += '  /// Invokes ${interface.name}.${method.name}()\n';
+  source += '  ${returnType} ${method.name}(${argsList.join(', ')}) async {\n';
   if (returnTypes.isEmpty) {
-    code += '    ${methodCall}\n';
+    source += '    ${methodCall}\n';
   } else if (returnTypes.length == 1) {
-    code += '    var result = ${methodCall}\n';
-    code += '    return ${returnValues[0]};\n';
+    source += '    var result = ${methodCall}\n';
+    source += '    return ${returnValues[0]};\n';
   } else {
-    code += '    var result = ${methodCall}\n';
-    code += '    return result.returnValues;\n';
+    source += '    var result = ${methodCall}\n';
+    source += '    return result.returnValues;\n';
   }
-  code += '  }\n';
+  source += '  }\n';
 
-  return code;
+  return source;
 }
 
 /// Generates a method to subscribe to a signal.
@@ -617,19 +617,19 @@ String generateRemoteSignalSubscription(
     index++;
   }
 
-  var code = '';
-  code += '  /// Subscribes to ${interface.name}.${signal.name}\n';
-  code +=
+  var source = '';
+  source += '  /// Subscribes to ${interface.name}.${signal.name}\n';
+  source +=
       '  Future<DBusSignalSubscription> subscribe${signal.name}(void Function(${argsList.join(', ')}) callback) async {\n';
-  code +=
+  source +=
       "    return await subscribeSignal('${interface.name}', '${signal.name}', (values) {\n";
-  code += '      if (${valueChecks.join(' && ')}) {\n';
-  code += '        callback(${argValues.join(', ')});\n';
-  code += '      }\n';
-  code += '    });\n';
-  code += '  }\n';
+  source += '      if (${valueChecks.join(' && ')}) {\n';
+  source += '        callback(${argValues.join(', ')});\n';
+  source += '      }\n';
+  source += '    });\n';
+  source += '  }\n';
 
-  return code;
+  return source;
 }
 
 /// Converts a D-Bus path to a Dart class name. e.g. 'org.freedesktop.Notifications' -> 'OrgFreedesktopNotifications'.
