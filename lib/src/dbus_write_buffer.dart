@@ -149,42 +149,6 @@ class DBusWriteBuffer extends DBusBuffer {
     }
   }
 
-  int getAlignment(DBusSignature signature) {
-    if (signature.value == 'y') {
-      return BYTE_ALIGNMENT;
-    } else if (signature.value == 'b') {
-      return BOOLEAN_ALIGNMENT;
-    } else if (signature.value == 'n') {
-      return INT16_ALIGNMENT;
-    } else if (signature.value == 'q') {
-      return UINT16_ALIGNMENT;
-    } else if (signature.value == 'i') {
-      return INT32_ALIGNMENT;
-    } else if (signature.value == 'u') {
-      return UINT32_ALIGNMENT;
-    } else if (signature.value == 'x') {
-      return INT64_ALIGNMENT;
-    } else if (signature.value == 't') {
-      return UINT64_ALIGNMENT;
-    } else if (signature.value == 'd') {
-      return DOUBLE_ALIGNMENT;
-    } else if (signature.value == 's') {
-      return STRING_ALIGNMENT;
-    } else if (signature.value == 'o') {
-      return OBJECT_PATH_ALIGNMENT;
-    } else if (signature.value == 'h') {
-      return SIGNATURE_ALIGNMENT;
-    } else if (signature.value == 'v') {
-      return VARIANT_ALIGNMENT;
-    } else if (signature.value.startsWith('(')) {
-      return STRUCT_ALIGNMENT;
-    } else if (signature.value.startsWith('a')) {
-      return ARRAY_ALIGNMENT;
-    } else {
-      return 1;
-    }
-  }
-
   void align(int boundary) {
     while (data.length % boundary != 0) {
       writeByte(0);
