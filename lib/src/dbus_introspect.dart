@@ -252,8 +252,12 @@ class DBusIntrospectArgument {
     var name = node.getAttribute('name');
     var type = DBusSignature(node.getAttribute('type'));
     var directionText = node.getAttribute('direction');
-    var direction = DBusArgumentDirection.in_;
-    if (directionText == 'out') direction = DBusArgumentDirection.out;
+    DBusArgumentDirection direction;
+    if (directionText == 'in') {
+      direction = DBusArgumentDirection.in_;
+    } else if (directionText == 'out') {
+      direction = DBusArgumentDirection.out;
+    }
     var annotations = node
         .findElements('annotation')
         .map((n) => DBusIntrospectAnnotation.fromXml(n))
