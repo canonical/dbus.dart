@@ -318,6 +318,11 @@ String generateHandleMethodCall(DBusIntrospectNode node) {
     for (var method in interface.methods) {
       var argValues = <String>[];
       var argChecks = <String>[];
+      if (argValues.isEmpty) {
+        argChecks.add('values.isNotEmpty');
+      } else {
+        argChecks.add('values.length != ${argValues.length}');
+      }
       for (var arg in method.args) {
         if (arg.direction == DBusArgumentDirection.in_) {
           var argName = 'values[${argValues.length}]';
@@ -328,7 +333,6 @@ String generateHandleMethodCall(DBusIntrospectNode node) {
           argValues.add(convertedValue);
         }
       }
-      argChecks.insert(0, 'values.length != ${argValues.length}');
 
       var source = '';
       source += 'if (${argChecks.join(' || ')}) {\n';
@@ -604,7 +608,12 @@ String generateRemoteSignalSubscription(
   var argValues = <String>[];
   var argsList = <String>[];
   var index = 0;
-  var valueChecks = ['values.length == ${signal.args.length}'];
+  var valueChecks = <String>[];
+  if (signal.args.isEmpty) {
+    valueChecks.add('values.length.isEmpty');
+  } else {
+    valueChecks.add('values.length == ${signal.args.length}');
+  }
   for (var arg in signal.args) {
     var type = getDartType(arg.type);
     var argName = arg.name ?? 'arg_${index}';
