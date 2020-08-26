@@ -2,13 +2,16 @@ import 'dbus_value.dart';
 import 'dbus_read_buffer.dart';
 import 'dbus_write_buffer.dart';
 
+/// Supported protocol version.
 const ProtocolVersion = 1;
 
+/// Endianess of a D-Bus message.
 class Endianess {
   static const Little = 108; // ASCII 'l'
   static const Big = 66; // ASCII 'B'
 }
 
+/// Types of headers.
 class HeaderCode {
   static const Invalid = 0;
   static const Path = 1;
@@ -22,6 +25,7 @@ class HeaderCode {
   static const UnixFds = 9;
 }
 
+/// Type of message.
 class MessageType {
   static const Invalid = 0;
   static const MethodCall = 1;
@@ -30,25 +34,49 @@ class MessageType {
   static const Signal = 4;
 }
 
+/// Flags attached to message.
 class Flags {
   static const NoReplyExpected = 0x01;
   static const NoAutoStart = 0x02;
   static const AllowInteractiveAuthorization = 0x04;
 }
 
+/// A message sent to/from the D-Bus server.
 class DBusMessage {
+  /// Type of the message, e.g. MessageType.MethodCall.
   int type;
+
+  /// Flags associated with this message, e.g. Flags.NoAutoStart.
   int flags;
+
+  /// Unique serial number for this message.
   int serial;
+
+  /// Object path this message refers to or null. e.g. '/org/freedesktop/DBus'.
   DBusObjectPath path;
+
+  /// Interface this message refers to or null. e.g. 'org.freedesktop.DBus.Properties'.
   String interface;
+
+  /// Member this message refers to or null. e.g. 'Get'.
   String member;
+
+  /// Error name as returned in messages of type MessageType.Error or null. e.g. 'org.freedesktop.DBus.Error.UnknownObject'.
   String errorName;
+
+  /// Serial number this message is replying to or null.
   int replySerial;
+
+  /// Destination this message is being sent to or null. e.g. 'org.freedesktop.DBus'.
   String destination;
+
+  /// Sender of this message is being sent to or null. e.g. 'com.exaple.Test'.
   String sender;
+
+  /// Values being sent with this message.
   var values = <DBusValue>[];
 
+  /// Creates a new D-Bus message.
   DBusMessage(
       {this.type = MessageType.Invalid,
       this.flags = 0,
@@ -62,6 +90,7 @@ class DBusMessage {
       this.sender,
       this.values});
 
+  /// Write this message to [buffer].
   void marshal(DBusWriteBuffer buffer) {
     var valueBuffer = DBusWriteBuffer();
     for (var value in values) {
@@ -109,12 +138,16 @@ class DBusMessage {
     buffer.writeBytes(valueBuffer.data);
   }
 
+  /// Makes a new message header.
   DBusStruct _makeHeader(int code, DBusValue value) {
     return DBusStruct([DBusByte(code), DBusVariant(value)]);
   }
 
+  /// Read a message from [buffer] and store the values here.
   bool unmarshal(DBusReadBuffer buffer) {
-    if (buffer.remaining < 12) return false;
+    if (buffer.remaining < 12) {
+      return false;
+    }
 
     buffer.readDBusByte(); // Endianess.
     type = buffer.readDBusByte().value;
@@ -123,7 +156,9 @@ class DBusMessage {
     var dataLength = buffer.readDBusUint32();
     serial = buffer.readDBusUint32().value;
     var headers = buffer.readDBusArray(DBusSignature('(yv)'));
-    if (headers == null) return false;
+    if (headers == null) {
+      return false;
+    }
 
     DBusSignature signature;
     for (var child in headers.children) {
@@ -148,7 +183,9 @@ class DBusMessage {
         signature = value as DBusSignature;
       }
     }
-    if (!buffer.align(8)) return false;
+    if (!buffer.align(8)) {
+      return false;
+    }
 
     if (buffer.remaining < dataLength.value) {
       return false;
@@ -159,7 +196,9 @@ class DBusMessage {
       var signatures = signature.split();
       for (var s in signatures) {
         var value = buffer.readDBusValue(s);
-        if (value == null) return false;
+        if (value == null) {
+          return false;
+        }
         values.add(value);
       }
     }
@@ -198,13 +237,27 @@ class DBusMessage {
       text += ' flags=${flagNames.join('|')}';
     }
     text += ' serial=${serial}';
-    if (path != null) text += ", path='${path}'";
-    if (interface != null) text += ", interface='${interface}'";
-    if (member != null) text += ", member='${member}'";
-    if (errorName != null) text += ", errorName='${errorName}'";
-    if (replySerial != null) text += ', replySerial=${replySerial}';
-    if (destination != null) text += ", destination='${destination}'";
-    if (sender != null) text += ", sender='${sender}'";
+    if (path != null) {
+      text += ", path='${path}'";
+    }
+    if (interface != null) {
+      text += ", interface='${interface}'";
+    }
+    if (member != null) {
+      text += ", member='${member}'";
+    }
+    if (errorName != null) {
+      text += ", errorName='${errorName}'";
+    }
+    if (replySerial != null) {
+      text += ', replySerial=${replySerial}';
+    }
+    if (destination != null) {
+      text += ", destination='${destination}'";
+    }
+    if (sender != null) {
+      text += ", sender='${sender}'";
+    }
     if (values.isNotEmpty) {
       var valueText = <String>[];
       for (var value in values) {

@@ -30,7 +30,9 @@ DBusDartType getDartType(DBusSignature signature) {
   } else if (value.startsWith('a{') && value.endsWith('}')) {
     var signatures =
         DBusSignature(value.substring(2, value.length - 1)).split();
-    if (signatures.length != 2) return DBusComplexType();
+    if (signatures.length != 2) {
+      return DBusComplexType();
+    }
     return DBusDictType(signatures[0], signatures[1]);
   } else if (value.startsWith('a')) {
     var childSignature = DBusSignature(signature.value.substring(1));

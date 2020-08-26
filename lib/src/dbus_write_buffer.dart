@@ -4,63 +4,71 @@ import 'dart:typed_data';
 import 'dbus_buffer.dart';
 import 'dbus_value.dart';
 
+/// Encodes DBus messages to binary data.
 class DBusWriteBuffer extends DBusBuffer {
+  /// Data generated.
   var data = <int>[];
 
+  /// Writes a single byte to the buffer.
   void writeByte(int value) {
     data.add(value);
   }
 
+  /// Writes multiple bytes to the buffer.
   void writeBytes(Iterable<int> value) {
     data.addAll(value);
   }
 
+  /// Writes a 16 bit signed integer to the buffer.
   void writeInt16(int value) {
     var bytes = Uint8List(2).buffer;
     ByteData.view(bytes).setInt16(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
+  /// Writes a 16 bit unsigned integer to the buffer.
   void writeUint16(int value) {
     var bytes = Uint8List(2).buffer;
     ByteData.view(bytes).setUint16(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
+  /// Writes a 32 bit signed integer to the buffer.
   void writeInt32(int value) {
     var bytes = Uint8List(4).buffer;
     ByteData.view(bytes).setInt32(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
+  /// Writes a 32 bit unsigned integer to the buffer.
   void writeUint32(int value) {
     var bytes = Uint8List(4).buffer;
     ByteData.view(bytes).setUint32(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
+  /// Writes a 64 bit signed integer to the buffer.
   void writeInt64(int value) {
     var bytes = Uint8List(8).buffer;
     ByteData.view(bytes).setInt64(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
+  /// Writes a 64 bit unsigned integer to the buffer.
   void writeUint64(int value) {
     var bytes = Uint8List(8).buffer;
     ByteData.view(bytes).setUint64(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
+  /// Writes a 64 bit floating point number to the buffer.
   void writeFloat64(double value) {
     var bytes = Uint8List(8).buffer;
     ByteData.view(bytes).setFloat64(0, value, Endian.little);
     writeBytes(bytes.asUint8List());
   }
 
-  void setByte(int offset, int value) {
-    data[offset] = value;
-  }
-
+  /// Writes a [DBusValue] to the buffer.
   void writeValue(DBusValue value) {
     if (value is DBusByte) {
       writeByte(value.value);
@@ -125,10 +133,10 @@ class DBusWriteBuffer extends DBusBuffer {
 
       // Update the length that was written
       var length = data.length - startOffset;
-      setByte(lengthOffset + 0, (length >> 0) & 0xFF);
-      setByte(lengthOffset + 1, (length >> 8) & 0xFF);
-      setByte(lengthOffset + 2, (length >> 16) & 0xFF);
-      setByte(lengthOffset + 3, (length >> 24) & 0xFF);
+      data[lengthOffset + 0] = (length >> 0) & 0xFF;
+      data[lengthOffset + 1] = (length >> 8) & 0xFF;
+      data[lengthOffset + 2] = (length >> 16) & 0xFF;
+      data[lengthOffset + 3] = (length >> 24) & 0xFF;
     } else if (value is DBusDict) {
       // Length will be overwritten later.
       writeValue(DBusUint32(0));
@@ -142,13 +150,14 @@ class DBusWriteBuffer extends DBusBuffer {
 
       // Update the length that was written
       var length = data.length - startOffset;
-      setByte(lengthOffset + 0, (length >> 0) & 0xFF);
-      setByte(lengthOffset + 1, (length >> 8) & 0xFF);
-      setByte(lengthOffset + 2, (length >> 16) & 0xFF);
-      setByte(lengthOffset + 3, (length >> 24) & 0xFF);
+      data[lengthOffset + 0] = (length >> 0) & 0xFF;
+      data[lengthOffset + 1] = (length >> 8) & 0xFF;
+      data[lengthOffset + 2] = (length >> 16) & 0xFF;
+      data[lengthOffset + 3] = (length >> 24) & 0xFF;
     }
   }
 
+  /// Writes padding bytes to align to [boundary].
   void align(int boundary) {
     while (data.length % boundary != 0) {
       writeByte(0);

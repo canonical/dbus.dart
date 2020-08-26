@@ -343,8 +343,12 @@ class DBusSignature extends DBusValue {
           var count = 1;
           var end = i + 2;
           while (count > 0) {
-            if (value[end] == '(') count++;
-            if (value[end] == ')') count--;
+            if (value[end] == '(') {
+              count++;
+            }
+            if (value[end] == ')') {
+              count--;
+            }
             end++;
           }
           signatures.add(DBusSignature(value.substring(i, end)));
@@ -353,8 +357,12 @@ class DBusSignature extends DBusValue {
           var count = 1;
           var end = i + 2;
           while (count > 0) {
-            if (value[end] == '{') count++;
-            if (value[end] == '}') count--;
+            if (value[end] == '{') {
+              count++;
+            }
+            if (value[end] == '}') {
+              count--;
+            }
             end++;
           }
           signatures.add(DBusSignature(value.substring(i, end)));
