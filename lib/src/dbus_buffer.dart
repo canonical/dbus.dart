@@ -1,5 +1,6 @@
 import 'dbus_value.dart';
 
+/// Contains common functionality used in [DBusReadBuffer] and [DBusWriteBuffer].
 class DBusBuffer {
   final int BYTE_ALIGNMENT = 1;
   final int BOOLEAN_ALIGNMENT = 4;
@@ -18,6 +19,7 @@ class DBusBuffer {
   final int ARRAY_ALIGNMENT = 4;
   final int DICT_ENTRY_ALIGNMENT = 8;
 
+  /// Returns the alignment of a [DBusValue] with the given [signature].
   int getAlignment(DBusSignature signature) {
     if (signature.value == 'y') {
       return BYTE_ALIGNMENT;

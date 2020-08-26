@@ -340,7 +340,9 @@ class DBusClient {
 
     var paths = <String>[];
     for (var property in address.properties) {
-      if (property.key == 'path') paths.add(property.value);
+      if (property.key == 'path') {
+        paths.add(property.value);
+      }
     }
     if (paths.isEmpty) {
       throw 'Unable to determine D-Bus unix address path: ${_address}';
@@ -469,7 +471,9 @@ class DBusClient {
   /// Processes authentication messages received from the D-Bus server.
   bool _processAuth() {
     var line = _readBuffer.readLine();
-    if (line == null) return true;
+    if (line == null) {
+      return true;
+    }
 
     if (line.startsWith('OK ')) {
       _socket.write('BEGIN\r\n');
@@ -535,7 +539,9 @@ class DBusClient {
   void _processMethodResponse(DBusMessage message) {
     var methodCall =
         _methodCalls.firstWhere((c) => c.serial == message.replySerial);
-    if (methodCall == null) return;
+    if (methodCall == null) {
+      return;
+    }
     _methodCalls.remove(methodCall);
 
     DBusMethodResponse response;

@@ -48,7 +48,9 @@ Future<String> _getMachineId() async {
   }
 
   var machineId = await readFirstLine('/var/lib/dbus/machine-id');
-  if (machineId == '') machineId = await readFirstLine('/etc/machine-id');
+  if (machineId == '') {
+    machineId = await readFirstLine('/etc/machine-id');
+  }
 
   return machineId;
 }
