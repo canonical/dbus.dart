@@ -44,37 +44,37 @@ class Flags {
 /// A message sent to/from the D-Bus server.
 class DBusMessage {
   /// Type of the message, e.g. MessageType.MethodCall.
-  int type;
+  final int type;
 
   /// Flags associated with this message, e.g. Flags.NoAutoStart.
-  int flags;
+  final int flags;
 
   /// Unique serial number for this message.
-  int serial;
+  final int serial;
 
   /// Object path this message refers to or null. e.g. '/org/freedesktop/DBus'.
-  DBusObjectPath path;
+  final DBusObjectPath path;
 
   /// Interface this message refers to or null. e.g. 'org.freedesktop.DBus.Properties'.
-  String interface;
+  final String interface;
 
   /// Member this message refers to or null. e.g. 'Get'.
-  String member;
+  final String member;
 
   /// Error name as returned in messages of type MessageType.Error or null. e.g. 'org.freedesktop.DBus.Error.UnknownObject'.
-  String errorName;
+  final String errorName;
 
   /// Serial number this message is replying to or null.
-  int replySerial;
+  final int replySerial;
 
   /// Destination this message is being sent to or null. e.g. 'org.freedesktop.DBus'.
-  String destination;
+  final String destination;
 
   /// Sender of this message is being sent to or null. e.g. 'com.exaple.Test'.
-  String sender;
+  final String sender;
 
   /// Values being sent with this message.
-  var values = <DBusValue>[];
+  final List<DBusValue> values;
 
   /// Creates a new D-Bus message.
   DBusMessage(
@@ -90,8 +90,90 @@ class DBusMessage {
       this.sender,
       this.values});
 
+  /// Creates a message by reading from [buffer].
+  /// Returns null if not enough data to read a message.
+  factory DBusMessage.fromBuffer(DBusReadBuffer buffer) {
+    if (buffer.remaining < 12) {
+      return null;
+    }
+
+    buffer.readDBusByte(); // Endianess.
+    var type = buffer.readDBusByte().value;
+    var flags = buffer.readDBusByte().value;
+    buffer.readDBusByte(); // Protocol version.
+    var dataLength = buffer.readDBusUint32();
+    var serial = buffer.readDBusUint32().value;
+    var headers = buffer.readDBusArray(DBusSignature('(yv)'));
+    if (headers == null) {
+      return null;
+    }
+
+    DBusSignature signature;
+    DBusObjectPath path;
+    String interface;
+    String member;
+    String errorName;
+    int replySerial;
+    String destination;
+    String sender;
+    for (var child in headers.children) {
+      var header = child as DBusStruct;
+      var code = (header.children.elementAt(0) as DBusByte).value;
+      var value = (header.children.elementAt(1) as DBusVariant).value;
+      if (code == HeaderCode.Path) {
+        path = value as DBusObjectPath;
+      } else if (code == HeaderCode.Interface) {
+        interface = (value as DBusString).value;
+      } else if (code == HeaderCode.Member) {
+        member = (value as DBusString).value;
+      } else if (code == HeaderCode.ErrorName) {
+        errorName = (value as DBusString).value;
+      } else if (code == HeaderCode.ReplySerial) {
+        replySerial = (value as DBusUint32).value;
+      } else if (code == HeaderCode.Destination) {
+        destination = (value as DBusString).value;
+      } else if (code == HeaderCode.Sender) {
+        sender = (value as DBusString).value;
+      } else if (code == HeaderCode.Signature) {
+        signature = value as DBusSignature;
+      }
+    }
+    if (!buffer.align(8)) {
+      return null;
+    }
+
+    if (buffer.remaining < dataLength.value) {
+      return null;
+    }
+
+    var values = <DBusValue>[];
+    if (signature != null) {
+      var signatures = signature.split();
+      for (var s in signatures) {
+        var value = buffer.readDBusValue(s);
+        if (value == null) {
+          return null;
+        }
+        values.add(value);
+      }
+    }
+
+    return DBusMessage(
+        type: type,
+        flags: flags,
+        serial: serial,
+        path: path,
+        interface: interface,
+        member: member,
+        errorName: errorName,
+        replySerial: replySerial,
+        destination: destination,
+        sender: sender,
+        values: values);
+  }
+
   /// Write this message to [buffer].
-  void marshal(DBusWriteBuffer buffer) {
+  void toBuffer(DBusWriteBuffer buffer) {
     var valueBuffer = DBusWriteBuffer();
     for (var value in values) {
       valueBuffer.writeValue(value);
@@ -141,69 +223,6 @@ class DBusMessage {
   /// Makes a new message header.
   DBusStruct _makeHeader(int code, DBusValue value) {
     return DBusStruct([DBusByte(code), DBusVariant(value)]);
-  }
-
-  /// Read a message from [buffer] and store the values here.
-  bool unmarshal(DBusReadBuffer buffer) {
-    if (buffer.remaining < 12) {
-      return false;
-    }
-
-    buffer.readDBusByte(); // Endianess.
-    type = buffer.readDBusByte().value;
-    flags = buffer.readDBusByte().value;
-    buffer.readDBusByte(); // Protocol version.
-    var dataLength = buffer.readDBusUint32();
-    serial = buffer.readDBusUint32().value;
-    var headers = buffer.readDBusArray(DBusSignature('(yv)'));
-    if (headers == null) {
-      return false;
-    }
-
-    DBusSignature signature;
-    for (var child in headers.children) {
-      var header = child as DBusStruct;
-      var code = (header.children.elementAt(0) as DBusByte).value;
-      var value = (header.children.elementAt(1) as DBusVariant).value;
-      if (code == HeaderCode.Path) {
-        path = value as DBusObjectPath;
-      } else if (code == HeaderCode.Interface) {
-        interface = (value as DBusString).value;
-      } else if (code == HeaderCode.Member) {
-        member = (value as DBusString).value;
-      } else if (code == HeaderCode.ErrorName) {
-        errorName = (value as DBusString).value;
-      } else if (code == HeaderCode.ReplySerial) {
-        replySerial = (value as DBusUint32).value;
-      } else if (code == HeaderCode.Destination) {
-        destination = (value as DBusString).value;
-      } else if (code == HeaderCode.Sender) {
-        sender = (value as DBusString).value;
-      } else if (code == HeaderCode.Signature) {
-        signature = value as DBusSignature;
-      }
-    }
-    if (!buffer.align(8)) {
-      return false;
-    }
-
-    if (buffer.remaining < dataLength.value) {
-      return false;
-    }
-
-    values = <DBusValue>[];
-    if (signature != null) {
-      var signatures = signature.split();
-      for (var s in signatures) {
-        var value = buffer.readDBusValue(s);
-        if (value == null) {
-          return false;
-        }
-        values.add(value);
-      }
-    }
-
-    return true;
   }
 
   @override
