@@ -335,47 +335,55 @@ class DBusSignature extends DBusValue {
   /// Create a new D-Bus signature with the given [value].
   const DBusSignature(this.value);
 
+  /// Splits this signature into a list of signatures, e.g. 'asbo' -> ['as', 'b', 'o']
   List<DBusSignature> split() {
     var signatures = <DBusSignature>[];
-    for (var i = 0; i < value.length; i++) {
-      if (value[i] == 'a') {
-        if (value[i + 1] == '(') {
-          var count = 1;
-          var end = i + 2;
-          while (count > 0) {
-            if (value[end] == '(') {
-              count++;
-            }
-            if (value[end] == ')') {
-              count--;
-            }
-            end++;
-          }
-          signatures.add(DBusSignature(value.substring(i, end)));
-          i += end - i;
-        } else if (value[i + 1] == '{') {
-          var count = 1;
-          var end = i + 2;
-          while (count > 0) {
-            if (value[end] == '{') {
-              count++;
-            }
-            if (value[end] == '}') {
-              count--;
-            }
-            end++;
-          }
-          signatures.add(DBusSignature(value.substring(i, end)));
-          i += end - i;
-        } else {
-          signatures.add(DBusSignature(value.substring(i, i + 2)));
-          i++;
-        }
-      } else {
-        signatures.add(DBusSignature(value[i]));
-      }
+
+    var start = 0;
+    while (start < value.length) {
+      var end = _findChildEnd(start);
+      signatures.add(DBusSignature(value.substring(start, end)));
+      start = end;
     }
+
     return signatures;
+  }
+
+  /// Gets the end of the child signature starting at [offset].
+  int _findChildEnd(int offset) {
+    /// Dicts and structs have the child type following.
+    if (value[offset] == 'a') {
+      return _findChildEnd(offset + 1);
+    }
+
+    // Structs and dict entries are multiple characters, everything else is a single character.
+    if (value[offset] == '(') {
+      return _findClosing(offset, ')');
+    } else if (value[offset] == '{') {
+      return _findClosing(offset, '}');
+    } else {
+      return offset + 1;
+    }
+  }
+
+  // Find the closing parenthesis/brace.
+  int _findClosing(int start, String closeChar) {
+    var openChar = value[start];
+    var count = 0;
+    var end = start;
+    while (end < value.length) {
+      if (value[end] == openChar) {
+        count++;
+      } else if (value[end] == closeChar) {
+        count--;
+        if (count == 0) {
+          return end + 1;
+        }
+      }
+      end++;
+    }
+
+    throw 'Unable to find closing ${closeChar} in signature: ${value}';
   }
 
   @override
