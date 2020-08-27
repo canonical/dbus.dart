@@ -35,14 +35,15 @@ class DBusRemoteObject {
   }
 
   /// Gets the values of all the properties on this object.
-  Future<DBusDict> getAllProperties(String interface) async {
+  Future<Map<String, DBusValue>> getAllProperties(String interface) async {
     var result = await client.callMethod(
         destination: destination,
         path: path,
         interface: 'org.freedesktop.DBus.Properties',
         member: 'GetAll',
         values: [DBusString(interface)]);
-    return result.returnValues[0] as DBusDict;
+    return (result.returnValues[0] as DBusDict).children.map((key, value) =>
+        MapEntry((key as DBusString).value, (value as DBusVariant).value));
   }
 
   /// Sets a property on this object.
