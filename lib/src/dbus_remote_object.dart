@@ -19,7 +19,11 @@ class DBusRemoteObject {
         path: path,
         interface: 'org.freedesktop.DBus.Introspectable',
         member: 'Introspect');
-    var xml = await (result.returnValues[0] as DBusString).value;
+    var values = result.returnValues;
+    if (values.length != 1 || values[0].signature != DBusSignature('s')) {
+      throw 'org.freedesktop.DBus.Introspectable.Introspect returned invalid result: ${values}';
+    }
+    var xml = await (values[0] as DBusString).value;
     return parseDBusIntrospectXml(xml);
   }
 
@@ -31,7 +35,11 @@ class DBusRemoteObject {
         interface: 'org.freedesktop.DBus.Properties',
         member: 'Get',
         values: [DBusString(interface), DBusString(name)]);
-    return (result.returnValues[0] as DBusVariant).value;
+    var values = result.returnValues;
+    if (values.length != 1 || values[0].signature != DBusSignature('v')) {
+      throw 'org.freedesktop.DBus.Properties.Get returned invalid result: ${values}';
+    }
+    return (values[0] as DBusVariant).value;
   }
 
   /// Gets the values of all the properties on this object.
@@ -42,18 +50,26 @@ class DBusRemoteObject {
         interface: 'org.freedesktop.DBus.Properties',
         member: 'GetAll',
         values: [DBusString(interface)]);
-    return (result.returnValues[0] as DBusDict).children.map((key, value) =>
+    var values = result.returnValues;
+    if (values.length != 1 || values[0].signature != DBusSignature('a{sv}')) {
+      throw 'org.freedesktop.DBus.Properties.GetAll returned invalid result: ${values}';
+    }
+    return (values[0] as DBusDict).children.map((key, value) =>
         MapEntry((key as DBusString).value, (value as DBusVariant).value));
   }
 
   /// Sets a property on this object.
   void setProperty(String interface, String name, DBusValue value) async {
-    await client.callMethod(
+    var result = await client.callMethod(
         destination: destination,
         path: path,
         interface: 'org.freedesktop.DBus.Properties',
         member: 'Set',
         values: [DBusString(interface), DBusString(name), DBusVariant(value)]);
+    var values = result.returnValues;
+    if (values.isNotEmpty) {
+      throw 'org.freedesktop.DBus.Properties.set returned invalid result: ${values}';
+    }
   }
 
   /// Invokes a method on this object.
