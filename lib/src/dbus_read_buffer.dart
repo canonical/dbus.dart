@@ -405,11 +405,8 @@ class DBusReadBuffer extends DBusBuffer {
     } else if (s.startsWith('a')) {
       return readDBusArray(DBusSignature(s.substring(1, s.length)));
     } else if (s.startsWith('(') && s.endsWith(')')) {
-      var childSignatures = <DBusSignature>[];
-      for (var i = 1; i < s.length - 1; i++) {
-        childSignatures.add(DBusSignature(s[i]));
-      }
-      return readDBusStruct(childSignatures);
+      return readDBusStruct(
+          DBusSignature(s.substring(1, s.length - 1)).split());
     } else {
       throw "Unknown DBus data type '${s}'";
     }
