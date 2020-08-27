@@ -7,7 +7,7 @@ void main() async {
   var properties =
       await object.getAllProperties('org.freedesktop.NetworkManager');
   properties.forEach((name, value) {
-    print('${name}: ${value}');
+    print('${name}: ${value.toNative()}');
   });
 
   print('');
@@ -16,10 +16,9 @@ void main() async {
   for (var path in devicePaths) {
     var device =
         DBusRemoteObject(client, 'org.freedesktop.NetworkManager', path);
-    var value = await device.getProperty(
+    var address = await device.getProperty(
         'org.freedesktop.NetworkManager.Device', 'HwAddress');
-    var address = (value as DBusString).value;
-    print('${address}');
+    print('${address.toNative()}');
   }
 
   await client.close();

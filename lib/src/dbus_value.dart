@@ -1,8 +1,12 @@
 /// Base class for D-Bus values.
 abstract class DBusValue {
+  /// Gets the signature for this value.
   DBusSignature get signature;
 
   const DBusValue();
+
+  /// Converts this value to a native Dart representation.
+  dynamic toNative();
 }
 
 /// D-Bus representation of an unsigned 8 bit value.
@@ -16,6 +20,11 @@ class DBusByte extends DBusValue {
   @override
   DBusSignature get signature {
     return DBusSignature('y');
+  }
+
+  @override
+  dynamic toNative() {
+    return value;
   }
 
   @override
@@ -45,6 +54,11 @@ class DBusBoolean extends DBusValue {
   }
 
   @override
+  dynamic toNative() {
+    return value;
+  }
+
+  @override
   bool operator ==(other) => other is DBusBoolean && other.value == value;
 
   @override
@@ -67,6 +81,11 @@ class DBusInt16 extends DBusValue {
   @override
   DBusSignature get signature {
     return DBusSignature('n');
+  }
+
+  @override
+  dynamic toNative() {
+    return value;
   }
 
   @override
@@ -95,6 +114,11 @@ class DBusUint16 extends DBusValue {
   }
 
   @override
+  dynamic toNative() {
+    return value;
+  }
+
+  @override
   bool operator ==(other) => other is DBusUint16 && other.value == value;
 
   @override
@@ -117,6 +141,11 @@ class DBusInt32 extends DBusValue {
   @override
   DBusSignature get signature {
     return DBusSignature('i');
+  }
+
+  @override
+  dynamic toNative() {
+    return value;
   }
 
   @override
@@ -145,6 +174,11 @@ class DBusUint32 extends DBusValue {
   }
 
   @override
+  dynamic toNative() {
+    return value;
+  }
+
+  @override
   bool operator ==(other) => other is DBusUint32 && other.value == value;
 
   @override
@@ -167,6 +201,11 @@ class DBusInt64 extends DBusValue {
   @override
   DBusSignature get signature {
     return DBusSignature('x');
+  }
+
+  @override
+  dynamic toNative() {
+    return value;
   }
 
   @override
@@ -195,6 +234,11 @@ class DBusUint64 extends DBusValue {
   }
 
   @override
+  dynamic toNative() {
+    return value;
+  }
+
+  @override
   bool operator ==(other) => other is DBusUint64 && other.value == value;
 
   @override
@@ -220,6 +264,11 @@ class DBusDouble extends DBusValue {
   }
 
   @override
+  dynamic toNative() {
+    return value;
+  }
+
+  @override
   bool operator ==(other) => other is DBusDouble && other.value == value;
 
   @override
@@ -242,6 +291,11 @@ class DBusString extends DBusValue {
   @override
   DBusSignature get signature {
     return DBusSignature('s');
+  }
+
+  @override
+  dynamic toNative() {
+    return value;
   }
 
   @override
@@ -294,6 +348,11 @@ class DBusObjectPath extends DBusString {
   @override
   DBusSignature get signature {
     return DBusSignature('o');
+  }
+
+  @override
+  dynamic toNative() {
+    return this;
   }
 
   @override
@@ -392,6 +451,11 @@ class DBusSignature extends DBusValue {
   }
 
   @override
+  dynamic toNative() {
+    return this;
+  }
+
+  @override
   bool operator ==(other) => other is DBusSignature && other.value == value;
 
   @override
@@ -414,6 +478,11 @@ class DBusVariant extends DBusValue {
   @override
   DBusSignature get signature {
     return DBusSignature('v');
+  }
+
+  @override
+  dynamic toNative() {
+    return value.toNative();
   }
 
   @override
@@ -443,6 +512,11 @@ class DBusStruct extends DBusValue {
       signature += child.signature.value;
     }
     return DBusSignature('(' + signature + ')');
+  }
+
+  @override
+  dynamic toNative() {
+    return children.map((value) => value.toNative());
   }
 
   @override
@@ -490,6 +564,11 @@ class DBusArray extends DBusValue {
   @override
   DBusSignature get signature {
     return DBusSignature('a' + childSignature.value);
+  }
+
+  @override
+  dynamic toNative() {
+    return children.map((value) => value.toNative());
   }
 
   @override
@@ -544,6 +623,12 @@ class DBusDict extends DBusValue {
   @override
   DBusSignature get signature {
     return DBusSignature('a{${keySignature.value}${valueSignature.value}}');
+  }
+
+  @override
+  dynamic toNative() {
+    return children
+        .map((key, value) => MapEntry(key.toNative(), value.toNative()));
   }
 
   @override
