@@ -59,12 +59,14 @@ class DBusClient {
   Socket _socket;
   DBusReadBuffer _readBuffer;
   final _authenticateCompleter = Completer();
+  Completer _connectCompleter;
   var _lastSerial = 0;
   final _methodCalls = <_MethodCall>[];
   final _signalSubscriptions = <DBusSignalSubscription>[];
   final _objectTree = DBusObjectTree();
   final _matchRules = <String, int>{};
   final _ownedNames = <String, String>{};
+  String _uniqueName;
 
   /// Creates a new DBus client to connect on [address].
   DBusClient(String address) {
@@ -96,6 +98,10 @@ class DBusClient {
   void close() async {
     await _socket.close();
   }
+
+  /// Gets the unique name this connection uses.
+  /// Only set once [connect] is completed.
+  String get uniqueName => _uniqueName;
 
   /// Requests usage of [name] as a D-Bus object name.
   // FIXME(robert-ancell): Use an enum for flags.
@@ -243,13 +249,7 @@ class DBusClient {
       String interface,
       String member,
       Iterable<DBusValue> values}) async {
-    values ??= <DBusValue>[];
-    _sendMethodCall(destination, path, interface, member, values);
-
-    var call = _MethodCall(_lastSerial);
-    _methodCalls.add(call);
-
-    return call.completer.future;
+    return await _callMethod(destination, path, interface, member, values);
   }
 
   /// Subscribe to signals on the D-Bus and call [callback] when one is received.
@@ -327,28 +327,8 @@ class DBusClient {
     _objectTree.add(object.path, object);
   }
 
-  /// Performs authentication with D-Bus server.
-  Future<dynamic> _authenticate() async {
-    // Send an empty byte, as this is required if sending the credentials as a socket control message.
-    // We rely on the server using SO_PEERCRED to check out credentials.
-    _socket.add([0]);
-
-    var uid = getuid();
-    var uidString = '';
-    for (var c in uid.toString().runes) {
-      uidString += c.toRadixString(16).padLeft(2, '0');
-    }
-    _socket.write('AUTH EXTERNAL ${uidString}\r\n');
-
-    return _authenticateCompleter.future;
-  }
-
-  /// Connects to the D-Bus server.
-  void _connect() async {
-    if (_authenticateCompleter.isCompleted) {
-      return;
-    }
-
+  /// Open a socket connection to the D-Bus server.
+  Future<dynamic> _openSocket() async {
     var address = DBusAddress(_address);
     if (address.transport != 'unix') {
       throw 'D-Bus address transport not supported: ${_address}';
@@ -369,14 +349,53 @@ class DBusClient {
     _socket = await Socket.connect(socket_address, 0);
     _readBuffer = DBusReadBuffer();
     _socket.listen(_processData);
+  }
 
+  /// Performs authentication with D-Bus server.
+  Future<dynamic> _authenticate() async {
+    // Send an empty byte, as this is required if sending the credentials as a socket control message.
+    // We rely on the server using SO_PEERCRED to check out credentials.
+    _socket.add([0]);
+
+    var uid = getuid();
+    var uidString = '';
+    for (var c in uid.toString().runes) {
+      uidString += c.toRadixString(16).padLeft(2, '0');
+    }
+    _socket.write('AUTH EXTERNAL ${uidString}\r\n');
+
+    return _authenticateCompleter.future;
+  }
+
+  /// Connects to the D-Bus server.
+  void _connect() async {
+    // If already connecting, wait for that to complete.
+    if (_connectCompleter != null) {
+      return _connectCompleter.future;
+    }
+    _connectCompleter = Completer();
+
+    await _openSocket();
     await _authenticate();
 
-    await callMethod(
-        destination: 'org.freedesktop.DBus',
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: 'org.freedesktop.DBus',
-        member: 'Hello');
+    // The first message to the bus must be this call, note requireConnect is
+    // false as the _connect call hasn't yet completed and would otherwise have
+    // been called again.
+    var result = await _callMethod(
+        'org.freedesktop.DBus',
+        DBusObjectPath('/org/freedesktop/DBus'),
+        'org.freedesktop.DBus',
+        'Hello',
+        [],
+        requireConnect: false);
+    var values = result.returnValues;
+    if (values.length != 1 || values[0].signature != DBusSignature('s')) {
+      throw 'Hello returned invalid result: ${values}';
+    }
+    _uniqueName = (values[0] as DBusString).value;
+
+    // Notify anyone else awaiting connection.
+    _connectCompleter.complete();
 
     // Listen for name ownership changes - we need these to match incoming signals.
     await subscribeSignals(_handleNameOwnerChanged,
@@ -608,9 +627,28 @@ class DBusClient {
     }
   }
 
+  /// Invokes a method on a D-Bus object.
+  Future<DBusMethodResponse> _callMethod(
+      String destination,
+      DBusObjectPath path,
+      String interface,
+      String member,
+      Iterable<DBusValue> values,
+      {bool requireConnect = true}) async {
+    values ??= <DBusValue>[];
+    _sendMethodCall(destination, path, interface, member, values,
+        requireConnect: requireConnect);
+
+    var call = _MethodCall(_lastSerial);
+    _methodCalls.add(call);
+
+    return call.completer.future;
+  }
+
   /// Sends a method call to the D-Bus server.
   void _sendMethodCall(String destination, DBusObjectPath path,
-      String interface, String member, Iterable<DBusValue> values) async {
+      String interface, String member, Iterable<DBusValue> values,
+      {bool requireConnect = true}) async {
     _lastSerial++;
     var message = DBusMessage(
         type: MessageType.MethodCall,
@@ -620,7 +658,7 @@ class DBusClient {
         interface: interface,
         member: member,
         values: values);
-    await _sendMessage(message);
+    await _sendMessage(message, requireConnect: requireConnect);
   }
 
   /// Sends a method return to the D-Bus server.
@@ -666,8 +704,10 @@ class DBusClient {
   }
 
   /// Sends a message (method call/return/error/signal) to the D-Bus server.
-  void _sendMessage(DBusMessage message) async {
-    await _connect();
+  void _sendMessage(DBusMessage message, {bool requireConnect = true}) async {
+    if (requireConnect) {
+      await _connect();
+    }
     var buffer = DBusWriteBuffer();
     buffer.writeMessage(message);
     _socket.add(buffer.data);
