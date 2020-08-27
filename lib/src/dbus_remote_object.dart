@@ -3,6 +3,12 @@ import 'dbus_introspect.dart';
 import 'dbus_method_response.dart';
 import 'dbus_value.dart';
 
+/// Callback for when objects change properties.
+typedef PropertiesChangedCallback = void Function(
+    String interfaceName,
+    Map<String, DBusValue> changedProperties,
+    List<String> invalidatedProperties);
+
 /// An object to simplify access to a D-Bus object.
 class DBusRemoteObject {
   final DBusClient client;
@@ -70,6 +76,29 @@ class DBusRemoteObject {
     if (values.isNotEmpty) {
       throw 'org.freedesktop.DBus.Properties.set returned invalid result: ${values}';
     }
+  }
+
+  /// Subscribe to property change signals.
+  Future<DBusSignalSubscription> subscribePropertiesChanged(
+      PropertiesChangedCallback callback) async {
+    return await subscribeSignal(
+        'org.freedesktop.DBus.Properties', 'PropertiesChanged', (values) {
+      if (values.length != 3 ||
+          values[0].signature != DBusSignature('s') ||
+          values[1].signature != DBusSignature('a{sv}') ||
+          values[2].signature != DBusSignature('as')) {
+        return;
+      }
+      var interfaceName = (values[0] as DBusString).value;
+      var changedProperties = (values[1] as DBusDict).children.map((name,
+              value) =>
+          MapEntry((name as DBusString).value, (value as DBusVariant).value));
+      var invalidatedProperties = (values[2] as DBusArray)
+          .children
+          .map((value) => (value as DBusString).value)
+          .toList();
+      callback(interfaceName, changedProperties, invalidatedProperties);
+    });
   }
 
   /// Invokes a method on this object.
