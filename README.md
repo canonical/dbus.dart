@@ -46,9 +46,8 @@ import 'package:dbus/dbus.dart';
 
 var client = DBusClient.system();
 var object = DBusRemoteObject(client, 'org.freedesktop.hostname1', DBusObjectPath('/org/freedesktop/hostname1'));
-var result = await object.getProperty('org.freedesktop.hostname1', 'Hostname');
-var hostname = (result as DBusString).value;
-print('hostname: ${hostname}');
+var hostname = await object.getProperty('org.freedesktop.hostname1', 'Hostname');
+print('hostname: ${hostname.toNative()}');
 await client.close();
 ```
 

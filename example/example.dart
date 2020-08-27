@@ -16,7 +16,7 @@ void main() async {
   ];
   var result = await object.callMethod(
       'org.freedesktop.Notifications', 'Notify', values);
-  var id = (result.returnValues[0] as DBusUint32).value;
-  print('notify ${id}');
+  var id = result.returnValues[0];
+  print('notify ${id.toNative()}');
   await client.close();
 }
