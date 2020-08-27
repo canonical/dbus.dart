@@ -2,30 +2,31 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'dbus_buffer.dart';
+import 'dbus_message.dart';
 import 'dbus_value.dart';
 
 /// Decodes DBus messages from binary data.
 class DBusReadBuffer extends DBusBuffer {
   /// Data in the buffer.
-  var data = <int>[];
+  final _data = <int>[];
 
   /// Read position.
   int readOffset = 0;
 
   /// Number of bytes remaining in the buffer.
   int get remaining {
-    return data.length - readOffset;
+    return _data.length - readOffset;
   }
 
   /// Add bytes to the buffer.
   void writeBytes(Iterable<int> value) {
-    data.addAll(value);
+    _data.addAll(value);
   }
 
   /// Read a single byte from the buffer.
   int readByte() {
     readOffset++;
-    return data[readOffset - 1];
+    return _data[readOffset - 1];
   }
 
   /// Reads [length] bytes from the buffer.
@@ -40,8 +41,8 @@ class DBusReadBuffer extends DBusBuffer {
   /// Reads a single line of UTF-8 text (terminated with CR LF) from the buffer.
   /// Retutns null if no line available.
   String readLine() {
-    for (var i = readOffset; i < data.length - 1; i++) {
-      if (data[i] == 13 /* '\r' */ && data[i + 1] == 10 /* '\n' */) {
+    for (var i = readOffset; i < _data.length - 1; i++) {
+      if (_data[i] == 13 /* '\r' */ && _data[i + 1] == 10 /* '\n' */) {
         var bytes = List<int>(i - readOffset);
         for (var j = readOffset; j < i; j++) {
           bytes[j] = readByte();
@@ -51,6 +52,87 @@ class DBusReadBuffer extends DBusBuffer {
       }
     }
     return null;
+  }
+
+  /// Reads a D-Bus message from the buffer or returns null if not enough data.
+  DBusMessage readMessage() {
+    if (remaining < 12) {
+      return null;
+    }
+
+    readDBusByte(); // Endianess.
+    var type = readDBusByte().value;
+    var flags = readDBusByte().value;
+    readDBusByte(); // Protocol version.
+    var dataLength = readDBusUint32();
+    var serial = readDBusUint32().value;
+    var headers = readDBusArray(DBusSignature('(yv)'));
+    if (headers == null) {
+      return null;
+    }
+
+    DBusSignature signature;
+    DBusObjectPath path;
+    String interface;
+    String member;
+    String errorName;
+    int replySerial;
+    String destination;
+    String sender;
+    for (var child in headers.children) {
+      var header = child as DBusStruct;
+      var code = (header.children.elementAt(0) as DBusByte).value;
+      var value = (header.children.elementAt(1) as DBusVariant).value;
+      if (code == HeaderCode.Path) {
+        path = value as DBusObjectPath;
+      } else if (code == HeaderCode.Interface) {
+        interface = (value as DBusString).value;
+      } else if (code == HeaderCode.Member) {
+        member = (value as DBusString).value;
+      } else if (code == HeaderCode.ErrorName) {
+        errorName = (value as DBusString).value;
+      } else if (code == HeaderCode.ReplySerial) {
+        replySerial = (value as DBusUint32).value;
+      } else if (code == HeaderCode.Destination) {
+        destination = (value as DBusString).value;
+      } else if (code == HeaderCode.Sender) {
+        sender = (value as DBusString).value;
+      } else if (code == HeaderCode.Signature) {
+        signature = value as DBusSignature;
+      }
+    }
+    if (!align(8)) {
+      return null;
+    }
+
+    if (remaining < dataLength.value) {
+      return null;
+    }
+
+    var values = <DBusValue>[];
+    if (signature != null) {
+      var signatures = signature.split();
+      for (var s in signatures) {
+        var value = readDBusValue(s);
+        if (value == null) {
+          return null;
+        }
+        values.add(value);
+      }
+    }
+
+    return DBusMessage(
+        type: type,
+        flags: flags,
+        serial: serial,
+        path: path,
+        interface: interface,
+        member: member,
+        errorName: errorName,
+        replySerial: replySerial,
+        destination: destination,
+        sender: sender,
+        values: values);
   }
 
   /// Reads a 16 bit signed integer from the buffer.
@@ -346,14 +428,14 @@ class DBusReadBuffer extends DBusBuffer {
 
   /// Removes all buffered data.
   void flush() {
-    data.removeRange(0, readOffset);
+    _data.removeRange(0, readOffset);
     readOffset = 0;
   }
 
   @override
   String toString() {
     var s = '';
-    for (var d in data) {
+    for (var d in _data) {
       if (d >= 33 && d <= 126) {
         s += String.fromCharCode(d);
       } else {

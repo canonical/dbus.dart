@@ -488,7 +488,7 @@ class DBusClient {
   /// Processes messages (method calls/returns/errors/signals) received from the D-Bus server.
   bool _processMessages() {
     var start = _readBuffer.readOffset;
-    var message = DBusMessage.fromBuffer(_readBuffer);
+    var message = _readBuffer.readMessage();
     if (message == null) {
       _readBuffer.readOffset = start;
       return true;
@@ -646,7 +646,7 @@ class DBusClient {
   void _sendMessage(DBusMessage message) async {
     await _connect();
     var buffer = DBusWriteBuffer();
-    message.toBuffer(buffer);
+    buffer.writeMessage(message);
     _socket.add(buffer.data);
   }
 }
