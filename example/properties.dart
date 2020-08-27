@@ -4,6 +4,7 @@ void main() async {
   var client = DBusClient.system();
   var object = DBusRemoteObject(client, 'org.freedesktop.NetworkManager',
       DBusObjectPath('/org/freedesktop/NetworkManager'));
+
   var properties =
       await object.getAllProperties('org.freedesktop.NetworkManager');
   properties.forEach((name, value) {
@@ -21,5 +22,10 @@ void main() async {
     print('${address.toNative()}');
   }
 
-  await client.close();
+  await object.subscribePropertiesChanged(
+      (interface, changedProperties, invalidatedProperties) {
+    properties.forEach((name, value) {
+      print('${name}: ${value.toNative()}');
+    });
+  });
 }
