@@ -17,7 +17,7 @@ to generate a Dart object. Start with an D-Bus interface definition:
 
 Use *dart-dbus* to generate a Dart source file:
 
-```
+```shell
 $ dart-dbus generate-remote-object hostname1.xml -o hostname1.dart
 ```
 
