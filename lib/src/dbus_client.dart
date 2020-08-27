@@ -42,12 +42,15 @@ class DBusSignalSubscription {
   /// Path subscribed to.
   final DBusObjectPath path;
 
-  /// Function called when signala are received.
+  /// Root path subscribed to.
+  final DBusObjectPath pathNamespace;
+
+  /// Function called when signals are received.
   SignalCallback callback;
 
   /// Creates
-  DBusSignalSubscription(
-      this.sender, this.interface, this.member, this.path, this.callback);
+  DBusSignalSubscription(this.sender, this.interface, this.member, this.path,
+      this.pathNamespace, this.callback);
 }
 
 /// A client connection to a D-Bus server.
@@ -254,17 +257,25 @@ class DBusClient {
   /// Setting [sender], [interface], [member] or [path] will filter signals that match the given values.
   ///
   /// When the subscription is no longer needed call [unsubscribeSignals].
-  Future<DBusSignalSubscription> subscribeSignals(SignalCallback callback,
-      {String sender,
-      String interface,
-      String member,
-      DBusObjectPath path}) async {
-    var subscription =
-        DBusSignalSubscription(sender, interface, member, path, callback);
+  Future<DBusSignalSubscription> subscribeSignals(
+    SignalCallback callback, {
+    String sender,
+    String interface,
+    String member,
+    DBusObjectPath path,
+    DBusObjectPath pathNamespace,
+  }) async {
+    var subscription = DBusSignalSubscription(
+        sender, interface, member, path, pathNamespace, callback);
 
     // Update match rules on the D-Bus server.
-    await _addMatch(_makeMatchRule('signal', subscription.sender,
-        subscription.interface, subscription.member, subscription.path));
+    await _addMatch(_makeMatchRule(
+        'signal',
+        subscription.sender,
+        subscription.interface,
+        subscription.member,
+        subscription.path,
+        subscription.pathNamespace));
 
     // Get the unique name of the sender (as this is the name the messages will use).
     if (sender != null && !_ownedNames.containsValue(sender)) {
@@ -286,8 +297,13 @@ class DBusClient {
     }
 
     /// Unsubscribe on the server
-    await _removeMatch(_makeMatchRule('signal', subscription.sender,
-        subscription.interface, subscription.member, subscription.path));
+    await _removeMatch(_makeMatchRule(
+        'signal',
+        subscription.sender,
+        subscription.interface,
+        subscription.member,
+        subscription.path,
+        subscription.pathNamespace));
 
     _signalSubscriptions.remove(subscription);
   }
@@ -390,7 +406,7 @@ class DBusClient {
 
   /// Match a match rule for the given filter.
   String _makeMatchRule(String type, String sender, String interface,
-      String member, DBusObjectPath path) {
+      String member, DBusObjectPath path, DBusObjectPath pathNamespace) {
     var rules = <String>[];
     rules.add("type='${type}'");
     if (sender != null) {
@@ -404,6 +420,9 @@ class DBusClient {
     }
     if (path != null) {
       rules.add("path='${path.value}'");
+    }
+    if (pathNamespace != null) {
+      rules.add("path_namespace='${pathNamespace.value}'");
     }
     return rules.join(',');
   }
@@ -577,6 +596,10 @@ class DBusClient {
         continue;
       }
       if (subscription.path != null && subscription.path != message.path) {
+        continue;
+      }
+      if (subscription.pathNamespace != null &&
+          message.path.isInNamespace(subscription.pathNamespace)) {
         continue;
       }
 

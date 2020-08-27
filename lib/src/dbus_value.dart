@@ -345,6 +345,11 @@ class DBusObjectPath extends DBusString {
     }
   }
 
+  /// Returns true if this object path is under [namespace]. e.g. '/org/freedesktop/DBus' is under '/org/freedesktop'.
+  bool isInNamespace(DBusObjectPath namespace) {
+    return value.startsWith(namespace.value + '/');
+  }
+
   @override
   DBusSignature get signature {
     return DBusSignature('o');
