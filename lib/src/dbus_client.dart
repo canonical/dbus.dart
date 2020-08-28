@@ -96,7 +96,9 @@ class DBusClient {
 
   /// Terminates all active connections. If a client remains unclosed, the Dart process may not terminate.
   void close() async {
-    await _socket.close();
+    if (_socket != null) {
+      await _socket.close();
+    }
   }
 
   /// Gets the unique name this connection uses.
