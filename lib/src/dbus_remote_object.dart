@@ -220,7 +220,9 @@ class DBusRemoteObject {
               path, interfaceName, changedProperties, invalidatedProperties);
         }
       } else {
-        signalCallback(path, interface, member, values);
+        if (signalCallback != null) {
+          signalCallback(path, interface, member, values);
+        }
       }
     }, sender: destination, pathNamespace: path);
   }
