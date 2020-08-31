@@ -620,7 +620,7 @@ class DBusClient {
         continue;
       }
       if (subscription.pathNamespace != null &&
-          message.path.isInNamespace(subscription.pathNamespace)) {
+          !message.path.isInNamespace(subscription.pathNamespace)) {
         continue;
       }
 
