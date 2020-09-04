@@ -612,7 +612,7 @@ String generateRemoteSignalSubscription(
   var index = 0;
   var valueChecks = <String>[];
   if (signal.args.isEmpty) {
-    valueChecks.add('values.length.isEmpty');
+    valueChecks.add('values.isEmpty');
   } else {
     valueChecks.add('values.length == ${signal.args.length}');
   }
