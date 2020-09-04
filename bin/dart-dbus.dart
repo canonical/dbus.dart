@@ -94,12 +94,13 @@ void generateModule(String Function(DBusIntrospectNode) generateClassFunction,
 /// Generates a DBusObject class for the given introspection node.
 String generateObjectClass(DBusIntrospectNode node) {
   // Need a name to generate a class
-  if (node.name == null) {
+  if (node.name == null || node.interfaces.isEmpty) {
     return null;
   }
 
   // FIXME(robert-ancell) add --org-name to strip off prefixes?
-  var className = pathToClassName(node.name);
+  var className =
+      pathToClassName(node.name) ?? pathToClassName(node.interfaces.first.name);
 
   var methods = <String>[];
 
@@ -473,12 +474,13 @@ String generateGetAllProperties(DBusIntrospectNode node) {
 /// Generates a DBusRemoteObject class for the given introspection node.
 String generateRemoteObjectClass(DBusIntrospectNode node) {
   // Need a name to generate a class
-  if (node.name == null) {
+  if (node.name == null || node.interfaces.isEmpty) {
     return null;
   }
 
   // FIXME(robert-ancell) add --org-name to strip off prefixes?
-  var className = pathToClassName(node.name);
+  var className =
+      pathToClassName(node.name) ?? pathToClassName(node.interfaces.first.name);
 
   var methods = <String>[];
 
@@ -644,7 +646,7 @@ String generateRemoteSignalSubscription(
 /// Converts a D-Bus path to a Dart class name. e.g. 'org.freedesktop.Notifications' -> 'OrgFreedesktopNotifications'.
 String pathToClassName(String path) {
   var className = '';
-  for (var element in path.split('/')) {
+  for (var element in path.split(RegExp('[/\.]'))) {
     if (element == '') {
       continue;
     }
@@ -652,7 +654,7 @@ String pathToClassName(String path) {
     var camelName = element[0].toUpperCase() + element.substring(1);
     className += camelName;
   }
-  return className;
+  return className.isNotEmpty ? className : null;
 }
 
 /// Branch in a switch (if/else) statement.
