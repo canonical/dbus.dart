@@ -27,10 +27,12 @@ void main(List<String> args) async {
   if (mode == 'client') {
     var object = DBusRemoteObject(client, 'com.canonical.DBusDart',
         DBusObjectPath('/com/canonical/DBusDart'));
-    await object.subscribeSignal('com.canonical.DBusDart', 'Ping', (values) {
-      var count = (values[0] as DBusUint64).value;
+    var signals =
+        await object.subscribeSignal('com.canonical.DBusDart', 'Ping');
+    await for (var signal in signals) {
+      var count = (signal.values[0] as DBusUint64).value;
       print('Ping ${count}!');
-    });
+    }
   } else if (mode == 'server') {
     await client.requestName('com.canonical.DBusDart');
     var object = TestObject();

@@ -3,24 +3,56 @@ import 'dbus_introspect.dart';
 import 'dbus_method_response.dart';
 import 'dbus_value.dart';
 
-/// Callback for when objects change properties.
-typedef PropertiesChangedCallback = void Function(
-    String interfaceName,
-    Map<String, DBusValue> changedProperties,
-    List<String> invalidatedProperties);
+/// Signal received when properties are changed.
+class DBusPropertiesChangedSignal extends DBusSignal {
+  /// The interface the properties are on.
+  String get propertiesInterface => (values[0] as DBusString).value;
 
-typedef ObjectManagerInterfacesAddedCallback = void Function(
-    DBusObjectPath objectPath,
-    Map<String, Map<String, DBusValue>> interfacesAndProperties);
+  /// Properties that have changed and their new values.
+  Map<String, DBusValue> get changedProperties =>
+      (values[1] as DBusDict).children.map((name, value) =>
+          MapEntry((name as DBusString).value, (value as DBusVariant).value));
 
-typedef ObjectManagerInterfacesRemovedCallback = void Function(
-    DBusObjectPath objectPath, List<String> interfaces);
+  /// Properties that have changed but require their values to be requested.
+  List<String> get invalidatedProperties => (values[2] as DBusArray)
+      .children
+      .map((value) => (value as DBusString).value)
+      .toList();
 
-typedef ObjectManagerPropertiesChangedCallback = void Function(
-    DBusObjectPath objectPath,
-    String interfaceName,
-    Map<String, DBusValue> changedProperties,
-    List<String> invalidatedProperties);
+  DBusPropertiesChangedSignal(DBusSignal signal)
+      : super(signal.sender, signal.path, signal.interface, signal.member,
+            signal.values);
+}
+
+/// Signal received when interfaces are added.
+class DBusObjectManagerInterfacesAddedSignal extends DBusSignal {
+  /// Path of the object that has interfaces added to.
+  DBusObjectPath get changedPath => values[0] as DBusObjectPath;
+
+  /// The properties and interfaces that were added.
+  Map<String, Map<String, DBusValue>> get interfacesAndProperties =>
+      _decodeInterfacesAndProperties(values[1]);
+
+  DBusObjectManagerInterfacesAddedSignal(DBusSignal signal)
+      : super(signal.sender, signal.path, signal.interface, signal.member,
+            signal.values);
+}
+
+/// Signal received when interfaces are removed.
+class DBusObjectManagerInterfacesRemovedSignal extends DBusSignal {
+  /// Path of the object that has interfaces removed from.
+  DBusObjectPath get changedPath => values[0] as DBusObjectPath;
+
+  /// The interfaces that were removed.
+  List<String> get interfaces => (values[1] as DBusArray)
+      .children
+      .map((value) => (value as DBusString).value)
+      .toList();
+
+  DBusObjectManagerInterfacesRemovedSignal(DBusSignal signal)
+      : super(signal.sender, signal.path, signal.interface, signal.member,
+            signal.values);
+}
 
 /// An object to simplify access to a D-Bus object.
 class DBusRemoteObject {
@@ -91,27 +123,20 @@ class DBusRemoteObject {
     }
   }
 
-  /// Subscribe to property change signals.
-  Future<DBusSignalSubscription> subscribePropertiesChanged(
-      PropertiesChangedCallback callback) async {
-    return await subscribeSignal(
-        'org.freedesktop.DBus.Properties', 'PropertiesChanged', (values) {
-      if (values.length != 3 ||
-          values[0].signature != DBusSignature('s') ||
-          values[1].signature != DBusSignature('a{sv}') ||
-          values[2].signature != DBusSignature('as')) {
-        return;
+  /// Subscribes to property changes.
+  Stream<DBusPropertiesChangedSignal> subscribePropertiesChanged() async* {
+    var signals =
+        subscribeSignal('org.freedesktop.DBus.Properties', 'PropertiesChanged');
+    await for (var signal in signals) {
+      if (signal.values.length != 3 ||
+          signal.values[0].signature != DBusSignature('s') ||
+          signal.values[1].signature != DBusSignature('a{sv}') ||
+          signal.values[2].signature != DBusSignature('as')) {
+        continue;
       }
-      var interfaceName = (values[0] as DBusString).value;
-      var changedProperties = (values[1] as DBusDict).children.map((name,
-              value) =>
-          MapEntry((name as DBusString).value, (value as DBusVariant).value));
-      var invalidatedProperties = (values[2] as DBusArray)
-          .children
-          .map((value) => (value as DBusString).value)
-          .toList();
-      callback(interfaceName, changedProperties, invalidatedProperties);
-    });
+
+      yield DBusPropertiesChangedSignal(signal);
+    }
   }
 
   /// Invokes a method on this object.
@@ -125,15 +150,10 @@ class DBusRemoteObject {
         values: values);
   }
 
-  /// Subscribes to the signal [interface].[member] from this object and calls [callback] when received.
-  Future<DBusSignalSubscription> subscribeSignal(String interface,
-      String member, void Function(List<DBusValue> values) callback) async {
-    return await client.subscribeSignals(
-        (path, interface, member, values) => callback(values),
-        sender: destination,
-        path: path,
-        interface: interface,
-        member: member);
+  /// Subscribes to signals [interface].[member] from this object.
+  Stream<DBusSignal> subscribeSignal(String interface, String member) {
+    return client.subscribeSignals(
+        sender: destination, path: path, interface: interface, member: member);
   }
 
   /// Gets all the sub-tree of objects, interfaces and properties of this object.
@@ -160,83 +180,54 @@ class DBusRemoteObject {
     return decodeObjects(values[0]);
   }
 
-  /// Subscribes to when the sub-tree of objects has objects or interfaces added or removed.
-  /// [interfacesAddedCallback] is called when objects are added or have interfaces added.
-  /// [interfacesRemovedCallback] is called when objects are removed or have interfaces removed.
-  /// [propertiesChangedCallback] is called when object properties change.
-  /// [signalCallback] is called for all other signals received on these objects.
+  /// Subscribes to signals using object manager.
+  /// The stream will contain [DBusPropertiesChangedSignal], [DBusObjectManagerInterfacesAddedSignal], [DBusObjectManagerInterfacesRemovedSignal] and [DBusSignal] for all other signals on these objects.
   /// Requires the remote object to implement the org.freedesktop.DBus.ObjectManager interface.
-  Future<DBusSignalSubscription> subscribeObjectManagerSignals(
-      {ObjectManagerInterfacesAddedCallback interfacesAddedCallback,
-      ObjectManagerInterfacesRemovedCallback interfacesRemovedCallback,
-      ObjectManagerPropertiesChangedCallback propertiesChangedCallback,
-      SignalCallback signalCallback}) async {
-    return await client.subscribeSignals((path, interface, member, values) {
-      if (interface == 'org.freedesktop.DBus.ObjectManager' &&
-          member == 'InterfacesAdded') {
-        if (values.length != 2 ||
-            values[0].signature != DBusSignature('o') ||
-            values[1].signature != DBusSignature('a{sa{sv}}')) {
-          return;
+  Stream<DBusSignal> subscribeObjectManagerSignals() async* {
+    var signals =
+        client.subscribeSignals(sender: destination, pathNamespace: path);
+    await for (var signal in signals) {
+      if (signal.interface == 'org.freedesktop.DBus.ObjectManager' &&
+          signal.member == 'InterfacesAdded') {
+        if (signal.values.length != 2 ||
+            signal.values[0].signature != DBusSignature('o') ||
+            signal.values[1].signature != DBusSignature('a{sa{sv}}')) {
+          continue;
         }
-        var objectPath = values[0] as DBusObjectPath;
-        var interfacesAndProperties = _decodeInterfacesAndProperties(values[1]);
-        if (interfacesAddedCallback != null) {
-          interfacesAddedCallback(objectPath, interfacesAndProperties);
+        yield DBusObjectManagerInterfacesAddedSignal(signal);
+      } else if (signal.interface == 'org.freedesktop.DBus.ObjectManager' &&
+          signal.member == 'InterfacesRemoved') {
+        if (signal.values.length != 2 ||
+            signal.values[0].signature != DBusSignature('o') ||
+            signal.values[1].signature != DBusSignature('as')) {
+          continue;
         }
-      } else if (interface == 'org.freedesktop.DBus.ObjectManager' &&
-          member == 'InterfacesRemoved') {
-        if (values.length != 2 ||
-            values[0].signature != DBusSignature('o') ||
-            values[1].signature != DBusSignature('as')) {
-          return;
+        yield DBusObjectManagerInterfacesRemovedSignal(signal);
+      } else if (signal.interface == 'org.freedesktop.DBus.Properties' &&
+          signal.member == 'PropertiesChanged') {
+        if (signal.values.length != 3 ||
+            signal.values[0].signature != DBusSignature('s') ||
+            signal.values[1].signature != DBusSignature('a{sv}') ||
+            signal.values[2].signature != DBusSignature('as')) {
+          continue;
         }
-        var objectPath = values[0] as DBusObjectPath;
-        var interfaces = (values[1] as DBusArray)
-            .children
-            .map((value) => (value as DBusString).value)
-            .toList();
-        if (interfacesRemovedCallback != null) {
-          interfacesRemovedCallback(objectPath, interfaces);
-        }
-      } else if (interface == 'org.freedesktop.DBus.Properties' &&
-          member == 'PropertiesChanged') {
-        if (values.length != 3 ||
-            values[0].signature != DBusSignature('s') ||
-            values[1].signature != DBusSignature('a{sv}') ||
-            values[2].signature != DBusSignature('as')) {
-          return;
-        }
-        var interfaceName = (values[0] as DBusString).value;
-        var changedProperties = (values[1] as DBusDict).children.map((name,
-                value) =>
-            MapEntry((name as DBusString).value, (value as DBusVariant).value));
-        var invalidatedProperties = (values[2] as DBusArray)
-            .children
-            .map((value) => (value as DBusString).value)
-            .toList();
-        if (propertiesChangedCallback != null) {
-          propertiesChangedCallback(
-              path, interfaceName, changedProperties, invalidatedProperties);
-        }
+        yield DBusPropertiesChangedSignal(signal);
       } else {
-        if (signalCallback != null) {
-          signalCallback(path, interface, member, values);
-        }
+        yield signal;
       }
-    }, sender: destination, pathNamespace: path);
+    }
   }
+}
 
-  /// Decodes a value with signature 'a{sv}'.
-  Map<String, DBusValue> _decodeProperties(DBusValue object) {
-    return (object as DBusDict).children.map((key, value) =>
-        MapEntry((key as DBusString).value, (value as DBusVariant).value));
-  }
+/// Decodes a value with signature 'a{sa{sv}}'.
+Map<String, Map<String, DBusValue>> _decodeInterfacesAndProperties(
+    DBusValue object) {
+  return (object as DBusDict).children.map((key, value) =>
+      MapEntry((key as DBusString).value, _decodeProperties(value)));
+}
 
-  /// Decodes a value with signature 'a{sa{sv}}'.
-  Map<String, Map<String, DBusValue>> _decodeInterfacesAndProperties(
-      DBusValue object) {
-    return (object as DBusDict).children.map((key, value) =>
-        MapEntry((key as DBusString).value, _decodeProperties(value)));
-  }
+/// Decodes a value with signature 'a{sv}'.
+Map<String, DBusValue> _decodeProperties(DBusValue object) {
+  return (object as DBusDict).children.map((key, value) =>
+      MapEntry((key as DBusString).value, (value as DBusVariant).value));
 }
