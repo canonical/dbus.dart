@@ -5,37 +5,26 @@ void main() async {
   var object = DBusRemoteObject(client, 'org.freedesktop.NetworkManager',
       DBusObjectPath('/org/freedesktop'));
 
-  await object.subscribeObjectManagerSignals(
-      interfacesAddedCallback: interfacesAdded,
-      interfacesRemovedCallback: interfacesRemoved,
-      propertiesChangedCallback: propertiesChanged);
+  object.subscribeObjectManagerSignals().listen((signal) {
+    if (signal is DBusObjectManagerInterfacesAddedSignal) {
+      print('${signal.changedPath.value}');
+      printInterfacesAndProperties(signal.interfacesAndProperties);
+    } else if (signal is DBusObjectManagerInterfacesRemovedSignal) {
+      for (var interface in signal.interfaces) {
+        print('${signal.changedPath.value} removed interfaces ${interface}');
+      }
+    } else if (signal is DBusPropertiesChangedSignal) {
+      print('${signal.path.value}');
+      printInterfacesAndProperties(
+          {signal.propertiesInterface: signal.changedProperties});
+    }
+  });
 
   var objects = await object.getManagedObjects();
   objects.forEach((objectPath, interfacesAndProperties) {
     print('${objectPath.value}');
     printInterfacesAndProperties(interfacesAndProperties);
   });
-}
-
-void interfacesAdded(DBusObjectPath objectPath,
-    Map<String, Map<String, DBusValue>> interfacesAndProperties) {
-  print('${objectPath.value}');
-  printInterfacesAndProperties(interfacesAndProperties);
-}
-
-void interfacesRemoved(DBusObjectPath objectPath, List<String> interfaces) {
-  for (var interface in interfaces) {
-    print('${objectPath.value} removed interfaces ${interface}');
-  }
-}
-
-void propertiesChanged(
-    DBusObjectPath objectPath,
-    String interfaceName,
-    Map<String, DBusValue> changedProperties,
-    List<String> invalidatedProperties) {
-  print('${objectPath.value}');
-  printInterfacesAndProperties({interfaceName: changedProperties});
 }
 
 void printInterfacesAndProperties(

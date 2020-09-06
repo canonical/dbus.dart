@@ -483,6 +483,7 @@ String generateRemoteObjectClass(DBusIntrospectNode node) {
     return null;
   }
 
+  var classes = <String>[];
   var methods = <String>[];
 
   for (var interface in node.interfaces) {
@@ -495,7 +496,9 @@ String generateRemoteObjectClass(DBusIntrospectNode node) {
     }
 
     for (var signal in interface.signals) {
-      methods.add(generateRemoteSignalSubscription(interface, signal));
+      classes.add(generateRemoteSignalClass(className, interface, signal));
+      methods
+          .add(generateRemoteSignalSubscription(className, interface, signal));
     }
   }
 
@@ -506,8 +509,9 @@ String generateRemoteObjectClass(DBusIntrospectNode node) {
   source += '\n';
   source += methods.join('\n');
   source += '}\n';
+  classes.add(source);
 
-  return source;
+  return classes.join('\n');
 }
 
 /// Generate methods for the remote [property].
@@ -607,40 +611,63 @@ String generateRemoteMethodCall(
   return source;
 }
 
-/// Generates a method to subscribe to a signal.
-String generateRemoteSignalSubscription(
+/// Generates a class to contain a signal response.
+String generateRemoteSignalClass(String classPrefix,
     DBusIntrospectInterface interface, DBusIntrospectSignal signal) {
-  var argValues = <String>[];
-  var argsList = <String>[];
+  var properties = <String>[];
+  var params = <String>[];
   var index = 0;
-  var valueChecks = <String>[];
-  if (signal.args.isEmpty) {
-    valueChecks.add('values.isEmpty');
-  } else {
-    valueChecks.add('values.length == ${signal.args.length}');
-  }
   for (var arg in signal.args) {
     var type = getDartType(arg.type);
     var argName = arg.name ?? 'arg_${index}';
-    argsList.add('${type.nativeType} ${argName}');
     var valueName = 'values[${index}]';
-    valueChecks
-        .add("${valueName}.signature == DBusSignature('${arg.type.value}')");
     var convertedValue = type.dbusToNative(valueName);
-    argValues.add(convertedValue);
+    properties
+        .add('  ${type.nativeType} get ${argName} => ${convertedValue};\n');
+    params.add('this.${argName}');
     index++;
   }
 
   var source = '';
-  source += '  /// Subscribes to ${interface.name}.${signal.name}\n';
+  source += '/// Signal data for ${interface.name}.${signal.name}.\n';
+  source += 'class ${classPrefix}${signal.name} extends DBusSignal{\n';
+  source += properties.join();
+  source += '\n';
   source +=
-      '  Future<DBusSignalSubscription> subscribe${signal.name}(void Function(${argsList.join(', ')}) callback) async {\n';
+      '  ${classPrefix}${signal.name}(DBusSignal signal) : super(signal.sender, signal.path, signal.interface, signal.member, signal.values);\n';
+  source += '}\n';
+
+  return source;
+}
+
+/// Generates a method to subscribe to a signal.
+String generateRemoteSignalSubscription(String classPrefix,
+    DBusIntrospectInterface interface, DBusIntrospectSignal signal) {
+  var index = 0;
+  var valueChecks = <String>[];
+  if (signal.args.isEmpty) {
+    valueChecks.add('signal.values.isEmpty');
+  } else {
+    valueChecks.add('signal.values.length == ${signal.args.length}');
+  }
+  for (var arg in signal.args) {
+    var valueName = 'signal.values[${index}]';
+    valueChecks
+        .add("${valueName}.signature == DBusSignature('${arg.type.value}')");
+    index++;
+  }
+
+  var source = '';
+  source += '  /// Subscribes to ${interface.name}.${signal.name}.\n';
   source +=
-      "    return await subscribeSignal('${interface.name}', '${signal.name}', (values) {\n";
+      '  Stream<${classPrefix}${signal.name}> subscribe${signal.name}() async* {\n';
+  source +=
+      "    var signals = await subscribeSignal('${interface.name}', '${signal.name}');\n";
+  source += '    await for (var signal in signals) {\n';
   source += '      if (${valueChecks.join(' && ')}) {\n';
-  source += '        callback(${argValues.join(', ')});\n';
+  source += '        yield ${classPrefix}${signal.name}(signal);\n';
   source += '      }\n';
-  source += '    });\n';
+  source += '    }\n';
   source += '  }\n';
 
   return source;

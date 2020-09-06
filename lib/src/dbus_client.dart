@@ -18,9 +18,6 @@ import 'getuid.dart';
 // FIXME: Use more efficient data store than List<int>?
 // FIXME: Use ByteData more efficiently - don't copy when reading/writing
 
-typedef SignalCallback = Function(DBusObjectPath path, String interface,
-    String member, List<DBusValue> values);
-
 class _MethodCall {
   int serial;
   var completer = Completer<DBusMethodResponse>();
@@ -28,29 +25,54 @@ class _MethodCall {
   _MethodCall(this.serial);
 }
 
-/// A subscription to D-Bus signals.
-class DBusSignalSubscription {
-  /// Senders sibscribed to.
+/// A signal received from a client.
+class DBusSignal {
+  /// Client that sent the signal.
   final String sender;
 
-  /// Interface subscribed to.
-  final String interface;
-
-  /// Member subscribed to.
-  final String member;
-
-  /// Path subscribed to.
+  /// Path of the object emitting the signal.
   final DBusObjectPath path;
 
-  /// Root path subscribed to.
+  /// Interface emitting the signal.
+  final String interface;
+
+  /// Signal name;
+  final String member;
+
+  /// Values associated with the signal.
+  final List<DBusValue> values;
+
+  const DBusSignal(
+      this.sender, this.path, this.interface, this.member, this.values);
+}
+
+class _DBusSignalSubscription {
+  final DBusClient client;
+  final String sender;
+  final String interface;
+  final String member;
+  final DBusObjectPath path;
   final DBusObjectPath pathNamespace;
+  StreamController controller;
 
-  /// Function called when signals are received.
-  SignalCallback callback;
+  Stream<DBusSignal> get stream => controller.stream;
 
-  /// Creates
-  DBusSignalSubscription(this.sender, this.interface, this.member, this.path,
-      this.pathNamespace, this.callback);
+  _DBusSignalSubscription(this.client, this.sender, this.interface, this.member,
+      this.path, this.pathNamespace) {
+    controller =
+        StreamController<DBusSignal>(onListen: onListen, onCancel: onCancel);
+  }
+
+  void onListen() {
+    client._addMatch(client._makeMatchRule(
+        'signal', sender, interface, member, path, pathNamespace));
+  }
+
+  Future onCancel() async {
+    await client._removeMatch(client._makeMatchRule(
+        'signal', sender, interface, member, path, pathNamespace));
+    client._signalSubscriptions.remove(this);
+  }
 }
 
 /// A client connection to a D-Bus server.
@@ -62,7 +84,7 @@ class DBusClient {
   Completer _connectCompleter;
   var _lastSerial = 0;
   final _methodCalls = <_MethodCall>[];
-  final _signalSubscriptions = <DBusSignalSubscription>[];
+  final _signalSubscriptions = <_DBusSignalSubscription>[];
   final _objectTree = DBusObjectTree();
   final _matchRules = <String, int>{};
   final _ownedNames = <String, String>{};
@@ -254,30 +276,16 @@ class DBusClient {
     return await _callMethod(destination, path, interface, member, values);
   }
 
-  /// Subscribe to signals on the D-Bus and call [callback] when one is received.
-  ///
-  /// Setting [sender], [interface], [member] or [path] will filter signals that match the given values.
-  ///
-  /// When the subscription is no longer needed call [unsubscribeSignals].
-  Future<DBusSignalSubscription> subscribeSignals(
-    SignalCallback callback, {
+  /// Subscribe to signals that match [sender], [interface], [member], [path] and/or [pathNamespace].
+  Stream<DBusSignal> subscribeSignals({
     String sender,
     String interface,
     String member,
     DBusObjectPath path,
     DBusObjectPath pathNamespace,
-  }) async {
-    var subscription = DBusSignalSubscription(
-        sender, interface, member, path, pathNamespace, callback);
-
-    // Update match rules on the D-Bus server.
-    await _addMatch(_makeMatchRule(
-        'signal',
-        subscription.sender,
-        subscription.interface,
-        subscription.member,
-        subscription.path,
-        subscription.pathNamespace));
+  }) async* {
+    var subscription = _DBusSignalSubscription(
+        this, sender, interface, member, path, pathNamespace);
 
     // Get the unique name of the sender (as this is the name the messages will use).
     if (sender != null && !_ownedNames.containsValue(sender)) {
@@ -289,25 +297,9 @@ class DBusClient {
 
     _signalSubscriptions.add(subscription);
 
-    return subscription;
-  }
-
-  /// Unsubscribe a [subscription] previously set using [subscribeSignals].
-  void unsubscribeSignals(DBusSignalSubscription subscription) async {
-    if (!_signalSubscriptions.contains(subscription)) {
-      throw 'Attempted to remove unknown signal subscription';
+    await for (var signal in subscription.stream) {
+      yield signal;
     }
-
-    /// Unsubscribe on the server
-    await _removeMatch(_makeMatchRule(
-        'signal',
-        subscription.sender,
-        subscription.interface,
-        subscription.member,
-        subscription.path,
-        subscription.pathNamespace));
-
-    _signalSubscriptions.remove(subscription);
   }
 
   /// Emits a signal from a D-Bus object.
@@ -400,24 +392,24 @@ class DBusClient {
     _connectCompleter.complete();
 
     // Listen for name ownership changes - we need these to match incoming signals.
-    await subscribeSignals(_handleNameOwnerChanged,
+    var signals = await subscribeSignals(
         sender: 'org.freedesktop.DBus',
         interface: 'org.freedesktop.DBus',
         member: 'NameOwnerChanged');
+    signals.listen(_handleNameOwnerChanged);
   }
 
   /// Handles the org.freedesktop.DBus.NameOwnerChanged signal and updates the table of known names.
-  void _handleNameOwnerChanged(DBusObjectPath path, String interface,
-      String member, List<DBusValue> values) {
-    if (values.length != 3 ||
-        values[0].signature != DBusSignature('s') ||
-        values[1].signature != DBusSignature('s') ||
-        values[2].signature != DBusSignature('s')) {
-      throw 'AddMatch returned invalid result: ${values}';
+  void _handleNameOwnerChanged(DBusSignal signal) {
+    if (signal.values.length != 3 ||
+        signal.values[0].signature != DBusSignature('s') ||
+        signal.values[1].signature != DBusSignature('s') ||
+        signal.values[2].signature != DBusSignature('s')) {
+      throw 'AddMatch returned invalid result: ${signal.values}';
     }
 
-    var name = (values[0] as DBusString).value;
-    var newOwner = (values[2] as DBusString).value;
+    var name = (signal.values[0] as DBusString).value;
+    var newOwner = (signal.values[2] as DBusString).value;
     if (newOwner != '') {
       _ownedNames[name] = newOwner;
     } else {
@@ -624,8 +616,8 @@ class DBusClient {
         continue;
       }
 
-      subscription.callback(
-          message.path, message.interface, message.member, message.values);
+      subscription.controller.add(DBusSignal(message.sender, message.path,
+          message.interface, message.member, message.values));
     }
   }
 
