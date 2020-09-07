@@ -93,14 +93,11 @@ void generateModule(String Function(DBusIntrospectNode) generateClassFunction,
 
 /// Generates a DBusObject class for the given introspection node.
 String generateObjectClass(DBusIntrospectNode node) {
-  // Need a name to generate a class
-  if (node.name == null || node.interfaces.isEmpty) {
+  // FIXME(robert-ancell) add --org-name to strip off prefixes?
+  var className = nodeToClassName(node);
+  if (className == null) {
     return null;
   }
-
-  // FIXME(robert-ancell) add --org-name to strip off prefixes?
-  var className =
-      pathToClassName(node.name) ?? pathToClassName(node.interfaces.first.name);
 
   var methods = <String>[];
 
@@ -473,14 +470,11 @@ String generateGetAllProperties(DBusIntrospectNode node) {
 
 /// Generates a DBusRemoteObject class for the given introspection node.
 String generateRemoteObjectClass(DBusIntrospectNode node) {
-  // Need a name to generate a class
-  if (node.name == null || node.interfaces.isEmpty) {
+  // FIXME(robert-ancell) add --org-name to strip off prefixes?
+  var className = nodeToClassName(node);
+  if (className == null) {
     return null;
   }
-
-  // FIXME(robert-ancell) add --org-name to strip off prefixes?
-  var className =
-      pathToClassName(node.name) ?? pathToClassName(node.interfaces.first.name);
 
   var methods = <String>[];
 
@@ -643,10 +637,23 @@ String generateRemoteSignalSubscription(
   return source;
 }
 
-/// Converts a D-Bus path to a Dart class name. e.g. 'org.freedesktop.Notifications' -> 'OrgFreedesktopNotifications'.
-String pathToClassName(String path) {
+/// Converts a introspection node to a Dart class name using the object path or interface name.
+/// e.g.
+/// If a path is available: '/org/freedesktop/Notifications' -> 'OrgFreedesktopNotifications'.
+/// If no path, use the first interface name: 'org.freedesktop.Notifications' -> 'OrgFreedesktopNotifications'.
+String nodeToClassName(DBusIntrospectNode node) {
+  var name = node.name;
+  var divider = '/';
+  if (name == null || name == '' || node.name == '/') {
+    if (node.interfaces.isEmpty) {
+      return null;
+    }
+    name = node.interfaces.first.name;
+    divider = '.';
+  }
+
   var className = '';
-  for (var element in path.split(RegExp('[/\.]'))) {
+  for (var element in name.split(divider)) {
     if (element == '') {
       continue;
     }
