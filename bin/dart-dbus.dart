@@ -25,7 +25,7 @@ class GenerateObjectCommand extends Command {
           '${name} requires a single D-Bus interface file to be provided.');
     }
     generateModule(
-        generateObjectClass, argResults.rest[0], argResults['output']);
+        name, generateObjectClass, argResults.rest[0], argResults['output']);
   }
 }
 
@@ -51,8 +51,8 @@ class GenerateRemoteObjectCommand extends Command {
       usageException(
           '${name} requires a single D-Bus interface file to be provided.');
     }
-    generateModule(
-        generateRemoteObjectClass, argResults.rest[0], argResults['output']);
+    generateModule(name, generateRemoteObjectClass, argResults.rest[0],
+        argResults['output']);
   }
 }
 
@@ -71,14 +71,21 @@ void main(List<String> args) async {
 }
 
 /// Generates Dart source from the given interface in [filename] and writes it to [outputFilename].
-void generateModule(String Function(DBusIntrospectNode) generateClassFunction,
-    String interfaceFilename, String outputFilename) async {
+void generateModule(
+    String command,
+    String Function(DBusIntrospectNode) generateClassFunction,
+    String interfaceFilename,
+    String outputFilename) async {
   var xml = await File(interfaceFilename).readAsString();
   var nodes = parseDBusIntrospectXml(xml);
 
   var classes = nodes.map((n) => generateClassFunction(n));
 
   var source = '';
+  source +=
+      '// This file was generated using the following command and may be overwritten.\n';
+  source += '// dart-dbus ${command} ${interfaceFilename}\n';
+  source += '\n';
   source += "import 'package:dbus/dbus.dart';\n";
   source += '\n';
   source += classes.join('\n');
