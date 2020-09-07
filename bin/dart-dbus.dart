@@ -522,7 +522,7 @@ List<String> generateRemotePropertyMethods(
     var convertedValue = type.dbusToNative('value');
     var source = '';
     source += '  /// Gets ${interface.name}.${property.name}\n';
-    source += '  Future<${type.nativeType}> get ${property.name} async {\n';
+    source += '  Future<${type.nativeType}> get${property.name}() async {\n';
     source +=
         "    var value = await getProperty('${interface.name}', '${property.name}');\n";
     source += '    return ${convertedValue};\n';
@@ -535,9 +535,10 @@ List<String> generateRemotePropertyMethods(
     var convertedValue = type.nativeToDBus('value');
     var source = '';
     source += '  /// Sets ${interface.name}.${property.name}\n';
-    source += '  set ${property.name} (${type.nativeType} value) {\n';
     source +=
-        "    setProperty('${interface.name}', '${property.name}', ${convertedValue});\n";
+        '  Future set${property.name} (${type.nativeType} value) async {\n';
+    source +=
+        "    await setProperty('${interface.name}', '${property.name}', ${convertedValue});\n";
     source += '  }\n';
     methods.add(source);
   }
@@ -590,7 +591,8 @@ String generateRemoteMethodCall(
 
   var source = '';
   source += '  /// Invokes ${interface.name}.${method.name}()\n';
-  source += '  ${returnType} ${method.name}(${argsList.join(', ')}) async {\n';
+  source +=
+      '  ${returnType} call${method.name}(${argsList.join(', ')}) async {\n';
   if (returnTypes.isEmpty) {
     source += '    ${methodCall}\n';
   } else if (returnTypes.length == 1) {
