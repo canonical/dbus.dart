@@ -11,8 +11,10 @@ class TestObject extends DBusObject {
   @override
   List<DBusIntrospectInterface> introspect() {
     return [
-      DBusIntrospectInterface('com.canonical.DBusDart',
-          signals: [DBusIntrospectSignal('Ping')])
+      DBusIntrospectInterface(
+        'com.canonical.DBusDart',
+        signals: [DBusIntrospectSignal('Ping')],
+      )
     ];
   }
 }
@@ -25,10 +27,12 @@ void main(List<String> args) async {
     mode = args[0];
   }
   if (mode == 'client') {
-    var object = DBusRemoteObject(client, 'com.canonical.DBusDart',
-        DBusObjectPath('/com/canonical/DBusDart'));
-    var signals =
-        await object.subscribeSignal('com.canonical.DBusDart', 'Ping');
+    var object = DBusRemoteObject(
+      client,
+      'com.canonical.DBusDart',
+      DBusObjectPath('/com/canonical/DBusDart'),
+    );
+    var signals = object.subscribeSignal('com.canonical.DBusDart', 'Ping');
     await for (var signal in signals) {
       var count = (signal.values[0] as DBusUint64).value;
       print('Ping ${count}!');
