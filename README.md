@@ -83,3 +83,7 @@ class TestObject extends DBusObject {
 var client = DBusClient.session();
 client.registerObject(TestObject());
 ```
+
+## Contributing to dbus.dart
+
+We welcome contributions! See the [contribution guide](CONTRIBUTING.md) for more details.
