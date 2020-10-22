@@ -85,6 +85,7 @@ class DBusClient {
   var _lastSerial = 0;
   final _methodCalls = <_MethodCall>[];
   final _signalSubscriptions = <_DBusSignalSubscription>[];
+  StreamSubscription<DBusSignal> _nameOwnerSubscription;
   final _objectTree = DBusObjectTree();
   final _matchRules = <String, int>{};
   final _ownedNames = <String, String>{};
@@ -118,6 +119,9 @@ class DBusClient {
 
   /// Terminates all active connections. If a client remains unclosed, the Dart process may not terminate.
   void close() async {
+    if (_nameOwnerSubscription != null) {
+      await _nameOwnerSubscription.cancel();
+    }
     if (_socket != null) {
       await _socket.close();
     }
@@ -396,7 +400,7 @@ class DBusClient {
         sender: 'org.freedesktop.DBus',
         interface: 'org.freedesktop.DBus',
         member: 'NameOwnerChanged');
-    signals.listen(_handleNameOwnerChanged);
+    _nameOwnerSubscription = signals.listen(_handleNameOwnerChanged);
   }
 
   /// Handles the org.freedesktop.DBus.NameOwnerChanged signal and updates the table of known names.
