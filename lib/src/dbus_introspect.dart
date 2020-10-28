@@ -307,10 +307,11 @@ class DBusIntrospectAnnotation {
 }
 
 /// Parse D-Bus introspection data.
-List<DBusIntrospectNode> parseDBusIntrospectXml(String xml) {
+DBusIntrospectNode parseDBusIntrospectXml(String xml) {
   var document = XmlDocument.parse(xml);
-  return document
-      .findElements('node')
-      .map((n) => DBusIntrospectNode.fromXml(n))
-      .toList();
+  var nodeName = document.rootElement.name.local;
+  if (nodeName != 'node') {
+    throw "D-Bus Introspection XML has invalid root element '${nodeName}', expected 'node'";
+  }
+  return DBusIntrospectNode.fromXml(document.rootElement);
 }

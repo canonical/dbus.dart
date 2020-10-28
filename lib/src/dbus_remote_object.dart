@@ -64,7 +64,7 @@ class DBusRemoteObject {
   DBusRemoteObject(this.client, this.destination, this.path);
 
   /// Gets the introspection data for this object.
-  Future<List<DBusIntrospectNode>> introspect() async {
+  Future<DBusIntrospectNode> introspect() async {
     var result = await client.callMethod(
         destination: destination,
         path: path,

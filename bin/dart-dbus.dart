@@ -77,9 +77,7 @@ void generateModule(
     String interfaceFilename,
     String outputFilename) async {
   var xml = await File(interfaceFilename).readAsString();
-  var nodes = parseDBusIntrospectXml(xml);
-
-  var classes = nodes.map((n) => generateClassFunction(n));
+  var node = parseDBusIntrospectXml(xml);
 
   var source = '';
   source +=
@@ -88,7 +86,7 @@ void generateModule(
   source += '\n';
   source += "import 'package:dbus/dbus.dart';\n";
   source += '\n';
-  source += classes.join('\n');
+  source += generateClassFunction(node);
 
   if (outputFilename == null || outputFilename == '-') {
     print(source);
