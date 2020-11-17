@@ -710,4 +710,9 @@ class DBusClient {
     buffer.writeMessage(message);
     _socket.add(buffer.data);
   }
+
+  @override
+  String toString() {
+    return "DBusClient('${_address}')";
+  }
 }
