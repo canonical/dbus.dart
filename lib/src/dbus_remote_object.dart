@@ -217,6 +217,11 @@ class DBusRemoteObject {
       }
     }
   }
+
+  @override
+  String toString() {
+    return "DBusRemoteObject(destination: '${destination}', path: '${path.value}')";
+  }
 }
 
 /// Decodes a value with signature 'a{sa{sv}}'.

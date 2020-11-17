@@ -44,6 +44,11 @@ class DBusIntrospectNode {
     children_.addAll(children.map((c) => c.toXml()));
     return XmlElement(XmlName('node'), attributes, children_);
   }
+
+  @override
+  String toString() {
+    return "DBusIntrospectNode('${name}', interfaces: ${interfaces}, children: ${children})";
+  }
 }
 
 /// Introspection information about a D-Bus interface.
@@ -103,6 +108,11 @@ class DBusIntrospectInterface {
     return XmlElement(
         XmlName('interface'), [XmlAttribute(XmlName('name'), name)], children);
   }
+
+  @override
+  String toString() {
+    return "DBusIntrospectInterface('${name}', ${methods}, ${signals}, ${properties})";
+  }
 }
 
 /// Introspection information about a D-Bus method.
@@ -139,6 +149,11 @@ class DBusIntrospectMethod {
     return XmlElement(
         XmlName('method'), [XmlAttribute(XmlName('name'), name)], children);
   }
+
+  @override
+  String toString() {
+    return "DBusIntrospectMethod('${name}', ${args})";
+  }
 }
 
 /// Introspection information about a D-Bus signal.
@@ -174,6 +189,11 @@ class DBusIntrospectSignal {
     children.addAll(annotations.map((a) => a.toXml()));
     return XmlElement(
         XmlName('signal'), [XmlAttribute(XmlName('name'), name)], children);
+  }
+
+  @override
+  String toString() {
+    return "DBusIntrospectSignal('${name}', ${args})";
   }
 }
 
@@ -229,6 +249,11 @@ class DBusIntrospectProperty {
     return XmlElement(XmlName('property'), attributes,
         annotations.map((a) => a.toXml()).toList());
   }
+
+  @override
+  String toString() {
+    return "DBusIntrospectProperty('${name}', type: '${type.value}', ${access})";
+  }
 }
 
 /// Introspection information about a D-Bus argument.
@@ -279,6 +304,11 @@ class DBusIntrospectArgument {
     }
     return XmlElement(
         XmlName('arg'), attributes, annotations.map((a) => a.toXml()).toList());
+  }
+
+  @override
+  String toString() {
+    return "DBusIntrospectArgument('${name}', type: '${type.value}', ${direction})";
   }
 }
 
