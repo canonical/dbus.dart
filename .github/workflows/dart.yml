@@ -1,0 +1,29 @@
+name: Dart
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    container:
+      image:  google/dart:latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Print Dart SDK version
+        run: dart --version
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze project source
+        run: dart analyze --fatal-infos --fatal-warnings .
