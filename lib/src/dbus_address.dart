@@ -14,10 +14,10 @@ class DBusAddressProperty {
 /// An address of a D-Bus server.
 class DBusAddress {
   /// The method of transport, e.g. 'unix', 'tcp'.
-  String transport;
+  String? transport;
 
   /// Transport properties, e.g. 'path': '/run/user/1000/bus'.
-  List<DBusAddressProperty> properties;
+  late List<DBusAddressProperty> properties;
 
   /// Creates a new address from the given [address] string, e.g. 'unix:path=/run/user/1000/bus'.
   DBusAddress(String address) {
@@ -57,7 +57,7 @@ class DBusAddress {
   }
 
   /// Decode an escaped value, e.g. 'Hello%20World' -> 'Hello World'.
-  String _decodeValue(String encodedValue) {
+  String? _decodeValue(String encodedValue) {
     var escapedValue = utf8.encode(encodedValue);
     var binaryValue = <int>[];
     for (var i = 0; i < escapedValue.length; i++) {

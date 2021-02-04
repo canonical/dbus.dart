@@ -35,26 +35,26 @@ DBusIntrospectInterface introspectProperties() {
 
 /// Handles method calls on the org.freedesktop.DBus.Properties interface.
 Future<DBusMethodResponse> handlePropertiesMethodCall(DBusObjectTree objectTree,
-    DBusObjectPath path, String member, List<DBusValue> values) async {
+    DBusObjectPath? path, String? member, List<DBusValue>? values) async {
   if (member == 'Get') {
-    var node = objectTree.lookup(path);
+    var node = objectTree.lookup(path!);
     if (node == null || node.object == null) {
       return DBusMethodErrorResponse.unknownObject();
     }
-    if (values.length != 2 ||
+    if (values!.length != 2 ||
         values[0].signature != DBusSignature('s') ||
         values[1].signature != DBusSignature('s')) {
       return DBusMethodErrorResponse.invalidArgs();
     }
     var interfaceName = (values[0] as DBusString).value;
     var propertyName = (values[1] as DBusString).value;
-    return await node.object.getProperty(interfaceName, propertyName);
+    return await node.object!.getProperty(interfaceName, propertyName);
   } else if (member == 'Set') {
-    var node = objectTree.lookup(path);
+    var node = objectTree.lookup(path!);
     if (node == null || node.object == null) {
       return DBusMethodErrorResponse.unknownObject();
     }
-    if (values.length != 3 ||
+    if (values!.length != 3 ||
         values[0].signature != DBusSignature('s') ||
         values[1].signature != DBusSignature('s') ||
         values[2].signature != DBusSignature('v')) {
@@ -63,17 +63,17 @@ Future<DBusMethodResponse> handlePropertiesMethodCall(DBusObjectTree objectTree,
     var interfaceName = (values[0] as DBusString).value;
     var propertyName = (values[1] as DBusString).value;
     var value = (values[2] as DBusVariant).value;
-    return await node.object.setProperty(interfaceName, propertyName, value);
+    return await node.object!.setProperty(interfaceName, propertyName, value);
   } else if (member == 'GetAll') {
-    var node = objectTree.lookup(path);
+    var node = objectTree.lookup(path!);
     if (node == null || node.object == null) {
       return DBusMethodErrorResponse.unknownObject();
     }
-    if (values.length != 1 || values[0].signature != DBusSignature('s')) {
+    if (values!.length != 1 || values[0].signature != DBusSignature('s')) {
       return DBusMethodErrorResponse.invalidArgs();
     }
     var interfaceName = (values[0] as DBusString).value;
-    return await node.object.getAllProperties(interfaceName);
+    return await node.object!.getAllProperties(interfaceName);
   } else {
     return DBusMethodErrorResponse.unknownMethod();
   }

@@ -20,12 +20,12 @@ class GenerateObjectCommand extends Command {
 
   @override
   void run() async {
-    if (argResults.rest.length != 1) {
+    if (argResults!.rest.length != 1) {
       usageException(
           '${name} requires a single D-Bus interface file to be provided.');
     }
     generateModule(
-        name, generateObjectClass, argResults.rest[0], argResults['output']);
+        name, generateObjectClass, argResults!.rest[0], argResults!['output']);
   }
 }
 
@@ -47,12 +47,12 @@ class GenerateRemoteObjectCommand extends Command {
 
   @override
   void run() async {
-    if (argResults.rest.length != 1) {
+    if (argResults!.rest.length != 1) {
       usageException(
           '${name} requires a single D-Bus interface file to be provided.');
     }
-    generateModule(name, generateRemoteObjectClass, argResults.rest[0],
-        argResults['output']);
+    generateModule(name, generateRemoteObjectClass, argResults!.rest[0],
+        argResults!['output']);
   }
 }
 
@@ -73,9 +73,9 @@ void main(List<String> args) async {
 /// Generates Dart source from the given interface in [filename] and writes it to [outputFilename].
 void generateModule(
     String command,
-    String Function(DBusIntrospectNode) generateClassFunction,
+    String? Function(DBusIntrospectNode) generateClassFunction,
     String interfaceFilename,
-    String outputFilename) async {
+    String? outputFilename) async {
   var xml = await File(interfaceFilename).readAsString();
   var node = parseDBusIntrospectXml(xml);
 
@@ -86,7 +86,7 @@ void generateModule(
   source += '\n';
   source += "import 'package:dbus/dbus.dart';\n";
   source += '\n';
-  source += generateClassFunction(node);
+  source += generateClassFunction(node)!;
 
   if (outputFilename == null || outputFilename == '-') {
     print(source);
@@ -97,7 +97,7 @@ void generateModule(
 }
 
 /// Generates a DBusObject class for the given introspection node.
-String generateObjectClass(DBusIntrospectNode node) {
+String? generateObjectClass(DBusIntrospectNode node) {
   // FIXME(robert-ancell) add --org-name to strip off prefixes?
   var className = nodeToClassName(node);
   if (className == null) {
@@ -183,7 +183,7 @@ String generateMethodImplementation(
     index++;
   }
 
-  var returnTypes = <String>[];
+  var returnTypes = <String?>[];
   var returnValues = <String>[];
   index = 0;
   for (var arg in method.args) {
@@ -357,7 +357,7 @@ String generateHandleMethodCall(DBusIntrospectNode node) {
   source += indentSource(
       2,
       makeSwitch(interfaceBranches,
-          'return DBusMethodErrorResponse.unknownInterface();\n'));
+          'return DBusMethodErrorResponse.unknownInterface();\n')!);
   source += '  }\n';
 
   return source;
@@ -393,7 +393,7 @@ String generateGetProperty(DBusIntrospectNode node) {
   source += indentSource(
       2,
       makeSwitch(interfaceBranches,
-          'return DBusMethodErrorResponse.unknownInterface();\n'));
+          'return DBusMethodErrorResponse.unknownInterface();\n')!);
   source += '  }\n';
 
   return source;
@@ -435,7 +435,7 @@ String generateSetProperty(DBusIntrospectNode node) {
   source += indentSource(
       2,
       makeSwitch(interfaceBranches,
-          'return DBusMethodErrorResponse.unknownInterface();\n'));
+          'return DBusMethodErrorResponse.unknownInterface();\n')!);
   source += '  }\n';
 
   return source;
@@ -465,7 +465,7 @@ String generateGetAllProperties(DBusIntrospectNode node) {
   source +=
       '  Future<DBusMethodResponse> getAllProperties(String interface) async {\n';
   source += '    var properties = <DBusValue, DBusValue>{};\n';
-  source += indentSource(2, makeSwitch(interfaceBranches));
+  source += indentSource(2, makeSwitch(interfaceBranches)!);
   source +=
       "    return DBusMethodSuccessResponse([DBusDict(DBusSignature('s'), DBusSignature('v'), properties)]);\n";
   source += '  }\n';
@@ -474,7 +474,7 @@ String generateGetAllProperties(DBusIntrospectNode node) {
 }
 
 /// Generates a DBusRemoteObject class for the given introspection node.
-String generateRemoteObjectClass(DBusIntrospectNode node) {
+String? generateRemoteObjectClass(DBusIntrospectNode node) {
   // FIXME(robert-ancell) add --org-name to strip off prefixes?
   var className = nodeToClassName(node);
   if (className == null) {
@@ -565,7 +565,7 @@ String generateRemoteMethodCall(
     index++;
   }
 
-  var returnTypes = <String>[];
+  var returnTypes = <String?>[];
   var returnValues = <String>[];
   index = 0;
   for (var arg in method.args) {
@@ -675,7 +675,7 @@ String generateRemoteSignalSubscription(String classPrefix,
 /// e.g.
 /// If a path is available: '/org/freedesktop/Notifications' -> 'OrgFreedesktopNotifications'.
 /// If no path, use the first interface name: 'org.freedesktop.Notifications' -> 'OrgFreedesktopNotifications'.
-String nodeToClassName(DBusIntrospectNode node) {
+String? nodeToClassName(DBusIntrospectNode node) {
   var name = node.name;
   var divider = '/';
   if (name == null || name == '' || node.name == '/') {
@@ -687,7 +687,7 @@ String nodeToClassName(DBusIntrospectNode node) {
   }
 
   var className = '';
-  for (var element in name.split(divider)) {
+  for (var element in name!.split(divider)) {
     if (element == '') {
       continue;
     }
@@ -701,13 +701,13 @@ String nodeToClassName(DBusIntrospectNode node) {
 /// Branch in a switch (if/else) statement.
 class SwitchBranch {
   final String condition;
-  final String source;
+  final String? source;
 
   SwitchBranch(this.condition, this.source);
 }
 
 /// Make switch (if/else) statement.
-String makeSwitch(Iterable<SwitchBranch> branches, [String defaultBranch]) {
+String? makeSwitch(Iterable<SwitchBranch> branches, [String? defaultBranch]) {
   if (branches.isEmpty) {
     return defaultBranch;
   }
@@ -717,7 +717,7 @@ String makeSwitch(Iterable<SwitchBranch> branches, [String defaultBranch]) {
   for (var branch in branches) {
     var statement = isFirst ? 'if' : '} else if';
     source += '${statement} (${branch.condition}) {\n';
-    source += indentSource(1, branch.source);
+    source += indentSource(1, branch.source!);
     isFirst = false;
   }
 

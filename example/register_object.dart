@@ -23,8 +23,8 @@ class TestObject extends DBusObject {
   }
 
   @override
-  Future<DBusMethodResponse> handleMethodCall(String sender, String interface,
-      String member, List<DBusValue> values) async {
+  Future<DBusMethodResponse> handleMethodCall(String? sender, String? interface,
+      String? member, List<DBusValue>? values) async {
     if (interface != 'com.canonical.DBusDart') {
       return DBusMethodErrorResponse.unknownInterface();
     }
@@ -39,7 +39,7 @@ class TestObject extends DBusObject {
 
   @override
   Future<DBusMethodResponse> getProperty(
-      String interface, String member) async {
+      String? interface, String? member) async {
     if (interface != 'com.canonical.DBusDart') {
       return DBusMethodErrorResponse.unknownInterface();
     }
@@ -53,7 +53,7 @@ class TestObject extends DBusObject {
 
   @override
   Future<DBusMethodResponse> setProperty(
-      String interface, String member, DBusValue value) async {
+      String? interface, String? member, DBusValue? value) async {
     if (interface != 'com.canonical.DBusDart') {
       return DBusMethodErrorResponse.unknownInterface();
     }
@@ -66,7 +66,7 @@ class TestObject extends DBusObject {
   }
 
   @override
-  Future<DBusMethodResponse> getAllProperties(String interface) async {
+  Future<DBusMethodResponse> getAllProperties(String? interface) async {
     if (interface != 'com.canonical.DBusDart') {
       return DBusMethodErrorResponse.unknownInterface();
     }

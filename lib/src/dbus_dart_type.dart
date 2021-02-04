@@ -27,7 +27,7 @@ DBusDartType getDartType(DBusSignature signature) {
     return DBusObjectPathType();
   } else if (value == 'v') {
     return DBusVariantType();
-  } else if (value.startsWith('a{') && value.endsWith('}')) {
+  } else if (value!.startsWith('a{') && value.endsWith('}')) {
     var signatures =
         DBusSignature(value.substring(2, value.length - 1)).split();
     if (signatures.length != 2) {
@@ -35,7 +35,7 @@ DBusDartType getDartType(DBusSignature signature) {
     }
     return DBusDictType(signatures[0], signatures[1]);
   } else if (value.startsWith('a')) {
-    var childSignature = DBusSignature(signature.value.substring(1));
+    var childSignature = DBusSignature(signature.value!.substring(1));
     return DBusArrayType(childSignature);
   } else {
     return DBusComplexType();
@@ -45,10 +45,10 @@ DBusDartType getDartType(DBusSignature signature) {
 /// Class that generates Dart code for a D-Bus data type.
 abstract class DBusDartType {
   // Native Dart type for the API user to interact with, e.g. 'int', 'String'.
-  String nativeType;
+  String? nativeType;
 
   // Dart type to pass to dbus.dart, e.g. 'DBusUint32', 'DBusString'.
-  String dbusType;
+  String? dbusType;
 
   // Converts a native Dart variable to a D-Bus data type. e.g. 'foo' -> 'DBusInteger(foo)'.
   String nativeToDBus(String name);

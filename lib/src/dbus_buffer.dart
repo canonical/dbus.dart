@@ -47,9 +47,9 @@ class DBusBuffer {
       return SIGNATURE_ALIGNMENT;
     } else if (signature.value == 'v') {
       return VARIANT_ALIGNMENT;
-    } else if (signature.value.startsWith('(')) {
+    } else if (signature.value!.startsWith('(')) {
       return STRUCT_ALIGNMENT;
-    } else if (signature.value.startsWith('a')) {
+    } else if (signature.value!.startsWith('a')) {
       return ARRAY_ALIGNMENT;
     } else {
       return 1;

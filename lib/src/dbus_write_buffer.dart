@@ -13,7 +13,7 @@ class DBusWriteBuffer extends DBusBuffer {
   /// Writes a [DBusMessage] to the buffer.
   void writeMessage(DBusMessage message) {
     var valueBuffer = DBusWriteBuffer();
-    for (var value in message.values) {
+    for (var value in message.values!) {
       valueBuffer.writeValue(value);
     }
 
@@ -50,10 +50,10 @@ class DBusWriteBuffer extends DBusBuffer {
     if (message.sender != null) {
       headers.add(_makeHeader(HeaderCode.Sender, DBusString(message.sender)));
     }
-    if (message.values.isNotEmpty) {
+    if (message.values!.isNotEmpty) {
       var signature = '';
-      for (var value in message.values) {
-        signature += value.signature.value;
+      for (var value in message.values!) {
+        signature += value.signature.value!;
       }
       headers.add(_makeHeader(HeaderCode.Signature, DBusSignature(signature)));
     }
@@ -63,7 +63,7 @@ class DBusWriteBuffer extends DBusBuffer {
   }
 
   /// Makes a new message header.
-  DBusStruct _makeHeader(int code, DBusValue value) {
+  DBusStruct _makeHeader(int code, DBusValue? value) {
     return DBusStruct([DBusByte(code), DBusVariant(value)]);
   }
 
@@ -144,7 +144,7 @@ class DBusWriteBuffer extends DBusBuffer {
       writeInt32(value.value);
     } else if (value is DBusUint32) {
       align(UINT32_ALIGNMENT);
-      writeUint32(value.value);
+      writeUint32(value.value!);
     } else if (value is DBusInt64) {
       align(INT64_ALIGNMENT);
       writeInt64(value.value);
@@ -155,21 +155,21 @@ class DBusWriteBuffer extends DBusBuffer {
       align(DOUBLE_ALIGNMENT);
       writeFloat64(value.value);
     } else if (value is DBusString) {
-      var data = utf8.encode(value.value);
+      var data = utf8.encode(value.value!);
       writeValue(DBusUint32(data.length));
       for (var d in data) {
         writeByte(d);
       }
       writeByte(0); // Terminating nul.
     } else if (value is DBusSignature) {
-      var data = utf8.encode(value.value);
+      var data = utf8.encode(value.value!);
       writeByte(data.length);
       for (var d in data) {
         writeByte(d);
       }
       writeByte(0);
     } else if (value is DBusVariant) {
-      var childValue = value.value;
+      var childValue = value.value!;
       writeValue(childValue.signature);
       writeValue(childValue);
     } else if (value is DBusStruct) {

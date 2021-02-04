@@ -14,7 +14,7 @@ void main() async {
         print('${signal.changedPath.value} removed interfaces ${interface}');
       }
     } else if (signal is DBusPropertiesChangedSignal) {
-      print('${signal.path.value}');
+      print('${signal.path!.value}');
       printInterfacesAndProperties(
           {signal.propertiesInterface: signal.changedProperties});
     }
@@ -28,11 +28,11 @@ void main() async {
 }
 
 void printInterfacesAndProperties(
-    Map<String, Map<String, DBusValue>> interfacesAndProperties) {
+    Map<String?, Map<String?, DBusValue?>> interfacesAndProperties) {
   interfacesAndProperties.forEach((interface, properties) {
     print('  ${interface}');
     properties.forEach((name, value) {
-      print('    ${name}: ${value.toNative()}');
+      print('    ${name}: ${value!.toNative()}');
     });
   });
 }

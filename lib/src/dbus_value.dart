@@ -163,7 +163,7 @@ class DBusInt32 extends DBusValue {
 /// D-Bus representation of an unsigned 32 bit integer.
 class DBusUint32 extends DBusValue {
   /// An integer in the range [0, 4294967295]
-  final int value;
+  final int? value;
 
   /// Creates a new unsigned 32 bit integer with the given [value].
   const DBusUint32(this.value);
@@ -283,7 +283,7 @@ class DBusDouble extends DBusValue {
 /// D-Bus representation of an Unicode text string.
 class DBusString extends DBusValue {
   /// A Unicode text string.
-  final String value;
+  final String? value;
 
   /// Creates a new Unicode text string with the given [value].
   const DBusString(this.value);
@@ -319,9 +319,9 @@ class DBusObjectPath extends DBusString {
   /// Creates a new D-Bus object path with the given [value].
   ///
   /// An exception is shown if [value] is not a valid object path.
-  DBusObjectPath(String value) : super(value) {
+  DBusObjectPath(String? value) : super(value) {
     if (value != '/') {
-      if (value.contains(RegExp('[^a-zA-Z0-9_/]')) ||
+      if (value!.contains(RegExp('[^a-zA-Z0-9_/]')) ||
           !value.startsWith('/') ||
           value.endsWith('/')) {
         throw 'Invalid object path: ${value}';
@@ -341,13 +341,13 @@ class DBusObjectPath extends DBusString {
     if (value == '/') {
       return [];
     } else {
-      return value.substring(1).split('/');
+      return value!.substring(1).split('/');
     }
   }
 
   /// Returns true if this object path is under [namespace]. e.g. '/org/freedesktop/DBus' is under '/org/freedesktop'.
   bool isInNamespace(DBusObjectPath namespace) {
-    return value == namespace.value || value.startsWith(namespace.value + '/');
+    return value == namespace.value || value!.startsWith(namespace.value! + '/');
   }
 
   @override
@@ -394,7 +394,7 @@ class DBusObjectPath extends DBusString {
 /// * `a{kv}` → [DBusDict] (`k` and `v` represent the key and value signatures).
 class DBusSignature extends DBusValue {
   /// A D-Bus signature string.
-  final String value;
+  final String? value;
 
   /// Create a new D-Bus signature with the given [value].
   const DBusSignature(this.value);
@@ -404,9 +404,9 @@ class DBusSignature extends DBusValue {
     var signatures = <DBusSignature>[];
 
     var start = 0;
-    while (start < value.length) {
+    while (start < value!.length) {
       var end = _findChildEnd(start);
-      signatures.add(DBusSignature(value.substring(start, end)));
+      signatures.add(DBusSignature(value!.substring(start, end)));
       start = end;
     }
 
@@ -416,14 +416,14 @@ class DBusSignature extends DBusValue {
   /// Gets the end of the child signature starting at [offset].
   int _findChildEnd(int offset) {
     /// Dicts and structs have the child type following.
-    if (value[offset] == 'a') {
+    if (value![offset] == 'a') {
       return _findChildEnd(offset + 1);
     }
 
     // Structs and dict entries are multiple characters, everything else is a single character.
-    if (value[offset] == '(') {
+    if (value![offset] == '(') {
       return _findClosing(offset, ')');
-    } else if (value[offset] == '{') {
+    } else if (value![offset] == '{') {
       return _findClosing(offset, '}');
     } else {
       return offset + 1;
@@ -432,13 +432,13 @@ class DBusSignature extends DBusValue {
 
   // Find the closing parenthesis/brace.
   int _findClosing(int start, String closeChar) {
-    var openChar = value[start];
+    var openChar = value![start];
     var count = 0;
     var end = start;
-    while (end < value.length) {
-      if (value[end] == openChar) {
+    while (end < value!.length) {
+      if (value![end] == openChar) {
         count++;
-      } else if (value[end] == closeChar) {
+      } else if (value![end] == closeChar) {
         count--;
         if (count == 0) {
           return end + 1;
@@ -475,7 +475,7 @@ class DBusSignature extends DBusValue {
 /// D-Bus value that contains any D-Bus type.
 class DBusVariant extends DBusValue {
   /// The value contained in this variant.
-  final DBusValue value;
+  final DBusValue? value;
 
   /// Creates a new D-Bus variant containing [value].
   const DBusVariant(this.value);
@@ -487,7 +487,7 @@ class DBusVariant extends DBusValue {
 
   @override
   dynamic toNative() {
-    return value.toNative();
+    return value!.toNative();
   }
 
   @override
@@ -514,7 +514,7 @@ class DBusStruct extends DBusValue {
   DBusSignature get signature {
     var signature = '';
     for (var child in children) {
-      signature += child.signature.value;
+      signature += child.signature.value!;
     }
     return DBusSignature('(' + signature + ')');
   }
@@ -568,7 +568,7 @@ class DBusArray extends DBusValue {
 
   @override
   DBusSignature get signature {
-    return DBusSignature('a' + childSignature.value);
+    return DBusSignature('a' + childSignature.value!);
   }
 
   @override

@@ -22,7 +22,7 @@ class TestObject extends DBusObject {
 void main(List<String> args) async {
   var client = DBusClient.session();
 
-  String mode;
+  String? mode;
   if (args.isNotEmpty) {
     mode = args[0];
   }
@@ -34,7 +34,7 @@ void main(List<String> args) async {
     );
     var signals = object.subscribeSignal('com.canonical.DBusDart', 'Ping');
     await for (var signal in signals) {
-      var count = (signal.values[0] as DBusUint64).value;
+      var count = (signal.values![0] as DBusUint64).value;
       print('Ping ${count}!');
     }
   } else if (mode == 'server') {

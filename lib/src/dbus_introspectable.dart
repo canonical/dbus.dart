@@ -19,19 +19,19 @@ DBusIntrospectInterface introspectIntrospectable() {
 
 /// Handles method calls on the org.freedesktop.DBus.Introspectable interface.
 DBusMethodResponse handleIntrospectableMethodCall(DBusObjectTree objectTree,
-    DBusObjectPath path, String member, List<DBusValue> values) {
+    DBusObjectPath? path, String? member, List<DBusValue>? values) {
   if (member == 'Introspect') {
-    if (values.isNotEmpty) {
+    if (values!.isNotEmpty) {
       return DBusMethodErrorResponse.invalidArgs();
     }
 
-    var node = objectTree.lookup(path);
+    var node = objectTree.lookup(path!)!;
     var interfaces = <DBusIntrospectInterface>[];
     if (node != null && node.object != null) {
       interfaces.add(introspectIntrospectable());
       interfaces.add(introspectPeer());
       interfaces.add(introspectProperties());
-      interfaces.addAll(node.object.introspect());
+      interfaces.addAll(node.object!.introspect());
     }
     var children =
         node.children.keys.map((name) => DBusIntrospectNode(name)).toList();

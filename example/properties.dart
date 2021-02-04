@@ -8,7 +8,7 @@ void main() async {
   var properties =
       await object.getAllProperties('org.freedesktop.NetworkManager');
   properties.forEach((name, value) {
-    print('${name}: ${value.toNative()}');
+    print('${name}: ${value!.toNative()}');
   });
 
   print('');
@@ -16,15 +16,15 @@ void main() async {
   var devicePaths = (properties['Devices'] as DBusArray).children;
   for (var path in devicePaths) {
     var device =
-        DBusRemoteObject(client, 'org.freedesktop.NetworkManager', path);
-    var address = await device.getProperty(
-        'org.freedesktop.NetworkManager.Device', 'HwAddress');
+        DBusRemoteObject(client, 'org.freedesktop.NetworkManager', path as DBusObjectPath);
+    var address = await (device.getProperty(
+        'org.freedesktop.NetworkManager.Device', 'HwAddress') as Future<DBusValue>);
     print('${address.toNative()}');
   }
 
   await object.subscribePropertiesChanged().listen((signal) {
     signal.changedProperties.forEach((name, value) {
-      print('${name}: ${value.toNative()}');
+      print('${name}: ${value!.toNative()}');
     });
   });
 }

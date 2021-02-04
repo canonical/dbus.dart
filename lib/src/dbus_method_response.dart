@@ -3,28 +3,28 @@ import 'dbus_value.dart';
 /// A response to a method call.
 abstract class DBusMethodResponse {
   /// Gets the value returned from this method or throws an exception if an error received.
-  List<DBusValue> get returnValues;
+  List<DBusValue>? get returnValues;
 }
 
 /// A success response to a method call.
 class DBusMethodSuccessResponse extends DBusMethodResponse {
   /// Values returned from the method.
-  List<DBusValue> values;
+  List<DBusValue>? values;
 
   /// Creates a new success response to a method call returning [values].
   DBusMethodSuccessResponse([this.values = const []]);
 
   @override
-  List<DBusValue> get returnValues => values;
+  List<DBusValue>? get returnValues => values;
 }
 
 /// An error response to a method call.
 class DBusMethodErrorResponse extends DBusMethodResponse {
   /// The name of the error that occurred.
-  String errorName;
+  String? errorName;
 
   /// Additional values passed with the error.
-  List<DBusValue> values;
+  List<DBusValue>? values;
 
   /// Creates a new error response to a method call with the error [errorName] and optional [values].
   DBusMethodErrorResponse(this.errorName, [this.values = const []]);

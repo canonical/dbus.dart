@@ -10,7 +10,7 @@ enum DBusArgumentDirection { in_, out }
 /// Introspection information about a D-Bus node.
 class DBusIntrospectNode {
   /// D-Bus object this node represents, either absolute or relative (optional).
-  final String name;
+  final String? name;
 
   /// Interfaces this node uses.
   final List<DBusIntrospectInterface> interfaces;
@@ -37,7 +37,7 @@ class DBusIntrospectNode {
   XmlNode toXml() {
     var attributes = <XmlAttribute>[];
     if (name != null) {
-      attributes.add(XmlAttribute(XmlName('name'), name));
+      attributes.add(XmlAttribute(XmlName('name'), name!));
     }
     var children_ = <XmlNode>[];
     children_.addAll(interfaces.map((i) => i.toXml()));
@@ -54,7 +54,7 @@ class DBusIntrospectNode {
 /// Introspection information about a D-Bus interface.
 class DBusIntrospectInterface {
   /// Name of the interface, e.g. 'org.freedesktop.DBus'.
-  final String name;
+  final String? name;
 
   /// Methods on this interface.
   final List<DBusIntrospectMethod> methods;
@@ -106,7 +106,7 @@ class DBusIntrospectInterface {
     children.addAll(properties.map((p) => p.toXml()));
     children.addAll(annotations.map((a) => a.toXml()));
     return XmlElement(
-        XmlName('interface'), [XmlAttribute(XmlName('name'), name)], children);
+        XmlName('interface'), [XmlAttribute(XmlName('name'), name!)], children);
   }
 
   @override
@@ -118,7 +118,7 @@ class DBusIntrospectInterface {
 /// Introspection information about a D-Bus method.
 class DBusIntrospectMethod {
   /// Name of this method, e.g. 'RequestName'.
-  final String name;
+  final String? name;
 
   /// Arguments to pass to method.
   final List<DBusIntrospectArgument> args;
@@ -147,7 +147,7 @@ class DBusIntrospectMethod {
     children.addAll(args.map((a) => a.toXml()));
     children.addAll(annotations.map((a) => a.toXml()));
     return XmlElement(
-        XmlName('method'), [XmlAttribute(XmlName('name'), name)], children);
+        XmlName('method'), [XmlAttribute(XmlName('name'), name!)], children);
   }
 
   @override
@@ -159,7 +159,7 @@ class DBusIntrospectMethod {
 /// Introspection information about a D-Bus signal.
 class DBusIntrospectSignal {
   /// Name of this signal, e.g. 'NameLost'.
-  final String name;
+  final String? name;
 
   /// Arguments sent with signal.
   final List<DBusIntrospectArgument> args;
@@ -188,7 +188,7 @@ class DBusIntrospectSignal {
     children.addAll(args.map((a) => a.toXml()));
     children.addAll(annotations.map((a) => a.toXml()));
     return XmlElement(
-        XmlName('signal'), [XmlAttribute(XmlName('name'), name)], children);
+        XmlName('signal'), [XmlAttribute(XmlName('name'), name!)], children);
   }
 
   @override
@@ -200,7 +200,7 @@ class DBusIntrospectSignal {
 /// Introspection information about a D-Bus property.
 class DBusIntrospectProperty {
   /// Name of this property, e.g. 'Features'.
-  final String name;
+  final String? name;
 
   /// Type of this property.
   final DBusSignature type;
@@ -236,9 +236,9 @@ class DBusIntrospectProperty {
   XmlNode toXml() {
     var attributes = <XmlAttribute>[];
     if (name != null) {
-      attributes.add(XmlAttribute(XmlName('name'), name));
+      attributes.add(XmlAttribute(XmlName('name'), name!));
     }
-    attributes.add(XmlAttribute(XmlName('type'), type.value));
+    attributes.add(XmlAttribute(XmlName('type'), type.value!));
     if (access == DBusPropertyAccess.readwrite) {
       attributes.add(XmlAttribute(XmlName('access'), 'readwrite'));
     } else if (access == DBusPropertyAccess.read) {
@@ -259,13 +259,13 @@ class DBusIntrospectProperty {
 /// Introspection information about a D-Bus argument.
 class DBusIntrospectArgument {
   /// Name of this argument, e.g. 'name' (optional).
-  final String name;
+  final String? name;
 
   /// Type of this argument.
   final DBusSignature type;
 
   /// Direction this argument is passed.
-  final DBusArgumentDirection direction;
+  final DBusArgumentDirection? direction;
 
   /// Annotations for this argument.
   final List<DBusIntrospectAnnotation> annotations;
@@ -277,7 +277,7 @@ class DBusIntrospectArgument {
     var name = node.getAttribute('name');
     var type = DBusSignature(node.getAttribute('type'));
     var directionText = node.getAttribute('direction');
-    DBusArgumentDirection direction;
+    DBusArgumentDirection? direction;
     if (directionText == 'in') {
       direction = DBusArgumentDirection.in_;
     } else if (directionText == 'out') {
@@ -294,9 +294,9 @@ class DBusIntrospectArgument {
   XmlNode toXml() {
     var attributes = <XmlAttribute>[];
     if (name != null) {
-      attributes.add(XmlAttribute(XmlName('name'), name));
+      attributes.add(XmlAttribute(XmlName('name'), name!));
     }
-    attributes.add(XmlAttribute(XmlName('type'), type.value));
+    attributes.add(XmlAttribute(XmlName('type'), type.value!));
     if (direction == DBusArgumentDirection.in_) {
       attributes.add(XmlAttribute(XmlName('direction'), 'in'));
     } else if (direction == DBusArgumentDirection.out) {
@@ -315,10 +315,10 @@ class DBusIntrospectArgument {
 /// Annotation that applies to a D-Bus interface, method, signal, property or argument.
 class DBusIntrospectAnnotation {
   /// Name of the annotation, e.g. 'org.freedesktop.DBus.Deprecated'.
-  final String name;
+  final String? name;
 
   /// Value of the annotation, e.g. 'true'.
-  final String value;
+  final String? value;
 
   DBusIntrospectAnnotation(this.name, this.value);
 
@@ -330,8 +330,8 @@ class DBusIntrospectAnnotation {
 
   XmlNode toXml() {
     return XmlElement(XmlName('method'), [
-      XmlAttribute(XmlName('name'), name),
-      XmlAttribute(XmlName('value'), value)
+      XmlAttribute(XmlName('name'), name!),
+      XmlAttribute(XmlName('value'), value!)
     ]);
   }
 }
