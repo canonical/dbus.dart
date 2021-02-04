@@ -18,8 +18,8 @@ void main() async {
     var device =
         DBusRemoteObject(client, 'org.freedesktop.NetworkManager', path as DBusObjectPath);
     var address = await (device.getProperty(
-        'org.freedesktop.NetworkManager.Device', 'HwAddress') as Future<DBusValue>);
-    print('${address.toNative()}');
+        'org.freedesktop.NetworkManager.Device', 'HwAddress'));
+    print('${address!.toNative()}');
   }
 
   await object.subscribePropertiesChanged().listen((signal) {
