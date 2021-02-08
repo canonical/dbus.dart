@@ -573,8 +573,8 @@ class DBusClient {
 
   /// Processes a method return or error result from the D-Bus server.
   void _processMethodResponse(DBusMessage message) {
-    var methodCall =
-        _methodCalls.firstWhere((c) => c.serial == message.replySerial);
+    var methodCall = _methodCalls
+        .firstWhere((c) => c.serial == message.replySerial, orElse: () => null);
     if (methodCall == null) {
       return;
     }
