@@ -39,14 +39,11 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a single line of UTF-8 text (terminated with CR LF) from the buffer.
-  /// Retutns null if no line available.
+  /// Returns null if no line available.
   String readLine() {
     for (var i = readOffset; i < _data.length - 1; i++) {
       if (_data[i] == 13 /* '\r' */ && _data[i + 1] == 10 /* '\n' */) {
-        var bytes = List<int>(i - readOffset);
-        for (var j = readOffset; j < i; j++) {
-          bytes[j] = readByte();
-        }
+        var bytes = List<int>.generate(i - readOffset, (index) => readByte());
         readOffset = i + 2;
         return utf8.decode(bytes);
       }
