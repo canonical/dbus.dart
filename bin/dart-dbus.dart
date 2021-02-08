@@ -20,12 +20,13 @@ class GenerateObjectCommand extends Command {
 
   @override
   void run() async {
-    if (argResults.rest.length != 1) {
+    if (argResults?.rest.length != 1) {
       usageException(
           '${name} requires a single D-Bus interface file to be provided.');
     }
-    generateModule(name, argResults['class-name'], generateObjectClass,
-        argResults.rest[0], argResults['output']);
+    var filename = argResults!.rest[0];
+    generateModule(name, argResults?['class-name'], generateObjectClass,
+        filename, argResults?['output']);
   }
 }
 
@@ -47,12 +48,13 @@ class GenerateRemoteObjectCommand extends Command {
 
   @override
   void run() async {
-    if (argResults.rest.length != 1) {
+    if (argResults?.rest.length != 1) {
       usageException(
           '${name} requires a single D-Bus interface file to be provided.');
     }
-    generateModule(name, argResults['class-name'], generateRemoteObjectClass,
-        argResults.rest[0], argResults['output']);
+    var filename = argResults!.rest[0];
+    generateModule(name, argResults?['class-name'], generateRemoteObjectClass,
+        filename, argResults?['output']);
   }
 }
 
@@ -73,10 +75,10 @@ void main(List<String> args) async {
 /// Generates Dart source from the given interface in [filename] and writes it to [outputFilename].
 void generateModule(
     String command,
-    String className,
-    String Function(DBusIntrospectNode, String) generateClassFunction,
+    String? className,
+    String? Function(DBusIntrospectNode, String) generateClassFunction,
     String interfaceFilename,
-    String outputFilename) async {
+    String? outputFilename) async {
   var xml = await File(interfaceFilename).readAsString();
   var node = parseDBusIntrospectXml(xml);
 
@@ -95,7 +97,10 @@ void generateModule(
   source += '\n';
   source += "import 'package:dbus/dbus.dart';\n";
   source += '\n';
-  source += generateClassFunction(node, className);
+  var classSource = generateClassFunction(node, className);
+  if (classSource != null) {
+    source += classSource;
+  }
 
   if (outputFilename == null || outputFilename == '-') {
     print(source);
@@ -115,7 +120,7 @@ String getUniqueMethodName(List<String> methodNames, String name) {
 }
 
 /// Generates a DBusObject class for the given introspection node.
-String generateObjectClass(DBusIntrospectNode node, String className) {
+String? generateObjectClass(DBusIntrospectNode node, String className) {
   var methods = <String>[];
   // Method names provided in this class, initially populated with DBusObject methods.
   // Needs to be kept in sync with the DBusObject class.
@@ -431,7 +436,7 @@ String generateHandleMethodCall(DBusIntrospectNode node) {
   var source = '';
   source += '  @override\n';
   source +=
-      '  Future<DBusMethodResponse> handleMethodCall(String sender, String interface, String member, List<DBusValue> values) async {\n';
+      '  Future<DBusMethodResponse> handleMethodCall(String? sender, String? interface, String member, List<DBusValue> values) async {\n';
   source += indentSource(
       2,
       makeSwitch(interfaceBranches,
@@ -556,7 +561,7 @@ String generateGetAllProperties(DBusIntrospectNode node) {
 }
 
 /// Generates a DBusRemoteObject class for the given introspection node.
-String generateRemoteObjectClass(DBusIntrospectNode node, String className) {
+String? generateRemoteObjectClass(DBusIntrospectNode node, String className) {
   var classes = <String>[];
   var methods = <String>[];
   // Method names provided in this class, initially populated with DBusRemoteObject methods.
@@ -831,7 +836,7 @@ String generateRemoteSignalSubscription(
 /// e.g.
 /// If a path is available: '/org/freedesktop/Notifications' -> 'OrgFreedesktopNotifications'.
 /// If no path, use the first interface name: 'org.freedesktop.Notifications' -> 'OrgFreedesktopNotifications'.
-String nodeToClassName(DBusIntrospectNode node) {
+String? nodeToClassName(DBusIntrospectNode node) {
   var name = node.name;
   var divider = '/';
   if (name == null || name == '' || node.name == '/') {
@@ -863,10 +868,9 @@ class SwitchBranch {
 }
 
 /// Make switch (if/else) statement.
-String makeSwitch(Iterable<SwitchBranch> branches,
-    [String defaultBranch = '']) {
+String makeSwitch(Iterable<SwitchBranch> branches, [String? defaultBranch]) {
   if (branches.isEmpty) {
-    return defaultBranch;
+    return defaultBranch ?? '';
   }
 
   var source = '';

@@ -20,7 +20,7 @@ class DBusObjectTree {
   }
 
   /// Find the node for the given [path], or return null if not in the tree.
-  DBusObjectTreeNode lookup(DBusObjectPath path) {
+  DBusObjectTreeNode? lookup(DBusObjectPath path) {
     var node = root;
     for (var element in path.split()) {
       var child = node.children[element];
@@ -34,7 +34,7 @@ class DBusObjectTree {
   }
 
   /// Find the object for the given [path], or return null if not in the tree.
-  DBusObject lookupObject(DBusObjectPath path) {
+  DBusObject? lookupObject(DBusObjectPath path) {
     var node = lookup(path);
     if (node == null) {
       return null;
@@ -49,7 +49,7 @@ class DBusObjectTreeNode {
   String name;
 
   /// Object registered on this node.
-  DBusObject object;
+  DBusObject? object;
 
   /// Child nodes
   final children = <String, DBusObjectTreeNode>{};

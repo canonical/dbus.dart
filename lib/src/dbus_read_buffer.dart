@@ -40,7 +40,7 @@ class DBusReadBuffer extends DBusBuffer {
 
   /// Reads a single line of UTF-8 text (terminated with CR LF) from the buffer.
   /// Returns null if no line available.
-  String readLine() {
+  String? readLine() {
     for (var i = readOffset; i < _data.length - 1; i++) {
       if (_data[i] == 13 /* '\r' */ && _data[i + 1] == 10 /* '\n' */) {
         var bytes = List<int>.generate(i - readOffset, (index) => readByte());
@@ -52,30 +52,30 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a D-Bus message from the buffer or returns null if not enough data.
-  DBusMessage readMessage() {
+  DBusMessage? readMessage() {
     if (remaining < 12) {
       return null;
     }
 
     readDBusByte(); // Endianess.
-    var type = readDBusByte().value;
-    var flags = readDBusByte().value;
+    var type = readDBusByte()!.value;
+    var flags = readDBusByte()!.value;
     readDBusByte(); // Protocol version.
-    var dataLength = readDBusUint32();
-    var serial = readDBusUint32().value;
+    var dataLength = readDBusUint32()!;
+    var serial = readDBusUint32()!.value;
     var headers = readDBusArray(DBusSignature('(yv)'));
     if (headers == null) {
       return null;
     }
 
-    DBusSignature signature;
-    DBusObjectPath path;
-    String interface;
-    String member;
-    String errorName;
-    int replySerial;
-    String destination;
-    String sender;
+    DBusSignature? signature;
+    DBusObjectPath? path;
+    String? interface;
+    String? member;
+    String? errorName;
+    int? replySerial;
+    String? destination;
+    String? sender;
     for (var child in headers.children) {
       var header = child as DBusStruct;
       var code = (header.children.elementAt(0) as DBusByte).value;
@@ -175,7 +175,7 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusByte] from the buffer or returns null if not enough data.
-  DBusByte readDBusByte() {
+  DBusByte? readDBusByte() {
     if (remaining < 1) {
       return null;
     }
@@ -183,7 +183,7 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusBoolean] from the buffer or returns null if not enough data.
-  DBusBoolean readDBusBoolean() {
+  DBusBoolean? readDBusBoolean() {
     if (!align(BOOLEAN_ALIGNMENT) || remaining < 4) {
       return null;
     }
@@ -191,7 +191,7 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusInt16] from the buffer or returns null if not enough data.
-  DBusInt16 readDBusInt16() {
+  DBusInt16? readDBusInt16() {
     if (!align(INT16_ALIGNMENT) || remaining < 2) {
       return null;
     }
@@ -199,7 +199,7 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusUint16] from the buffer or returns null if not enough data.
-  DBusUint16 readDBusUint16() {
+  DBusUint16? readDBusUint16() {
     if (!align(UINT16_ALIGNMENT) || remaining < 2) {
       return null;
     }
@@ -207,7 +207,7 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusInt32] from the buffer or returns null if not enough data.
-  DBusInt32 readDBusInt32() {
+  DBusInt32? readDBusInt32() {
     if (!align(INT32_ALIGNMENT) || remaining < 4) {
       return null;
     }
@@ -215,7 +215,7 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusUint32] from the buffer or returns null if not enough data.
-  DBusUint32 readDBusUint32() {
+  DBusUint32? readDBusUint32() {
     if (!align(UINT32_ALIGNMENT) || remaining < 4) {
       return null;
     }
@@ -223,7 +223,7 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusInt64] from the buffer or returns null if not enough data.
-  DBusInt64 readDBusInt64() {
+  DBusInt64? readDBusInt64() {
     if (!align(INT64_ALIGNMENT) || remaining < 8) {
       return null;
     }
@@ -231,7 +231,7 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusUint64] from the buffer or returns null if not enough data.
-  DBusUint64 readDBusUint64() {
+  DBusUint64? readDBusUint64() {
     if (!align(UINT64_ALIGNMENT) || remaining < 8) {
       return null;
     }
@@ -239,7 +239,7 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusDouble] from the buffer or returns null if not enough data.
-  DBusDouble readDBusDouble() {
+  DBusDouble? readDBusDouble() {
     if (!align(DOUBLE_ALIGNMENT) || remaining < 8) {
       return null;
     }
@@ -247,7 +247,7 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusString] from the buffer or returns null if not enough data.
-  DBusString readDBusString() {
+  DBusString? readDBusString() {
     var length = readDBusUint32();
     if (length == null || remaining < (length.value + 1)) {
       return null;
@@ -263,7 +263,7 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusObjectPath] from the buffer or returns null if not enough data.
-  DBusObjectPath readDBusObjectPath() {
+  DBusObjectPath? readDBusObjectPath() {
     var value = readDBusString();
     if (value == null) {
       return null;
@@ -272,7 +272,7 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusSignature] from the buffer or returns null if not enough data.
-  DBusSignature readDBusSignature() {
+  DBusSignature? readDBusSignature() {
     if (remaining < 1) {
       return null;
     }
@@ -291,7 +291,7 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusVariant] from the buffer or returns null if not enough data.
-  DBusVariant readDBusVariant() {
+  DBusVariant? readDBusVariant() {
     var signature = readDBusSignature();
     if (signature == null) {
       return null;
@@ -306,7 +306,7 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusStruct] from the buffer or returns null if not enough data.
-  DBusStruct readDBusStruct(List<DBusSignature> childSignatures) {
+  DBusStruct? readDBusStruct(List<DBusSignature> childSignatures) {
     if (!align(STRUCT_ALIGNMENT)) {
       return null;
     }
@@ -324,7 +324,7 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusArray] from the buffer or returns null if not enough data.
-  DBusArray readDBusArray(DBusSignature childSignature) {
+  DBusArray? readDBusArray(DBusSignature childSignature) {
     var length = readDBusUint32();
     if (length == null || !align(getAlignment(childSignature))) {
       return null;
@@ -343,7 +343,7 @@ class DBusReadBuffer extends DBusBuffer {
     return DBusArray(childSignature, children);
   }
 
-  DBusDict readDBusDict(
+  DBusDict? readDBusDict(
       DBusSignature keySignature, DBusSignature valueSignature) {
     var length = readDBusUint32();
     if (length == null || !align(DICT_ENTRY_ALIGNMENT)) {
@@ -367,7 +367,7 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusValue] with [signature].
-  DBusValue readDBusValue(DBusSignature signature) {
+  DBusValue? readDBusValue(DBusSignature signature) {
     var s = signature.value;
     if (s == 'y') {
       return readDBusByte();

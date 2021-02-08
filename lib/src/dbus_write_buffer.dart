@@ -26,29 +26,29 @@ class DBusWriteBuffer extends DBusBuffer {
     writeValue(DBusUint32(message.serial));
     var headers = <DBusValue>[];
     if (message.path != null) {
-      headers.add(_makeHeader(HeaderCode.Path, message.path));
+      headers.add(_makeHeader(HeaderCode.Path, message.path!));
     }
     if (message.interface != null) {
       headers.add(
-          _makeHeader(HeaderCode.Interface, DBusString(message.interface)));
+          _makeHeader(HeaderCode.Interface, DBusString(message.interface!)));
     }
     if (message.member != null) {
-      headers.add(_makeHeader(HeaderCode.Member, DBusString(message.member)));
+      headers.add(_makeHeader(HeaderCode.Member, DBusString(message.member!)));
     }
     if (message.errorName != null) {
       headers.add(
-          _makeHeader(HeaderCode.ErrorName, DBusString(message.errorName)));
+          _makeHeader(HeaderCode.ErrorName, DBusString(message.errorName!)));
     }
     if (message.replySerial != null) {
-      headers.add(
-          _makeHeader(HeaderCode.ReplySerial, DBusUint32(message.replySerial)));
+      headers.add(_makeHeader(
+          HeaderCode.ReplySerial, DBusUint32(message.replySerial!)));
     }
     if (message.destination != null) {
-      headers.add(
-          _makeHeader(HeaderCode.Destination, DBusString(message.destination)));
+      headers.add(_makeHeader(
+          HeaderCode.Destination, DBusString(message.destination!)));
     }
     if (message.sender != null) {
-      headers.add(_makeHeader(HeaderCode.Sender, DBusString(message.sender)));
+      headers.add(_makeHeader(HeaderCode.Sender, DBusString(message.sender!)));
     }
     if (message.values.isNotEmpty) {
       var signature = '';

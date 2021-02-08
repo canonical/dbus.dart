@@ -22,7 +22,7 @@ class TestObject extends DBusObject {
 void main(List<String> args) async {
   var client = DBusClient.session();
 
-  String mode;
+  String? mode;
   if (args.isNotEmpty) {
     mode = args[0];
   }

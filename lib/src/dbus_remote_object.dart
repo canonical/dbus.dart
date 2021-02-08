@@ -142,7 +142,7 @@ class DBusRemoteObject {
 
   /// Invokes a method on this object.
   Future<DBusMethodResponse> callMethod(
-      String interface, String member, List<DBusValue> values) async {
+      String? interface, String member, List<DBusValue> values) async {
     return client.callMethod(
         destination: destination,
         path: path,

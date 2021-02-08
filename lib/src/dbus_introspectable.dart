@@ -31,10 +31,13 @@ DBusMethodResponse handleIntrospectableMethodCall(DBusObjectTree objectTree,
       interfaces.add(introspectIntrospectable());
       interfaces.add(introspectPeer());
       interfaces.add(introspectProperties());
-      interfaces.addAll(node.object.introspect());
+      interfaces.addAll(node.object!.introspect());
     }
-    var children =
-        node.children.keys.map((name) => DBusIntrospectNode(name)).toList();
+    var children = <DBusIntrospectNode>[];
+    if (node != null) {
+      children
+          .addAll(node.children.keys.map((name) => DBusIntrospectNode(name)));
+    }
     var xml =
         DBusIntrospectNode(null, interfaces, children).toXml().toXmlString();
     return DBusMethodSuccessResponse([DBusString(xml)]);

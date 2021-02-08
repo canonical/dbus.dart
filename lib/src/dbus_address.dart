@@ -61,7 +61,7 @@ class DBusAddress {
   }
 
   /// Decode an escaped value, e.g. 'Hello%20World' -> 'Hello World'.
-  static String _decodeValue(String encodedValue) {
+  static String? _decodeValue(String encodedValue) {
     var escapedValue = utf8.encode(encodedValue);
     var binaryValue = <int>[];
     for (var i = 0; i < escapedValue.length; i++) {
