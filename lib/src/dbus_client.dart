@@ -68,7 +68,7 @@ class _DBusSignalSubscription {
         'signal', sender, interface, member, path, pathNamespace));
   }
 
-  Future onCancel() async {
+  Future<void> onCancel() async {
     await client._removeMatch(client._makeMatchRule(
         'signal', sender, interface, member, path, pathNamespace));
     client._signalSubscriptions.remove(this);
@@ -118,7 +118,7 @@ class DBusClient {
   }
 
   /// Terminates all active connections. If a client remains unclosed, the Dart process may not terminate.
-  void close() async {
+  Future<void> close() async {
     if (_nameOwnerSubscription != null) {
       await _nameOwnerSubscription.cancel();
     }
@@ -245,7 +245,7 @@ class DBusClient {
   }
 
   /// Sends a ping request to the client at the given [destination].
-  Future ping(String destination) async {
+  Future<void> ping(String destination) async {
     var result = await callMethod(
         destination: destination,
         path: DBusObjectPath('/'),
@@ -307,7 +307,7 @@ class DBusClient {
   }
 
   /// Emits a signal from a D-Bus object.
-  void emitSignal(
+  Future<void> emitSignal(
       {String destination,
       DBusObjectPath path,
       String interface,
@@ -326,7 +326,7 @@ class DBusClient {
   }
 
   /// Open a socket connection to the D-Bus server.
-  Future<dynamic> _openSocket() async {
+  Future<void> _openSocket() async {
     var address = DBusAddress(_address);
     if (address.transport != 'unix') {
       throw 'D-Bus address transport not supported: ${_address}';
@@ -366,7 +366,7 @@ class DBusClient {
   }
 
   /// Connects to the D-Bus server.
-  void _connect() async {
+  Future<void> _connect() async {
     // If already connecting, wait for that to complete.
     if (_connectCompleter != null) {
       return _connectCompleter.future;
@@ -445,7 +445,7 @@ class DBusClient {
   }
 
   /// Adds a rule to match which messages to receive.
-  void _addMatch(String rule) async {
+  Future<void> _addMatch(String rule) async {
     var count = _matchRules[rule];
     if (count == null) {
       var result = await callMethod(
@@ -466,7 +466,7 @@ class DBusClient {
   }
 
   /// Removes an existing rule to match which messages to receive.
-  void _removeMatch(String rule) async {
+  Future<void> _removeMatch(String rule) async {
     var count = _matchRules[rule];
     if (count == null) {
       throw 'Attempted to remove match that is not added: ${rule}';
@@ -543,7 +543,7 @@ class DBusClient {
   }
 
   /// Processes a method call from the D-Bus server.
-  void _processMethodCall(DBusMessage message) async {
+  Future<void> _processMethodCall(DBusMessage message) async {
     DBusMethodResponse response;
     if (message.interface == 'org.freedesktop.DBus.Introspectable') {
       response = await handleIntrospectableMethodCall(
@@ -564,10 +564,10 @@ class DBusClient {
     }
 
     if (response is DBusMethodErrorResponse) {
-      _sendError(
+      await _sendError(
           message.serial, message.sender, response.errorName, response.values);
     } else if (response is DBusMethodSuccessResponse) {
-      _sendReturn(message.serial, message.sender, response.values);
+      await _sendReturn(message.serial, message.sender, response.values);
     }
   }
 
@@ -634,7 +634,7 @@ class DBusClient {
       Iterable<DBusValue> values,
       {bool requireConnect = true}) async {
     values ??= <DBusValue>[];
-    _sendMethodCall(destination, path, interface, member, values,
+    await _sendMethodCall(destination, path, interface, member, values,
         requireConnect: requireConnect);
 
     var call = _MethodCall(_lastSerial);
@@ -644,7 +644,7 @@ class DBusClient {
   }
 
   /// Sends a method call to the D-Bus server.
-  void _sendMethodCall(String destination, DBusObjectPath path,
+  Future<void> _sendMethodCall(String destination, DBusObjectPath path,
       String interface, String member, Iterable<DBusValue> values,
       {bool requireConnect = true}) async {
     _lastSerial++;
@@ -660,7 +660,7 @@ class DBusClient {
   }
 
   /// Sends a method return to the D-Bus server.
-  void _sendReturn(
+  Future<void> _sendReturn(
       int serial, String destination, Iterable<DBusValue> values) async {
     _lastSerial++;
     var message = DBusMessage(
@@ -673,7 +673,7 @@ class DBusClient {
   }
 
   /// Sends an error to the D-Bus server.
-  void _sendError(int serial, String destination, String errorName,
+  Future<void> _sendError(int serial, String destination, String errorName,
       Iterable<DBusValue> values) async {
     _lastSerial++;
     var message = DBusMessage(
@@ -687,8 +687,8 @@ class DBusClient {
   }
 
   /// Sends a signal to the D-Bus server.
-  void _sendSignal(String destination, DBusObjectPath path, String interface,
-      String member, Iterable<DBusValue> values) async {
+  Future<void> _sendSignal(String destination, DBusObjectPath path,
+      String interface, String member, Iterable<DBusValue> values) async {
     _lastSerial++;
     var message = DBusMessage(
         type: MessageType.Signal,
@@ -702,7 +702,8 @@ class DBusClient {
   }
 
   /// Sends a message (method call/return/error/signal) to the D-Bus server.
-  void _sendMessage(DBusMessage message, {bool requireConnect = true}) async {
+  Future<void> _sendMessage(DBusMessage message,
+      {bool requireConnect = true}) async {
     if (requireConnect) {
       await _connect();
     }

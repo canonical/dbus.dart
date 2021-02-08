@@ -538,7 +538,7 @@ List<String> generateRemotePropertyMethods(
     var source = '';
     source += '  /// Sets ${interface.name}.${property.name}\n';
     source +=
-        '  Future set${property.name} (${type.nativeType} value) async {\n';
+        '  Future<void> set${property.name} (${type.nativeType} value) async {\n';
     source +=
         "    await setProperty('${interface.name}', '${property.name}', ${convertedValue});\n";
     source += '  }\n';
