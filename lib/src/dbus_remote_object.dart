@@ -110,7 +110,8 @@ class DBusRemoteObject {
   }
 
   /// Sets a property on this object.
-  Future setProperty(String interface, String name, DBusValue value) async {
+  Future<void> setProperty(
+      String interface, String name, DBusValue value) async {
     var result = await client.callMethod(
         destination: destination,
         path: path,
