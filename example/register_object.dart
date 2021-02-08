@@ -23,7 +23,7 @@ class TestObject extends DBusObject {
   }
 
   @override
-  Future<DBusMethodResponse> handleMethodCall(String sender, String interface,
+  Future<DBusMethodResponse> handleMethodCall(String? sender, String? interface,
       String member, List<DBusValue> values) async {
     if (interface != 'com.canonical.DBusDart') {
       return DBusMethodErrorResponse.unknownInterface();

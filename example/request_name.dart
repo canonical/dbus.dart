@@ -1,6 +1,6 @@
 import 'package:dbus/dbus.dart';
 
-void acquireName(
+Future<void> acquireName(
     DBusClient client, String name, Set<DBusRequestNameFlag> flags) async {
   var result = await client.requestName(name, flags: flags);
   switch (result) {

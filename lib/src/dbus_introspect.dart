@@ -10,7 +10,7 @@ enum DBusArgumentDirection { in_, out }
 /// Introspection information about a D-Bus node.
 class DBusIntrospectNode {
   /// D-Bus object this node represents, either absolute or relative (optional).
-  final String name;
+  final String? name;
 
   /// Interfaces this node uses.
   final List<DBusIntrospectInterface> interfaces;
@@ -37,7 +37,7 @@ class DBusIntrospectNode {
   XmlNode toXml() {
     var attributes = <XmlAttribute>[];
     if (name != null) {
-      attributes.add(XmlAttribute(XmlName('name'), name));
+      attributes.add(XmlAttribute(XmlName('name'), name!));
     }
     var children_ = <XmlNode>[];
     children_.addAll(interfaces.map((i) => i.toXml()));
@@ -253,9 +253,7 @@ class DBusIntrospectProperty {
 
   XmlNode toXml() {
     var attributes = <XmlAttribute>[];
-    if (name != null) {
-      attributes.add(XmlAttribute(XmlName('name'), name));
-    }
+    attributes.add(XmlAttribute(XmlName('name'), name));
     attributes.add(XmlAttribute(XmlName('type'), type.value));
     if (access == DBusPropertyAccess.readwrite) {
       attributes.add(XmlAttribute(XmlName('access'), 'readwrite'));
@@ -277,7 +275,7 @@ class DBusIntrospectProperty {
 /// Introspection information about a D-Bus argument.
 class DBusIntrospectArgument {
   /// Name of this argument, e.g. 'name' (optional).
-  final String name;
+  final String? name;
 
   /// Type of this argument.
   final DBusSignature type;
@@ -317,7 +315,7 @@ class DBusIntrospectArgument {
   XmlNode toXml({bool writeDirection = true}) {
     var attributes = <XmlAttribute>[];
     if (name != null) {
-      attributes.add(XmlAttribute(XmlName('name'), name));
+      attributes.add(XmlAttribute(XmlName('name'), name!));
     }
     attributes.add(XmlAttribute(XmlName('type'), type.value));
     if (writeDirection) {

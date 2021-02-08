@@ -48,7 +48,7 @@ Future<DBusMethodResponse> handlePropertiesMethodCall(DBusObjectTree objectTree,
     }
     var interfaceName = (values[0] as DBusString).value;
     var propertyName = (values[1] as DBusString).value;
-    return await node.object.getProperty(interfaceName, propertyName);
+    return await node.object!.getProperty(interfaceName, propertyName);
   } else if (member == 'Set') {
     var node = objectTree.lookup(path);
     if (node == null || node.object == null) {
@@ -63,7 +63,7 @@ Future<DBusMethodResponse> handlePropertiesMethodCall(DBusObjectTree objectTree,
     var interfaceName = (values[0] as DBusString).value;
     var propertyName = (values[1] as DBusString).value;
     var value = (values[2] as DBusVariant).value;
-    return await node.object.setProperty(interfaceName, propertyName, value);
+    return await node.object!.setProperty(interfaceName, propertyName, value);
   } else if (member == 'GetAll') {
     var node = objectTree.lookup(path);
     if (node == null || node.object == null) {
@@ -73,7 +73,7 @@ Future<DBusMethodResponse> handlePropertiesMethodCall(DBusObjectTree objectTree,
       return DBusMethodErrorResponse.invalidArgs();
     }
     var interfaceName = (values[0] as DBusString).value;
-    return await node.object.getAllProperties(interfaceName);
+    return await node.object!.getAllProperties(interfaceName);
   } else {
     return DBusMethodErrorResponse.unknownMethod();
   }

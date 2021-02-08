@@ -51,25 +51,25 @@ class DBusMessage {
   final int serial;
 
   /// Object path this message refers to or null. e.g. '/org/freedesktop/DBus'.
-  final DBusObjectPath path;
+  final DBusObjectPath? path;
 
   /// Interface this message refers to or null. e.g. 'org.freedesktop.DBus.Properties'.
-  final String interface;
+  final String? interface;
 
   /// Member this message refers to or null. e.g. 'Get'.
-  final String member;
+  final String? member;
 
   /// Error name as returned in messages of type MessageType.Error or null. e.g. 'org.freedesktop.DBus.Error.UnknownObject'.
-  final String errorName;
+  final String? errorName;
 
   /// Serial number this message is replying to or null.
-  final int replySerial;
+  final int? replySerial;
 
   /// Destination this message is being sent to or null. e.g. 'org.freedesktop.DBus'.
-  final String destination;
+  final String? destination;
 
   /// Sender of this message is being sent to or null. e.g. 'com.exaple.Test'.
-  final String sender;
+  final String? sender;
 
   /// Values being sent with this message.
   final List<DBusValue> values;
@@ -86,7 +86,7 @@ class DBusMessage {
       this.replySerial,
       this.destination,
       this.sender,
-      this.values});
+      this.values = const []});
 
   @override
   String toString() {

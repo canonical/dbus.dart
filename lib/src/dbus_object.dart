@@ -6,7 +6,7 @@ import 'dbus_value.dart';
 /// An object that is exported on the bus.
 class DBusObject {
   /// The client this object is being exported by.
-  DBusClient client;
+  DBusClient? client;
 
   /// The path this object is registered on.
   DBusObjectPath get path {
@@ -19,7 +19,7 @@ class DBusObject {
   }
 
   /// Called when a method call is received on this object.
-  Future<DBusMethodResponse> handleMethodCall(String sender, String interface,
+  Future<DBusMethodResponse> handleMethodCall(String? sender, String? interface,
       String member, List<DBusValue> values) async {
     return DBusMethodErrorResponse.unknownInterface();
   }
@@ -45,7 +45,7 @@ class DBusObject {
   /// Emits a signal on this object.
   void emitSignal(String interface, String member,
       [List<DBusValue> values = const []]) {
-    client.emitSignal(
+    client?.emitSignal(
         path: path, interface: interface, member: member, values: values);
   }
 }
