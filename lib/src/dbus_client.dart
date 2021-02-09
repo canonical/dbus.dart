@@ -538,7 +538,11 @@ class DBusClient {
   /// Processes a method call from the D-Bus server.
   Future<void> _processMethodCall(DBusMessage message) async {
     DBusMethodResponse response;
-    if (message.interface == 'org.freedesktop.DBus.Introspectable') {
+    if (message.member == null) {
+      response = DBusMethodErrorResponse.unknownMethod();
+    } else if (message.path == null) {
+      response = DBusMethodErrorResponse.unknownObject();
+    } else if (message.interface == 'org.freedesktop.DBus.Introspectable') {
       response = await handleIntrospectableMethodCall(
           _objectTree, message.path, message.member, message.values);
     } else if (message.interface == 'org.freedesktop.DBus.Peer') {
@@ -566,6 +570,11 @@ class DBusClient {
 
   /// Processes a method return or error result from the D-Bus server.
   void _processMethodResponse(DBusMessage message) {
+    // Check has required fields.
+    if (message.replySerial == null) {
+      return;
+    }
+
     var completer = _methodCalls[message.replySerial];
     if (completer == null) {
       return;
@@ -583,6 +592,13 @@ class DBusClient {
 
   /// Processes a signal received from the D-Bus server.
   void _processSignal(DBusMessage message) {
+    // Check has required fields.
+    if (message.path == null ||
+        message.interface == null ||
+        message.member == null) {
+      return;
+    }
+
     for (var subscription in _signalSubscriptions) {
       String makeUnique(String sender) {
         var uniqueSender = _ownedNames[sender];
