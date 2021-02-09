@@ -625,21 +625,27 @@ class DBusClient {
       String member,
       Iterable<DBusValue> values,
       {bool requireConnect = true}) async {
-    values ??= <DBusValue>[];
-    await _sendMethodCall(destination, path, interface, member, values,
-        requireConnect: requireConnect);
-
+    _lastSerial++;
+    var serial = _lastSerial;
     var completer = Completer<DBusMethodResponse>();
-    _methodCalls[_lastSerial] = completer;
+    _methodCalls[serial] = completer;
+
+    values ??= <DBusValue>[];
+    await _sendMethodCall(serial, destination, path, interface, member, values,
+        requireConnect: requireConnect);
 
     return completer.future;
   }
 
   /// Sends a method call to the D-Bus server.
-  Future<void> _sendMethodCall(String destination, DBusObjectPath path,
-      String interface, String member, Iterable<DBusValue> values,
+  Future<void> _sendMethodCall(
+      int serial,
+      String destination,
+      DBusObjectPath path,
+      String interface,
+      String member,
+      Iterable<DBusValue> values,
       {bool requireConnect = true}) async {
-    _lastSerial++;
     var message = DBusMessage(
         type: MessageType.MethodCall,
         serial: _lastSerial,
