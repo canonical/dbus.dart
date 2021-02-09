@@ -133,7 +133,8 @@ class DBusIntrospectMethod {
     var name = node.getAttribute('name');
     var args = node
         .findElements('arg')
-        .map((n) => DBusIntrospectArgument.fromXml(n))
+        .map(
+            (n) => DBusIntrospectArgument.fromXml(n, DBusArgumentDirection.in_))
         .toList();
     var annotations = node
         .findElements('annotation')
@@ -174,7 +175,8 @@ class DBusIntrospectSignal {
     var name = node.getAttribute('name');
     var args = node
         .findElements('arg')
-        .map((n) => DBusIntrospectArgument.fromXml(n))
+        .map(
+            (n) => DBusIntrospectArgument.fromXml(n, DBusArgumentDirection.out))
         .toList();
     var annotations = node
         .findElements('annotation')
@@ -185,7 +187,7 @@ class DBusIntrospectSignal {
 
   XmlNode toXml() {
     var children = <XmlNode>[];
-    children.addAll(args.map((a) => a.toXml()));
+    children.addAll(args.map((a) => a.toXml(writeDirection: false)));
     children.addAll(annotations.map((a) => a.toXml()));
     return XmlElement(
         XmlName('signal'), [XmlAttribute(XmlName('name'), name)], children);
@@ -273,11 +275,12 @@ class DBusIntrospectArgument {
   DBusIntrospectArgument(this.name, this.type, this.direction,
       {this.annotations = const []});
 
-  factory DBusIntrospectArgument.fromXml(XmlNode node) {
+  factory DBusIntrospectArgument.fromXml(
+      XmlNode node, DBusArgumentDirection defaultDirection) {
     var name = node.getAttribute('name');
     var type = DBusSignature(node.getAttribute('type'));
     var directionText = node.getAttribute('direction');
-    DBusArgumentDirection direction;
+    var direction = defaultDirection;
     if (directionText == 'in') {
       direction = DBusArgumentDirection.in_;
     } else if (directionText == 'out') {
@@ -291,16 +294,18 @@ class DBusIntrospectArgument {
         annotations: annotations);
   }
 
-  XmlNode toXml() {
+  XmlNode toXml({bool writeDirection = true}) {
     var attributes = <XmlAttribute>[];
     if (name != null) {
       attributes.add(XmlAttribute(XmlName('name'), name));
     }
     attributes.add(XmlAttribute(XmlName('type'), type.value));
-    if (direction == DBusArgumentDirection.in_) {
-      attributes.add(XmlAttribute(XmlName('direction'), 'in'));
-    } else if (direction == DBusArgumentDirection.out) {
-      attributes.add(XmlAttribute(XmlName('direction'), 'out'));
+    if (writeDirection) {
+      if (direction == DBusArgumentDirection.in_) {
+        attributes.add(XmlAttribute(XmlName('direction'), 'in'));
+      } else if (direction == DBusArgumentDirection.out) {
+        attributes.add(XmlAttribute(XmlName('direction'), 'out'));
+      }
     }
     return XmlElement(
         XmlName('arg'), attributes, annotations.map((a) => a.toXml()).toList());
