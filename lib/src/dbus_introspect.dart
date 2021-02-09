@@ -76,6 +76,9 @@ class DBusIntrospectInterface {
 
   factory DBusIntrospectInterface.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
+    if (name == null) {
+      throw 'D-Bus Introspection XML missing interface name';
+    }
     var methods = node
         .findElements('method')
         .map((n) => DBusIntrospectMethod.fromXml(n))
@@ -131,6 +134,9 @@ class DBusIntrospectMethod {
 
   factory DBusIntrospectMethod.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
+    if (name == null) {
+      throw 'D-Bus Introspection XML missing method name';
+    }
     var args = node
         .findElements('arg')
         .map(
@@ -173,6 +179,9 @@ class DBusIntrospectSignal {
 
   factory DBusIntrospectSignal.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
+    if (name == null) {
+      throw 'D-Bus Introspection XML missing signal name';
+    }
     var args = node
         .findElements('arg')
         .map(
@@ -219,7 +228,14 @@ class DBusIntrospectProperty {
 
   factory DBusIntrospectProperty.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
-    var type = DBusSignature(node.getAttribute('type'));
+    if (name == null) {
+      throw 'D-Bus Introspection XML missing property name';
+    }
+    var typeString = node.getAttribute('type');
+    if (typeString == null) {
+      throw 'D-Bus Introspection XML missing property type';
+    }
+    var type = DBusSignature(typeString);
     var accessText = node.getAttribute('access');
     var access = DBusPropertyAccess.readwrite;
     if (accessText == 'read') {
@@ -278,7 +294,11 @@ class DBusIntrospectArgument {
   factory DBusIntrospectArgument.fromXml(
       XmlNode node, DBusArgumentDirection defaultDirection) {
     var name = node.getAttribute('name');
-    var type = DBusSignature(node.getAttribute('type'));
+    var typeString = node.getAttribute('type');
+    if (typeString == null) {
+      throw 'D-Bus Introspection XML missing argument type';
+    }
+    var type = DBusSignature(typeString);
     var directionText = node.getAttribute('direction');
     var direction = defaultDirection;
     if (directionText == 'in') {
@@ -329,7 +349,13 @@ class DBusIntrospectAnnotation {
 
   factory DBusIntrospectAnnotation.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
+    if (name == null) {
+      throw 'D-Bus Introspection XML missing annotation name';
+    }
     var value = node.getAttribute('value');
+    if (value == null) {
+      throw 'D-Bus Introspection XML missing annotation value';
+    }
     return DBusIntrospectAnnotation(name, value);
   }
 
