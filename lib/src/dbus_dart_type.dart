@@ -45,10 +45,10 @@ DBusDartType getDartType(DBusSignature signature) {
 /// Class that generates Dart code for a D-Bus data type.
 abstract class DBusDartType {
   // Native Dart type for the API user to interact with, e.g. 'int', 'String'.
-  String nativeType;
+  String get nativeType;
 
   // Dart type to pass to dbus.dart, e.g. 'DBusUint32', 'DBusString'.
-  String dbusType;
+  String get dbusType;
 
   // Converts a native Dart variable to a D-Bus data type. e.g. 'foo' -> 'DBusInteger(foo)'.
   String nativeToDBus(String name);
