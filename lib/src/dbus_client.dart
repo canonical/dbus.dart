@@ -320,7 +320,7 @@ class DBusClient {
 
   /// Open a socket connection to the D-Bus server.
   Future<void> _openSocket() async {
-    var address = DBusAddress(_address);
+    var address = DBusAddress.fromString(_address);
     if (address.transport != 'unix') {
       throw 'D-Bus address transport not supported: ${_address}';
     }
