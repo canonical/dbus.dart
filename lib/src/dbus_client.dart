@@ -18,13 +18,6 @@ import 'getuid.dart';
 // FIXME: Use more efficient data store than List<int>?
 // FIXME: Use ByteData more efficiently - don't copy when reading/writing
 
-class _MethodCall {
-  int serial;
-  var completer = Completer<DBusMethodResponse>();
-
-  _MethodCall(this.serial);
-}
-
 /// A signal received from a client.
 class DBusSignal {
   /// Client that sent the signal.
@@ -83,7 +76,7 @@ class DBusClient {
   final _authenticateCompleter = Completer();
   Completer _connectCompleter;
   var _lastSerial = 0;
-  final _methodCalls = <_MethodCall>[];
+  final _methodCalls = <int, Completer<DBusMethodResponse>>{};
   final _signalSubscriptions = <_DBusSignalSubscription>[];
   StreamSubscription<DBusSignal> _nameOwnerSubscription;
   final _objectTree = DBusObjectTree();
@@ -573,12 +566,11 @@ class DBusClient {
 
   /// Processes a method return or error result from the D-Bus server.
   void _processMethodResponse(DBusMessage message) {
-    var methodCall = _methodCalls
-        .firstWhere((c) => c.serial == message.replySerial, orElse: () => null);
-    if (methodCall == null) {
+    var completer = _methodCalls[message.replySerial];
+    if (completer == null) {
       return;
     }
-    _methodCalls.remove(methodCall);
+    _methodCalls.remove(message.replySerial);
 
     DBusMethodResponse response;
     if (message.type == MessageType.Error) {
@@ -586,7 +578,7 @@ class DBusClient {
     } else {
       response = DBusMethodSuccessResponse(message.values);
     }
-    methodCall.completer.complete(response);
+    completer.complete(response);
   }
 
   /// Processes a signal received from the D-Bus server.
@@ -637,10 +629,10 @@ class DBusClient {
     await _sendMethodCall(destination, path, interface, member, values,
         requireConnect: requireConnect);
 
-    var call = _MethodCall(_lastSerial);
-    _methodCalls.add(call);
+    var completer = Completer<DBusMethodResponse>();
+    _methodCalls[_lastSerial] = completer;
 
-    return call.completer.future;
+    return completer.future;
   }
 
   /// Sends a method call to the D-Bus server.
