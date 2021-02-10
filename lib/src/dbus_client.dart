@@ -282,23 +282,30 @@ class DBusClient {
     String member,
     DBusObjectPath path,
     DBusObjectPath pathNamespace,
-  }) async* {
+  }) {
     var subscription = _DBusSignalSubscription(
         this, sender, interface, member, path, pathNamespace);
 
     // Get the unique name of the sender (as this is the name the messages will use).
-    if (sender != null && !_ownedNames.containsValue(sender)) {
-      var uniqueName = await getNameOwner(sender);
-      if (uniqueName != null) {
-        _ownedNames[sender] = uniqueName;
-      }
+    if (sender != null) {
+      _findUniqueName(sender);
     }
 
     _signalSubscriptions.add(subscription);
 
-    await for (var signal in subscription.stream) {
-      yield signal;
+    return subscription.stream;
+  }
+
+  /// Find the unique name for a D-Bus client.
+  Future<String> _findUniqueName(String name) async {
+    if (_ownedNames.containsValue(name)) return _ownedNames[name];
+
+    var uniqueName = await getNameOwner(name);
+    if (uniqueName != null) {
+      _ownedNames[name] = uniqueName;
     }
+
+    return uniqueName;
   }
 
   /// Emits a signal from a D-Bus object.
