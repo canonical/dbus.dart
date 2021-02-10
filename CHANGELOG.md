@@ -1,5 +1,9 @@
 # Changelog
 
-## 0.0.0-dev
+## 0.1.1
 
-* Initial prerelease
+* Fix DBusClient blocking on close
+
+## 0.1.0
+
+* Initial release
