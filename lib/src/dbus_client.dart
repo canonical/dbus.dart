@@ -48,14 +48,14 @@ class _DBusSignalSubscription {
   final String member;
   final DBusObjectPath path;
   final DBusObjectPath pathNamespace;
-  StreamController controller;
+  final controller = StreamController<DBusSignal>();
 
   Stream<DBusSignal> get stream => controller.stream;
 
   _DBusSignalSubscription(this.client, this.sender, this.interface, this.member,
       this.path, this.pathNamespace) {
-    controller =
-        StreamController<DBusSignal>(onListen: onListen, onCancel: onCancel);
+    controller.onListen = onListen;
+    controller.onCancel = onCancel;
   }
 
   void onListen() {
