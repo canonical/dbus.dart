@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:meta/meta.dart';
+
 import 'dbus_address.dart';
 import 'dbus_introspectable.dart';
 import 'dbus_message.dart';
@@ -266,9 +268,9 @@ class DBusClient {
   /// Invokes a method on a D-Bus object.
   Future<DBusMethodResponse> callMethod(
       {String destination,
-      DBusObjectPath path,
+      @required DBusObjectPath path,
       String interface,
-      String member,
+      @required String member,
       Iterable<DBusValue> values}) async {
     return await _callMethod(destination, path, interface, member, values);
   }
@@ -302,9 +304,9 @@ class DBusClient {
   /// Emits a signal from a D-Bus object.
   Future<void> emitSignal(
       {String destination,
-      DBusObjectPath path,
-      String interface,
-      String member,
+      @required DBusObjectPath path,
+      @required String interface,
+      @required String member,
       Iterable<DBusValue> values = const []}) async {
     await _sendSignal(destination, path, interface, member, values);
   }
