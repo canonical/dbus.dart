@@ -120,12 +120,14 @@ String generateObjectClass(DBusIntrospectNode node) {
     'getProperty',
     'setProperty'
   ];
+  var getMethodNames = <String, String>{};
+  var setMethodNames = <String, String>{};
 
   // Generate all the methods for this object.
   for (var interface in node.interfaces) {
     for (var property in interface.properties) {
       methods.addAll(generatePropertyImplementationMethods(
-          methodNames, interface, property));
+          methodNames, getMethodNames, setMethodNames, interface, property));
     }
     for (var method in interface.methods) {
       methods.add(generateMethodImplementation(methodNames, interface, method));
@@ -136,8 +138,8 @@ String generateObjectClass(DBusIntrospectNode node) {
   }
   methods.add(generateIntrospectMethod(node));
   methods.add(generateHandleMethodCall(node));
-  methods.add(generateGetProperty(node));
-  methods.add(generateSetProperty(node));
+  methods.add(generateGetProperty(getMethodNames, node));
+  methods.add(generateSetProperty(setMethodNames, node));
   methods.add(generateGetAllProperties(node));
 
   var source = '';
@@ -149,8 +151,12 @@ String generateObjectClass(DBusIntrospectNode node) {
 }
 
 /// Generates a stub implementation of [property].
-List<String> generatePropertyImplementationMethods(List<String> methodNames,
-    DBusIntrospectInterface interface, DBusIntrospectProperty property) {
+List<String> generatePropertyImplementationMethods(
+    List<String> methodNames,
+    Map<String, String> getMethodNames,
+    Map<String, String> setMethodNames,
+    DBusIntrospectInterface interface,
+    DBusIntrospectProperty property) {
   var methods = <String>[];
 
   var type = getDartType(property.type);
@@ -158,6 +164,7 @@ List<String> generatePropertyImplementationMethods(List<String> methodNames,
   if (property.access == DBusPropertyAccess.readwrite ||
       property.access == DBusPropertyAccess.read) {
     var methodName = getUniqueMethodName(methodNames, 'get${property.name}');
+    getMethodNames['${interface.name}.${property.name}'] = methodName;
 
     var source = '';
     source +=
@@ -171,6 +178,7 @@ List<String> generatePropertyImplementationMethods(List<String> methodNames,
   if (property.access == DBusPropertyAccess.readwrite ||
       property.access == DBusPropertyAccess.write) {
     var methodName = getUniqueMethodName(methodNames, 'set${property.name}');
+    setMethodNames['${interface.name}.${property.name}'] = methodName;
 
     var source = '';
     source += '  /// Sets property ${interface.name}.${property.name}\n';
@@ -387,7 +395,8 @@ String generateHandleMethodCall(DBusIntrospectNode node) {
 }
 
 // Generates a method that overrides DBusObject.getProperty().
-String generateGetProperty(DBusIntrospectNode node) {
+String generateGetProperty(
+    Map<String, String> getMethodNames, DBusIntrospectNode node) {
   // Override DBusObject.getProperty().
   var interfaceBranches = <SwitchBranch>[];
   for (var interface in node.interfaces) {
@@ -396,7 +405,8 @@ String generateGetProperty(DBusIntrospectNode node) {
       var source = '';
       if (property.access == DBusPropertyAccess.readwrite ||
           property.access == DBusPropertyAccess.read) {
-        source += 'return get${property.name}();\n';
+        var methodName = getMethodNames['${interface.name}.${property.name}'];
+        source += 'return ${methodName}();\n';
       } else {
         source = 'return DBusMethodErrorResponse.propertyWriteOnly()\n';
       }
@@ -423,7 +433,8 @@ String generateGetProperty(DBusIntrospectNode node) {
 }
 
 // Generates a method that overrides DBusObject.setProperty().
-String generateSetProperty(DBusIntrospectNode node) {
+String generateSetProperty(
+    Map<String, String> setMethodNames, DBusIntrospectNode node) {
   var interfaceBranches = <SwitchBranch>[];
   for (var interface in node.interfaces) {
     var propertyBranches = <SwitchBranch>[];
@@ -438,7 +449,8 @@ String generateSetProperty(DBusIntrospectNode node) {
       if (property.access == DBusPropertyAccess.readwrite ||
           property.access == DBusPropertyAccess.write) {
         var convertedValue = type.dbusToNative('value');
-        source += 'return set${property.name}(${convertedValue});\n';
+        var methodName = setMethodNames['${interface.name}.${property.name}'];
+        source += 'return ${methodName}(${convertedValue});\n';
       } else {
         source = 'return DBusMethodErrorResponse.propertyReadOnly()\n';
       }
