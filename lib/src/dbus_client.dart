@@ -202,6 +202,23 @@ class DBusClient {
     }
   }
 
+  /// Lists the unique bus names of the clients queued to own the well-known bus [name].
+  Future<List<String>> listQueuedOwners(String name) async {
+    var result = await callMethod(
+        destination: 'org.freedesktop.DBus',
+        path: DBusObjectPath('/org/freedesktop/DBus'),
+        interface: 'org.freedesktop.DBus',
+        member: 'ListQueuedOwners');
+    var values = result.returnValues;
+    if (values.length != 1 || values[0].signature != DBusSignature('as')) {
+      throw 'org.freedesktop.DBus.ListQueuedOwners returned invalid result: ${values}';
+    }
+    return (values[0] as DBusArray)
+        .children
+        .map((v) => (v as DBusString).value)
+        .toList();
+  }
+
   /// Lists the registered names on the bus.
   Future<List<String>> listNames() async {
     var result = await callMethod(
