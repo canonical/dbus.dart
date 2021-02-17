@@ -89,11 +89,16 @@ class DBusClient {
   var _lastSerial = 0;
   final _methodCalls = <int, Completer<DBusMethodResponse>>{};
   final _signalSubscriptions = <_DBusSignalSubscription>[];
+  StreamSubscription<DBusSignal> _nameAcquiredSubscription;
+  StreamSubscription<DBusSignal> _nameLostSubscription;
   StreamSubscription<DBusSignal> _nameOwnerSubscription;
   final _objectTree = DBusObjectTree();
   final _matchRules = <String, int>{};
-  final _ownedNames = <String, String>{};
+  final _nameOwners = <String, String>{};
+  final _ownedNames = <String>{};
   String _uniqueName;
+  final _nameAcquiredController = StreamController<String>();
+  final _nameLostController = StreamController<String>();
 
   /// Creates a new DBus client to connect on [address].
   DBusClient(String address) {
@@ -123,6 +128,12 @@ class DBusClient {
 
   /// Terminates all active connections. If a client remains unclosed, the Dart process may not terminate.
   Future<void> close() async {
+    if (_nameAcquiredSubscription != null) {
+      await _nameAcquiredSubscription.cancel();
+    }
+    if (_nameLostSubscription != null) {
+      await _nameLostSubscription.cancel();
+    }
     if (_nameOwnerSubscription != null) {
       await _nameOwnerSubscription.cancel();
     }
@@ -134,6 +145,15 @@ class DBusClient {
   /// Gets the unique name this connection uses.
   /// Only set once [connect] is completed.
   String get uniqueName => _uniqueName;
+
+  /// Gets the names owned by this connection.
+  Iterable<String> get ownedNames => _ownedNames;
+
+  /// Stream of names as they are acquired by this client.
+  Stream<String> get nameAcquired => _nameAcquiredController.stream;
+
+  /// Stream of names as this client loses them.
+  Stream<String> get nameLost => _nameLostController.stream;
 
   /// Requests usage of [name] as a D-Bus object name.
   Future<DBusRequestNameReply> requestName(String name,
@@ -165,6 +185,7 @@ class DBusClient {
     var returnCode = (result.returnValues[0] as DBusUint32).value;
     switch (returnCode) {
       case 1:
+        _ownedNames.add(name);
         return DBusRequestNameReply.primaryOwner;
       case 2:
         return DBusRequestNameReply.inQueue;
@@ -192,6 +213,7 @@ class DBusClient {
     var returnCode = (result.returnValues[0] as DBusUint32).value;
     switch (returnCode) {
       case 1:
+        _ownedNames.remove(name);
         return DBusReleaseNameReply.released;
       case 2:
         return DBusReleaseNameReply.nonExistant;
@@ -360,11 +382,11 @@ class DBusClient {
 
   /// Find the unique name for a D-Bus client.
   Future<String> _findUniqueName(String name) async {
-    if (_ownedNames.containsValue(name)) return _ownedNames[name];
+    if (_nameOwners.containsValue(name)) return _nameOwners[name];
 
     var uniqueName = await getNameOwner(name);
     if (uniqueName != null) {
-      _ownedNames[name] = uniqueName;
+      _nameOwners[name] = uniqueName;
     }
 
     return uniqueName;
@@ -459,12 +481,53 @@ class DBusClient {
     // Notify anyone else awaiting connection.
     _connectCompleter.complete();
 
-    // Listen for name ownership changes - we need these to match incoming signals.
-    var signals = await subscribeSignals(
+    // Monitor name ownership so we know what names we have, and can match incoming signals from other clients.
+    var nameAcquiredSignals = await subscribeSignals(
+        sender: 'org.freedesktop.DBus',
+        interface: 'org.freedesktop.DBus',
+        member: 'NameAcquired');
+    _nameAcquiredSubscription = nameAcquiredSignals.listen(_handleNameAcquired);
+    var nameLostSignals = await subscribeSignals(
+        sender: 'org.freedesktop.DBus',
+        interface: 'org.freedesktop.DBus',
+        member: 'NameLost');
+    _nameLostSubscription = nameLostSignals.listen(_handleNameLost);
+    var nameOwnerChangedSignals = await subscribeSignals(
         sender: 'org.freedesktop.DBus',
         interface: 'org.freedesktop.DBus',
         member: 'NameOwnerChanged');
-    _nameOwnerSubscription = signals.listen(_handleNameOwnerChanged);
+    _nameOwnerSubscription =
+        nameOwnerChangedSignals.listen(_handleNameOwnerChanged);
+  }
+
+  /// Handles the org.freedesktop.DBus.NameAcquired signal.
+  void _handleNameAcquired(DBusSignal signal) {
+    if (signal.values.length != 1 ||
+        signal.values[0].signature != DBusSignature('s')) {
+      throw 'org.freedesktop.DBus.NameAcquired received with invalid arguments: ${signal.values}';
+    }
+
+    var name = (signal.values[0] as DBusString).value;
+
+    _nameOwners[name] = _uniqueName;
+    _ownedNames.add(name);
+
+    _nameAcquiredController.add(name);
+  }
+
+  /// Handles the org.freedesktop.DBus.NameLost signal.
+  void _handleNameLost(DBusSignal signal) {
+    if (signal.values.length != 1 ||
+        signal.values[0].signature != DBusSignature('s')) {
+      throw 'org.freedesktop.DBus.NameLost received with invalid arguments: ${signal.values}';
+    }
+
+    var name = (signal.values[0] as DBusString).value;
+
+    _nameOwners.remove(name);
+    _ownedNames.remove(name);
+
+    _nameLostController.add(name);
   }
 
   /// Handles the org.freedesktop.DBus.NameOwnerChanged signal and updates the table of known names.
@@ -473,15 +536,15 @@ class DBusClient {
         signal.values[0].signature != DBusSignature('s') ||
         signal.values[1].signature != DBusSignature('s') ||
         signal.values[2].signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.NameOwnerChanged returned invalid arguments: ${signal.values}';
+      throw 'org.freedesktop.DBus.NameOwnerChanged received with invalid arguments: ${signal.values}';
     }
 
     var name = (signal.values[0] as DBusString).value;
     var newOwner = (signal.values[2] as DBusString).value;
     if (newOwner != '') {
-      _ownedNames[name] = newOwner;
+      _nameOwners[name] = newOwner;
     } else {
-      _ownedNames.remove(name);
+      _nameOwners.remove(name);
     }
   }
 
@@ -672,7 +735,7 @@ class DBusClient {
 
     for (var subscription in _signalSubscriptions) {
       String makeUnique(String sender) {
-        var uniqueSender = _ownedNames[sender];
+        var uniqueSender = _nameOwners[sender];
         if (uniqueSender != null) {
           return uniqueSender;
         }
