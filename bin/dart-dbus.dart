@@ -814,7 +814,8 @@ class SwitchBranch {
 }
 
 /// Make switch (if/else) statement.
-String makeSwitch(Iterable<SwitchBranch> branches, [String defaultBranch]) {
+String makeSwitch(Iterable<SwitchBranch> branches,
+    [String defaultBranch = '']) {
   if (branches.isEmpty) {
     return defaultBranch;
   }
