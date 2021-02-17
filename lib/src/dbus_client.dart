@@ -20,6 +20,15 @@ import 'getuid.dart';
 // FIXME: Use more efficient data store than List<int>?
 // FIXME: Use ByteData more efficiently - don't copy when reading/writing
 
+/// Reply received when calling [DBusClient.requestName].
+enum DBusRequestNameReply { primaryOwner, inQueue, exists, alreadyOwner }
+
+/// Flags passed to [DBusClient.requestName].
+enum DBusRequestNameFlag { allowReplacement, replaceExisting, doNotQueue }
+
+/// Reply received when calling [DBusClient.releaseName].
+enum DBusReleaseNameReply { released, nonExistant, notOwner }
+
 /// A signal received from a client.
 class DBusSignal {
   /// Client that sent the signal.
@@ -127,23 +136,49 @@ class DBusClient {
   String get uniqueName => _uniqueName;
 
   /// Requests usage of [name] as a D-Bus object name.
-  // FIXME(robert-ancell): Use an enum for flags.
-  Future<int> requestName(String name, {int flags = 0}) async {
+  Future<DBusRequestNameReply> requestName(String name,
+      {Set<DBusRequestNameFlag> flags = const {}}) async {
+    var flagsValue = 0;
+    for (var flag in flags) {
+      switch (flag) {
+        case DBusRequestNameFlag.allowReplacement:
+          flagsValue |= 0x1;
+          break;
+        case DBusRequestNameFlag.replaceExisting:
+          flagsValue |= 0x2;
+          break;
+        case DBusRequestNameFlag.doNotQueue:
+          flagsValue |= 0x4;
+          break;
+      }
+    }
     var result = await callMethod(
         destination: 'org.freedesktop.DBus',
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
         member: 'RequestName',
-        values: [DBusString(name), DBusUint32(flags)]);
+        values: [DBusString(name), DBusUint32(flagsValue)]);
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('u')) {
-      throw 'RequestName returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.RequestName returned invalid result: ${values}';
     }
-    return (values[0] as DBusUint32).value;
+    var returnCode = (result.returnValues[0] as DBusUint32).value;
+    switch (returnCode) {
+      case 1:
+        return DBusRequestNameReply.primaryOwner;
+      case 2:
+        return DBusRequestNameReply.inQueue;
+      case 3:
+        return DBusRequestNameReply.exists;
+      case 4:
+        return DBusRequestNameReply.alreadyOwner;
+      default:
+        throw 'org.freedesktop.DBusRequestName returned unknown return code: ${returnCode}';
+    }
   }
 
   /// Releases the D-Bus object name previously acquired using requestName().
-  Future<int> releaseName(String name) async {
+  Future<DBusReleaseNameReply> releaseName(String name) async {
     var result = await callMethod(
         destination: 'org.freedesktop.DBus',
         path: DBusObjectPath('/org/freedesktop/DBus'),
@@ -152,9 +187,19 @@ class DBusClient {
         values: [DBusString(name)]);
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('u')) {
-      throw 'ReleaseName returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.ReleaseName returned invalid result: ${values}';
     }
-    return (result.returnValues[0] as DBusUint32).value;
+    var returnCode = (result.returnValues[0] as DBusUint32).value;
+    switch (returnCode) {
+      case 1:
+        return DBusReleaseNameReply.released;
+      case 2:
+        return DBusReleaseNameReply.nonExistant;
+      case 3:
+        return DBusReleaseNameReply.notOwner;
+      default:
+        throw 'org.freedesktop.DBus.ReleaseName returned unknown return code: ${returnCode}';
+    }
   }
 
   /// Lists the registered names on the bus.
