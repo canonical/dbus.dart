@@ -228,7 +228,7 @@ class DBusClient {
         member: 'ListNames');
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('as')) {
-      throw 'ListNames returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.ListNames returned invalid result: ${values}';
     }
     return (values[0] as DBusArray)
         .children
@@ -245,7 +245,7 @@ class DBusClient {
         member: 'ListActivatableNames');
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('as')) {
-      throw 'ListActivatableNames returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.ListActivatableNames returned invalid result: ${values}';
     }
     return (values[0] as DBusArray)
         .children
@@ -263,7 +263,7 @@ class DBusClient {
         values: [DBusString(name)]);
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('b')) {
-      throw 'NameHasOwner returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.NameHasOwner returned invalid result: ${values}';
     }
     return (values[0] as DBusBoolean).value;
   }
@@ -282,7 +282,7 @@ class DBusClient {
     }
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'GetNameOwner returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.GetNameOwner returned invalid result: ${values}';
     }
     return (values[0] as DBusString).value;
   }
@@ -296,7 +296,7 @@ class DBusClient {
         member: 'GetId');
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'GetId returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.GetId returned invalid result: ${values}';
     }
     return (values[0] as DBusString).value;
   }
@@ -309,7 +309,7 @@ class DBusClient {
         interface: 'org.freedesktop.DBus.Peer',
         member: 'Ping');
     if (result.returnValues.isNotEmpty) {
-      throw 'Ping returned invalid result: ${result.returnValues}';
+      throw 'org.freedesktop.DBus.Peer.Ping returned invalid result: ${result.returnValues}';
     }
   }
 
@@ -322,7 +322,7 @@ class DBusClient {
         member: 'GetMachineId');
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'GetMachineId returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.Peer.GetMachineId returned invalid result: ${values}';
     }
     return (values[0] as DBusString).value;
   }
@@ -452,7 +452,7 @@ class DBusClient {
         requireConnect: false);
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'Hello returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.Hello returned invalid result: ${values}';
     }
     _uniqueName = (values[0] as DBusString).value;
 
@@ -473,7 +473,7 @@ class DBusClient {
         signal.values[0].signature != DBusSignature('s') ||
         signal.values[1].signature != DBusSignature('s') ||
         signal.values[2].signature != DBusSignature('s')) {
-      throw 'AddMatch returned invalid result: ${signal.values}';
+      throw 'org.freedesktop.DBus.NameOwnerChanged returned invalid arguments: ${signal.values}';
     }
 
     var name = (signal.values[0] as DBusString).value;
@@ -520,7 +520,7 @@ class DBusClient {
           values: [DBusString(rule)]);
       var values = result.returnValues;
       if (values.isNotEmpty) {
-        throw 'AddMatch returned invalid result: ${values}';
+        throw 'org.freedesktop.DBus.AddMatch returned invalid result: ${values}';
       }
       count = 1;
     } else {
@@ -545,7 +545,7 @@ class DBusClient {
           values: [DBusString(rule)]);
       var values = result.returnValues;
       if (values.isNotEmpty) {
-        throw 'RemoveMatch returned invalid result: ${values}';
+        throw 'org.freedesktop.DBus.RemoveMatch returned invalid result: ${values}';
       }
       _matchRules.remove(rule);
     } else {
