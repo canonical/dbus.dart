@@ -240,12 +240,54 @@ String generateMethodImplementation(List<String> methodNames,
 /// Generates a method to emit a signal.
 String generateSignalEmitMethod(List<String> methodNames,
     DBusIntrospectInterface interface, DBusIntrospectSignal signal) {
+  var argNames = [
+    // Dart keywords that aren't allowed.
+    'assert',
+    'break',
+    'case',
+    'catch',
+    'class',
+    'const',
+    'continue',
+    'default',
+    'do',
+    'else',
+    'enum',
+    'extends',
+    'false',
+    'final',
+    'finally',
+    'for',
+    'get',
+    'if',
+    'in',
+    'is',
+    'new',
+    'null',
+    'rethrow',
+    'return',
+    'super',
+    'switch',
+    'this',
+    'throw',
+    'true',
+    'try',
+    'var',
+    'void',
+    'while',
+    'with'
+  ];
+
   var argValues = <String>[];
   var argsList = <String>[];
   var index = 0;
   for (var arg in signal.args) {
     var type = getDartType(arg.type);
     var argName = arg.name ?? 'arg_${index}';
+    while (argNames.contains(argName)) {
+      argName += '_';
+    }
+    argNames.add(argName);
     argsList.add('${type.nativeType} ${argName}');
     var convertedValue = type.nativeToDBus(argName);
     argValues.add(convertedValue);
