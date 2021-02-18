@@ -3,13 +3,13 @@ import 'package:args/command_runner.dart';
 import 'package:dbus/dbus.dart';
 import 'package:dbus/src/dbus_dart_type.dart';
 
-/// Command that generates a DartObject class from an introspection XML file.
+/// Command that generates a DBusObject class from an introspection XML file.
 class GenerateObjectCommand extends Command {
   @override
   final name = 'generate-object';
 
   @override
-  final description = 'Generates a DartObject to register on the D-Bus.';
+  final description = 'Generates a DBusObject to register on the D-Bus.';
 
   GenerateObjectCommand() {
     argParser.addOption('output',
@@ -27,14 +27,14 @@ class GenerateObjectCommand extends Command {
   }
 }
 
-/// Command that generates a DartRemoteObject class from an introspection XML file.
+/// Command that generates a DBusRemoteObject class from an introspection XML file.
 class GenerateRemoteObjectCommand extends Command {
   @override
   final name = 'generate-remote-object';
 
   @override
   final description =
-      'Generates a DartRemoteObject to access an object on the D-Bus.';
+      'Generates a DBusRemoteObject to access an object on the D-Bus.';
 
   GenerateRemoteObjectCommand() {
     argParser.addOption('output',
