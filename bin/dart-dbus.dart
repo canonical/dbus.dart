@@ -588,10 +588,18 @@ String generateRemoteObjectClass(DBusIntrospectNode node, String className) {
     }
   }
 
+  String pathArg;
+  if (node.name != null) {
+    pathArg =
+        "{DBusObjectPath path = const DBusObjectPath.unchecked('${node.name}')}";
+  } else {
+    pathArg = 'DBusObjectPath path';
+  }
+
   var source = '';
   source += 'class ${className} extends DBusRemoteObject {\n';
   source +=
-      '''  ${className}(DBusClient client, String destination, {DBusObjectPath path = const DBusObjectPath.unchecked('${node.name}')}) : super(client, destination, path);\n''';
+      '''  ${className}(DBusClient client, String destination, ${pathArg}) : super(client, destination, path);\n''';
   source += '\n';
   source += methods.join('\n');
   source += '}\n';
