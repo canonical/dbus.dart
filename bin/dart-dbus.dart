@@ -13,7 +13,9 @@ class GenerateObjectCommand extends Command {
 
   GenerateObjectCommand() {
     argParser.addOption('output',
-        abbr: 'o', valueHelp: 'object.dart', help: 'Dart file to write to');
+        abbr: 'o', valueHelp: 'filename', help: 'Dart file to write to');
+    argParser.addOption('class-name',
+        valueHelp: 'ClassName', help: 'Class name to use');
   }
 
   @override
@@ -22,8 +24,8 @@ class GenerateObjectCommand extends Command {
       usageException(
           '${name} requires a single D-Bus interface file to be provided.');
     }
-    generateModule(
-        name, generateObjectClass, argResults.rest[0], argResults['output']);
+    generateModule(name, argResults['class-name'], generateObjectClass,
+        argResults.rest[0], argResults['output']);
   }
 }
 
@@ -38,9 +40,9 @@ class GenerateRemoteObjectCommand extends Command {
 
   GenerateRemoteObjectCommand() {
     argParser.addOption('output',
-        abbr: 'o',
-        valueHelp: 'remote_object.dart',
-        help: 'Dart file to write to');
+        abbr: 'o', valueHelp: 'filename', help: 'Dart file to write to');
+    argParser.addOption('class-name',
+        valueHelp: 'ClassName', help: 'Class name to use');
   }
 
   @override
@@ -49,8 +51,8 @@ class GenerateRemoteObjectCommand extends Command {
       usageException(
           '${name} requires a single D-Bus interface file to be provided.');
     }
-    generateModule(name, generateRemoteObjectClass, argResults.rest[0],
-        argResults['output']);
+    generateModule(name, argResults['class-name'], generateRemoteObjectClass,
+        argResults.rest[0], argResults['output']);
   }
 }
 
@@ -71,11 +73,20 @@ void main(List<String> args) async {
 /// Generates Dart source from the given interface in [filename] and writes it to [outputFilename].
 void generateModule(
     String command,
-    String Function(DBusIntrospectNode) generateClassFunction,
+    String className,
+    String Function(DBusIntrospectNode, String) generateClassFunction,
     String interfaceFilename,
     String outputFilename) async {
   var xml = await File(interfaceFilename).readAsString();
   var node = parseDBusIntrospectXml(xml);
+
+  if (className == null) {
+    // FIXME(robert-ancell) add --org-name to strip off prefixes?
+    className = nodeToClassName(node);
+    if (className == null) {
+      return;
+    }
+  }
 
   var source = '';
   source +=
@@ -84,7 +95,7 @@ void generateModule(
   source += '\n';
   source += "import 'package:dbus/dbus.dart';\n";
   source += '\n';
-  source += generateClassFunction(node);
+  source += generateClassFunction(node, className);
 
   if (outputFilename == null || outputFilename == '-') {
     print(source);
@@ -104,13 +115,7 @@ String getUniqueMethodName(List<String> methodNames, String name) {
 }
 
 /// Generates a DBusObject class for the given introspection node.
-String generateObjectClass(DBusIntrospectNode node) {
-  // FIXME(robert-ancell) add --org-name to strip off prefixes?
-  var className = nodeToClassName(node);
-  if (className == null) {
-    return null;
-  }
-
+String generateObjectClass(DBusIntrospectNode node, String className) {
   var methods = <String>[];
   // Method names provided in this class, initially populated with DBusObject methods.
   // Needs to be kept in sync with the DBusObject class.
@@ -551,13 +556,7 @@ String generateGetAllProperties(DBusIntrospectNode node) {
 }
 
 /// Generates a DBusRemoteObject class for the given introspection node.
-String generateRemoteObjectClass(DBusIntrospectNode node) {
-  // FIXME(robert-ancell) add --org-name to strip off prefixes?
-  var className = nodeToClassName(node);
-  if (className == null) {
-    return null;
-  }
-
+String generateRemoteObjectClass(DBusIntrospectNode node, String className) {
   var classes = <String>[];
   var methods = <String>[];
   // Method names provided in this class, initially populated with DBusRemoteObject methods.
