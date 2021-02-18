@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.0
+
+* Add null safety support
+
 ## 0.1.2
 
 * Ensure generated classes don't collide method/arg names.
