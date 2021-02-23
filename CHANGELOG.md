@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+* Use a meta version that works with the Dart 1.12 SDK.
+
 ## 0.2.0
 
 * Add null safety support
