@@ -481,17 +481,17 @@ class DBusClient {
     _connectCompleter?.complete();
 
     // Monitor name ownership so we know what names we have, and can match incoming signals from other clients.
-    var nameAcquiredSignals = await subscribeSignals(
+    var nameAcquiredSignals = subscribeSignals(
         sender: 'org.freedesktop.DBus',
         interface: 'org.freedesktop.DBus',
         member: 'NameAcquired');
     _nameAcquiredSubscription = nameAcquiredSignals.listen(_handleNameAcquired);
-    var nameLostSignals = await subscribeSignals(
+    var nameLostSignals = subscribeSignals(
         sender: 'org.freedesktop.DBus',
         interface: 'org.freedesktop.DBus',
         member: 'NameLost');
     _nameLostSubscription = nameLostSignals.listen(_handleNameLost);
-    var nameOwnerChangedSignals = await subscribeSignals(
+    var nameOwnerChangedSignals = subscribeSignals(
         sender: 'org.freedesktop.DBus',
         interface: 'org.freedesktop.DBus',
         member: 'NameOwnerChanged');
@@ -676,7 +676,7 @@ class DBusClient {
     } else if (message.path == null) {
       response = DBusMethodErrorResponse.unknownObject();
     } else if (message.interface == 'org.freedesktop.DBus.Introspectable') {
-      response = await handleIntrospectableMethodCall(
+      response = handleIntrospectableMethodCall(
           _objectTree, message.path!, message.member!, message.values);
     } else if (message.interface == 'org.freedesktop.DBus.Peer') {
       response = await handlePeerMethodCall(message.member!, message.values);
