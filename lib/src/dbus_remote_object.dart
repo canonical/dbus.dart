@@ -74,7 +74,7 @@ class DBusRemoteObject {
     if (values.length != 1 || values[0].signature != DBusSignature('s')) {
       throw 'org.freedesktop.DBus.Introspectable.Introspect returned invalid result: ${values}';
     }
-    var xml = await (values[0] as DBusString).value;
+    var xml = (values[0] as DBusString).value;
     return parseDBusIntrospectXml(xml);
   }
 
