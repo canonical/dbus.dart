@@ -35,7 +35,7 @@ void main(List<String> args) async {
     var signals = object.subscribeSignal('com.canonical.DBusDart', 'Ping');
     await for (var signal in signals) {
       var count = (signal.values[0] as DBusUint64).value;
-      print('Ping ${count}!');
+      print('Ping $count!');
     }
   } else if (mode == 'server') {
     await client.requestName('com.canonical.DBusDart');
@@ -43,7 +43,7 @@ void main(List<String> args) async {
     client.registerObject(object);
     var count = 0;
     Timer.periodic(Duration(seconds: 1), (timer) {
-      print('Ping ${count}!');
+      print('Ping $count!');
       object.emitSignal('com.canonical.DBusDart', 'Ping', [DBusUint64(count)]);
       count++;
     });

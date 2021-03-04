@@ -72,7 +72,7 @@ class DBusRemoteObject {
         member: 'Introspect');
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.Introspectable.Introspect returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.Introspectable.Introspect returned invalid result: $values';
     }
     var xml = (values[0] as DBusString).value;
     return parseDBusIntrospectXml(xml);
@@ -88,7 +88,7 @@ class DBusRemoteObject {
         values: [DBusString(interface), DBusString(name)]);
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('v')) {
-      throw 'org.freedesktop.DBus.Properties.Get returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.Properties.Get returned invalid result: $values';
     }
     return (values[0] as DBusVariant).value;
   }
@@ -103,7 +103,7 @@ class DBusRemoteObject {
         values: [DBusString(interface)]);
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('a{sv}')) {
-      throw 'org.freedesktop.DBus.Properties.GetAll returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.Properties.GetAll returned invalid result: $values';
     }
     return (values[0] as DBusDict).children.map((key, value) =>
         MapEntry((key as DBusString).value, (value as DBusVariant).value));
@@ -120,7 +120,7 @@ class DBusRemoteObject {
         values: [DBusString(interface), DBusString(name), DBusVariant(value)]);
     var values = result.returnValues;
     if (values.isNotEmpty) {
-      throw 'org.freedesktop.DBus.Properties.set returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.Properties.set returned invalid result: $values';
     }
   }
 
@@ -169,7 +169,7 @@ class DBusRemoteObject {
     var values = result.returnValues;
     if (values.length != 1 ||
         values[0].signature != DBusSignature('a{oa{sa{sv}}}')) {
-      throw 'GetManagedObjects returned invalid result: ${values}';
+      throw 'GetManagedObjects returned invalid result: $values';
     }
 
     Map<DBusObjectPath, Map<String, Map<String, DBusValue>>> decodeObjects(
@@ -221,7 +221,7 @@ class DBusRemoteObject {
 
   @override
   String toString() {
-    return "DBusRemoteObject(destination: '${destination}', path: '${path.value}')";
+    return "DBusRemoteObject(destination: '$destination', path: '${path.value}')";
   }
 }
 

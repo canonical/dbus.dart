@@ -119,9 +119,9 @@ class DBusClient {
       var runtimeDir = Platform.environment['XDG_USER_DIR'];
       if (runtimeDir == null) {
         var uid = getuid();
-        runtimeDir = '/run/user/${uid}';
+        runtimeDir = '/run/user/$uid';
       }
-      address = 'unix:path=${runtimeDir}/bus';
+      address = 'unix:path=$runtimeDir/bus';
     }
     _address = address;
   }
@@ -180,7 +180,7 @@ class DBusClient {
         values: [DBusString(name), DBusUint32(flagsValue)]);
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('u')) {
-      throw 'org.freedesktop.DBus.RequestName returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.RequestName returned invalid result: $values';
     }
     var returnCode = (result.returnValues[0] as DBusUint32).value;
     switch (returnCode) {
@@ -194,7 +194,7 @@ class DBusClient {
       case 4:
         return DBusRequestNameReply.alreadyOwner;
       default:
-        throw 'org.freedesktop.DBusRequestName returned unknown return code: ${returnCode}';
+        throw 'org.freedesktop.DBusRequestName returned unknown return code: $returnCode';
     }
   }
 
@@ -208,7 +208,7 @@ class DBusClient {
         values: [DBusString(name)]);
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('u')) {
-      throw 'org.freedesktop.DBus.ReleaseName returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.ReleaseName returned invalid result: $values';
     }
     var returnCode = (result.returnValues[0] as DBusUint32).value;
     switch (returnCode) {
@@ -220,7 +220,7 @@ class DBusClient {
       case 3:
         return DBusReleaseNameReply.notOwner;
       default:
-        throw 'org.freedesktop.DBus.ReleaseName returned unknown return code: ${returnCode}';
+        throw 'org.freedesktop.DBus.ReleaseName returned unknown return code: $returnCode';
     }
   }
 
@@ -233,7 +233,7 @@ class DBusClient {
         member: 'ListQueuedOwners');
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('as')) {
-      throw 'org.freedesktop.DBus.ListQueuedOwners returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.ListQueuedOwners returned invalid result: $values';
     }
     return (values[0] as DBusArray)
         .children
@@ -250,7 +250,7 @@ class DBusClient {
         member: 'ListNames');
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('as')) {
-      throw 'org.freedesktop.DBus.ListNames returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.ListNames returned invalid result: $values';
     }
     return (values[0] as DBusArray)
         .children
@@ -267,7 +267,7 @@ class DBusClient {
         member: 'ListActivatableNames');
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('as')) {
-      throw 'org.freedesktop.DBus.ListActivatableNames returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.ListActivatableNames returned invalid result: $values';
     }
     return (values[0] as DBusArray)
         .children
@@ -285,7 +285,7 @@ class DBusClient {
         values: [DBusString(name)]);
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('b')) {
-      throw 'org.freedesktop.DBus.NameHasOwner returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.NameHasOwner returned invalid result: $values';
     }
     return (values[0] as DBusBoolean).value;
   }
@@ -304,7 +304,7 @@ class DBusClient {
     }
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.GetNameOwner returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.GetNameOwner returned invalid result: $values';
     }
     return (values[0] as DBusString).value;
   }
@@ -318,7 +318,7 @@ class DBusClient {
         member: 'GetId');
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.GetId returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.GetId returned invalid result: $values';
     }
     return (values[0] as DBusString).value;
   }
@@ -344,7 +344,7 @@ class DBusClient {
         member: 'GetMachineId');
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.Peer.GetMachineId returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.Peer.GetMachineId returned invalid result: $values';
     }
     return (values[0] as DBusString).value;
   }
@@ -473,7 +473,7 @@ class DBusClient {
         requireConnect: false);
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.Hello returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.Hello returned invalid result: $values';
     }
     _uniqueName = (values[0] as DBusString).value;
 
@@ -582,7 +582,7 @@ class DBusClient {
           values: [DBusString(rule)]);
       var values = result.returnValues;
       if (values.isNotEmpty) {
-        throw 'org.freedesktop.DBus.AddMatch returned invalid result: ${values}';
+        throw 'org.freedesktop.DBus.AddMatch returned invalid result: $values';
       }
       count = 1;
     } else {
@@ -607,7 +607,7 @@ class DBusClient {
           values: [DBusString(rule)]);
       var values = result.returnValues;
       if (values.isNotEmpty) {
-        throw 'org.freedesktop.DBus.RemoveMatch returned invalid result: ${values}';
+        throw 'org.freedesktop.DBus.RemoveMatch returned invalid result: $values';
       }
       _matchRules.remove(rule);
     } else {

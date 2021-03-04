@@ -35,7 +35,7 @@ class DBusByte extends DBusValue {
 
   @override
   String toString() {
-    return 'DBusByte(${value})';
+    return 'DBusByte($value)';
   }
 }
 
@@ -66,7 +66,7 @@ class DBusBoolean extends DBusValue {
 
   @override
   String toString() {
-    return 'DBusBoolean(${value})';
+    return 'DBusBoolean($value)';
   }
 }
 
@@ -96,7 +96,7 @@ class DBusInt16 extends DBusValue {
 
   @override
   String toString() {
-    return 'DBusInt16(${value})';
+    return 'DBusInt16($value)';
   }
 }
 
@@ -126,7 +126,7 @@ class DBusUint16 extends DBusValue {
 
   @override
   String toString() {
-    return 'DBusUint16(${value})';
+    return 'DBusUint16($value)';
   }
 }
 
@@ -156,7 +156,7 @@ class DBusInt32 extends DBusValue {
 
   @override
   String toString() {
-    return 'DBusInt32(${value})';
+    return 'DBusInt32($value)';
   }
 }
 
@@ -186,7 +186,7 @@ class DBusUint32 extends DBusValue {
 
   @override
   String toString() {
-    return 'DBusUint32(${value})';
+    return 'DBusUint32($value)';
   }
 }
 
@@ -216,7 +216,7 @@ class DBusInt64 extends DBusValue {
 
   @override
   String toString() {
-    return 'DBusInt64(${value})';
+    return 'DBusInt64($value)';
   }
 }
 
@@ -246,7 +246,7 @@ class DBusUint64 extends DBusValue {
 
   @override
   String toString() {
-    return 'DBusUint64(${value})';
+    return 'DBusUint64($value)';
   }
 }
 
@@ -276,7 +276,7 @@ class DBusDouble extends DBusValue {
 
   @override
   String toString() {
-    return 'DBusDouble(${value})';
+    return 'DBusDouble($value)';
   }
 }
 
@@ -306,7 +306,7 @@ class DBusString extends DBusValue {
 
   @override
   String toString() {
-    return "DBusString('${value}')";
+    return "DBusString('$value')";
   }
 }
 
@@ -324,7 +324,7 @@ class DBusObjectPath extends DBusString {
       if (value.contains(RegExp('[^a-zA-Z0-9_/]')) ||
           !value.startsWith('/') ||
           value.endsWith('/')) {
-        throw 'Invalid object path: ${value}';
+        throw 'Invalid object path: $value';
       }
     }
   }
@@ -368,7 +368,7 @@ class DBusObjectPath extends DBusString {
 
   @override
   String toString() {
-    return "DBusObjectPath('${value}')";
+    return "DBusObjectPath('$value')";
   }
 }
 
@@ -447,7 +447,7 @@ class DBusSignature extends DBusValue {
       end++;
     }
 
-    throw 'Unable to find closing ${closeChar} in signature: ${value}';
+    throw 'Unable to find closing $closeChar in signature: $value';
   }
 
   @override
@@ -468,7 +468,7 @@ class DBusSignature extends DBusValue {
 
   @override
   String toString() {
-    return "DBusSignature('${value}')";
+    return "DBusSignature('$value')";
   }
 }
 
@@ -648,6 +648,6 @@ class DBusDict extends DBusValue {
     children.forEach((key, value) {
       childrenText.add('${key.toString()}: ${value.toString()}');
     });
-    return "DBusDict(${keySignature}, ${valueSignature}, {${childrenText.join(', ')}})";
+    return "DBusDict($keySignature, $valueSignature, {${childrenText.join(', ')}})";
   }
 }
