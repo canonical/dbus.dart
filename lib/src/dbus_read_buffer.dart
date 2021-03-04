@@ -405,7 +405,7 @@ class DBusReadBuffer extends DBusBuffer {
       return readDBusStruct(
           DBusSignature(s.substring(1, s.length - 1)).split());
     } else {
-      throw "Unknown DBus data type '${s}'";
+      throw "Unknown DBus data type '$s'";
     }
   }
 
@@ -436,6 +436,6 @@ class DBusReadBuffer extends DBusBuffer {
         s += '\\' + d.toRadixString(8);
       }
     }
-    return "DBusReadBuffer('${s}')";
+    return "DBusReadBuffer('$s')";
   }
 }

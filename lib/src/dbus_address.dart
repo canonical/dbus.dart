@@ -27,7 +27,7 @@ class DBusAddress {
     // Addresses are in the form 'transport:key1=value1,key2=value2'
     var index = address.indexOf(':');
     if (index < 0) {
-      throw 'Unable to determine transport of D-Bus address: ${address}';
+      throw 'Unable to determine transport of D-Bus address: $address';
     }
 
     var transport = address.substring(0, index);
@@ -45,13 +45,13 @@ class DBusAddress {
     for (var property in propertiesList.split(',')) {
       var index = property.indexOf('=');
       if (index < 0) {
-        throw 'Invalid D-Bus address property: ${property}';
+        throw 'Invalid D-Bus address property: $property';
       }
 
       var key = property.substring(0, index);
       var value = _decodeValue(property.substring(index + 1));
       if (value == null) {
-        throw 'Invalid value in D-Bus address property: ${property}';
+        throw 'Invalid value in D-Bus address property: $property';
       }
 
       properties.add(DBusAddressProperty(key, value));

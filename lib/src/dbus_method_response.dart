@@ -69,7 +69,7 @@ class DBusMethodErrorResponse extends DBusMethodResponse {
             [DBusString('Property is write-only')]);
 
   @override
-  List<DBusValue> get returnValues => throw 'Error: ${errorName}';
+  List<DBusValue> get returnValues => throw 'Error: $errorName';
 }
 
 /// A successful response to [DBusObject.getProperty].
