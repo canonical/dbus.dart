@@ -47,7 +47,7 @@ class DBusIntrospectNode {
 
   @override
   String toString() {
-    return "DBusIntrospectNode('${name}', interfaces: ${interfaces}, children: ${children})";
+    return "DBusIntrospectNode('$name', interfaces: $interfaces, children: $children)";
   }
 }
 
@@ -114,7 +114,7 @@ class DBusIntrospectInterface {
 
   @override
   String toString() {
-    return "DBusIntrospectInterface('${name}', ${methods}, ${signals}, ${properties})";
+    return "DBusIntrospectInterface('$name', $methods, $signals, $properties)";
   }
 }
 
@@ -159,7 +159,7 @@ class DBusIntrospectMethod {
 
   @override
   String toString() {
-    return "DBusIntrospectMethod('${name}', ${args})";
+    return "DBusIntrospectMethod('$name', $args)";
   }
 }
 
@@ -204,7 +204,7 @@ class DBusIntrospectSignal {
 
   @override
   String toString() {
-    return "DBusIntrospectSignal('${name}', ${args})";
+    return "DBusIntrospectSignal('$name', $args)";
   }
 }
 
@@ -268,7 +268,7 @@ class DBusIntrospectProperty {
 
   @override
   String toString() {
-    return "DBusIntrospectProperty('${name}', type: '${type.value}', ${access})";
+    return "DBusIntrospectProperty('$name', type: '${type.value}', $access)";
   }
 }
 
@@ -331,7 +331,7 @@ class DBusIntrospectArgument {
 
   @override
   String toString() {
-    return "DBusIntrospectArgument('${name}', type: '${type.value}', ${direction})";
+    return "DBusIntrospectArgument('$name', type: '${type.value}', $direction)";
   }
 }
 
@@ -370,7 +370,7 @@ DBusIntrospectNode parseDBusIntrospectXml(String xml) {
   var document = XmlDocument.parse(xml);
   var nodeName = document.rootElement.name.local;
   if (nodeName != 'node') {
-    throw "D-Bus Introspection XML has invalid root element '${nodeName}', expected 'node'";
+    throw "D-Bus Introspection XML has invalid root element '$nodeName', expected 'node'";
   }
   return DBusIntrospectNode.fromXml(document.rootElement);
 }

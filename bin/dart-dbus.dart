@@ -22,7 +22,7 @@ class GenerateObjectCommand extends Command {
   void run() async {
     if (argResults?.rest.length != 1) {
       usageException(
-          '${name} requires a single D-Bus interface file to be provided.');
+          '$name requires a single D-Bus interface file to be provided.');
     }
     var filename = argResults!.rest[0];
     generateModule(name, argResults?['class-name'], generateObjectClass,
@@ -50,7 +50,7 @@ class GenerateRemoteObjectCommand extends Command {
   void run() async {
     if (argResults?.rest.length != 1) {
       usageException(
-          '${name} requires a single D-Bus interface file to be provided.');
+          '$name requires a single D-Bus interface file to be provided.');
     }
     var filename = argResults!.rest[0];
     generateModule(name, argResults?['class-name'], generateRemoteObjectClass,
@@ -93,7 +93,7 @@ void generateModule(
   var source = '';
   source +=
       '// This file was generated using the following command and may be overwritten.\n';
-  source += '// dart-dbus ${command} ${interfaceFilename}\n';
+  source += '// dart-dbus $command $interfaceFilename\n';
   source += '\n';
   source += "import 'package:dbus/dbus.dart';\n";
   source += '\n';
@@ -106,7 +106,7 @@ void generateModule(
     print(source);
   } else {
     await File(outputFilename).writeAsString(source);
-    print('Wrote to ${outputFilename}');
+    print('Wrote to $outputFilename');
   }
 }
 
@@ -153,7 +153,7 @@ String? generateObjectClass(DBusIntrospectNode node, String className) {
   methods.add(generateGetAllProperties(node));
 
   var source = '';
-  source += 'class ${className} extends DBusObject {\n';
+  source += 'class $className extends DBusObject {\n';
   source += methods.join('\n');
   source += '}\n';
 
@@ -179,7 +179,7 @@ List<String> generatePropertyImplementationMethods(
     var source = '';
     source +=
         '  /// Gets value of property ${interface.name}.${property.name}\n';
-    source += '  Future<DBusMethodResponse> ${methodName}() async {\n';
+    source += '  Future<DBusMethodResponse> $methodName() async {\n';
     source +=
         "    return DBusMethodErrorResponse.failed('Get ${interface.name}.${property.name} not implemented');\n";
     source += '  }\n';
@@ -193,7 +193,7 @@ List<String> generatePropertyImplementationMethods(
     var source = '';
     source += '  /// Sets property ${interface.name}.${property.name}\n';
     source +=
-        '  Future<DBusMethodResponse> ${methodName}(${type.nativeType} value) async {\n';
+        '  Future<DBusMethodResponse> $methodName(${type.nativeType} value) async {\n';
     source +=
         "    return DBusMethodErrorResponse.failed('Set ${interface.name}.${property.name} not implemented');\n";
     source += '  }\n';
@@ -212,9 +212,9 @@ String generateMethodImplementation(List<String> methodNames,
   for (var arg in method.args) {
     if (arg.direction == DBusArgumentDirection.in_) {
       var type = getDartType(arg.type);
-      var argName = arg.name ?? 'arg_${index}';
+      var argName = arg.name ?? 'arg_$index';
       var convertedValue = type.nativeToDBus(argName);
-      argsList.add('${type.nativeType} ${argName}');
+      argsList.add('${type.nativeType} $argName');
       argValues.add(convertedValue);
     }
     index++;
@@ -239,7 +239,7 @@ String generateMethodImplementation(List<String> methodNames,
   var source = '';
   source += '  /// Implementation of ${interface.name}.${method.name}()\n';
   source +=
-      '  Future<DBusMethodResponse> ${methodName}(${argsList.join(', ')}) async {\n';
+      '  Future<DBusMethodResponse> $methodName(${argsList.join(', ')}) async {\n';
   source +=
       "    return DBusMethodErrorResponse.failed('${interface.name}.${method.name}() not implemented');\n";
   source += '  }\n';
@@ -293,12 +293,12 @@ String generateSignalEmitMethod(List<String> methodNames,
   var index = 0;
   for (var arg in signal.args) {
     var type = getDartType(arg.type);
-    var argName = arg.name ?? 'arg_${index}';
+    var argName = arg.name ?? 'arg_$index';
     while (argNames.contains(argName)) {
       argName += '_';
     }
     argNames.add(argName);
-    argsList.add('${type.nativeType} ${argName}');
+    argsList.add('${type.nativeType} $argName');
     var convertedValue = type.nativeToDBus(argName);
     argValues.add(convertedValue);
     index++;
@@ -308,7 +308,7 @@ String generateSignalEmitMethod(List<String> methodNames,
 
   var source = '';
   source += '  /// Emits signal ${interface.name}.${signal.name}\n';
-  source += '  void ${methodName}(${argsList.join(', ')}) {\n';
+  source += '  void $methodName(${argsList.join(', ')}) {\n';
   source +=
       "     emitSignal('${interface.name}', '${signal.name}', [ ${argValues.join(', ')} ]);\n";
   source += '  }\n';
@@ -324,7 +324,7 @@ String generateIntrospectMethod(DBusIntrospectNode node) {
     args.add("'${interface.name}'");
 
     String makeIntrospectObject(String name, Iterable<String> args) {
-      return '${name}(${args.join(', ')})';
+      return '$name(${args.join(', ')})';
     }
 
     String makeArg(DBusIntrospectArgument arg) {
@@ -412,8 +412,8 @@ String generateHandleMethodCall(DBusIntrospectNode node) {
       for (var arg in method.args) {
         if (arg.direction == DBusArgumentDirection.in_) {
           var argName = 'values[${argValues.length}]';
-          argChecks.add(
-              "${argName}.signature != DBusSignature('${arg.type.value}')");
+          argChecks
+              .add("$argName.signature != DBusSignature('${arg.type.value}')");
           var type = getDartType(arg.type);
           var convertedValue = type.dbusToNative(argName);
           argValues.add(convertedValue);
@@ -458,7 +458,7 @@ String generateGetProperty(
       if (property.access == DBusPropertyAccess.readwrite ||
           property.access == DBusPropertyAccess.read) {
         var methodName = getMethodNames['${interface.name}.${property.name}'];
-        source += 'return ${methodName}();\n';
+        source += 'return $methodName();\n';
       } else {
         source = 'return DBusMethodErrorResponse.propertyWriteOnly()\n';
       }
@@ -502,7 +502,7 @@ String generateSetProperty(
           property.access == DBusPropertyAccess.write) {
         var convertedValue = type.dbusToNative('value');
         var methodName = setMethodNames['${interface.name}.${property.name}'];
-        source += 'return ${methodName}(${convertedValue});\n';
+        source += 'return $methodName($convertedValue);\n';
       } else {
         source = 'return DBusMethodErrorResponse.propertyReadOnly()\n';
       }
@@ -538,7 +538,7 @@ String generateGetAllProperties(DBusIntrospectNode node) {
           property.access == DBusPropertyAccess.read) {
         var convertedValue = '(await get${property.name}()).returnValues[0]';
         source +=
-            "properties[DBusString('${property.name}')] = ${convertedValue};\n";
+            "properties[DBusString('${property.name}')] = $convertedValue;\n";
       }
     }
     if (source != '') {
@@ -602,9 +602,9 @@ String? generateRemoteObjectClass(DBusIntrospectNode node, String className) {
   }
 
   var source = '';
-  source += 'class ${className} extends DBusRemoteObject {\n';
+  source += 'class $className extends DBusRemoteObject {\n';
   source +=
-      '''  ${className}(DBusClient client, String destination, ${pathArg}) : super(client, destination, path);\n''';
+      '''  $className(DBusClient client, String destination, $pathArg) : super(client, destination, path);\n''';
   source += '\n';
   source += methods.join('\n');
   source += '}\n';
@@ -627,10 +627,10 @@ List<String> generateRemotePropertyMethods(List<String> methodNames,
     var convertedValue = type.dbusToNative('value');
     var source = '';
     source += '  /// Gets ${interface.name}.${property.name}\n';
-    source += '  Future<${type.nativeType}> ${methodName}() async {\n';
+    source += '  Future<${type.nativeType}> $methodName() async {\n';
     source +=
         "    var value = await getProperty('${interface.name}', '${property.name}');\n";
-    source += '    return ${convertedValue};\n';
+    source += '    return $convertedValue;\n';
     source += '  }\n';
     methods.add(source);
   }
@@ -642,10 +642,9 @@ List<String> generateRemotePropertyMethods(List<String> methodNames,
     var convertedValue = type.nativeToDBus('value');
     var source = '';
     source += '  /// Sets ${interface.name}.${property.name}\n';
+    source += '  Future<void> $methodName (${type.nativeType} value) async {\n';
     source +=
-        '  Future<void> ${methodName} (${type.nativeType} value) async {\n';
-    source +=
-        "    await setProperty('${interface.name}', '${property.name}', ${convertedValue});\n";
+        "    await setProperty('${interface.name}', '${property.name}', $convertedValue);\n";
     source += '  }\n';
     methods.add(source);
   }
@@ -662,9 +661,9 @@ String generateRemoteMethodCall(List<String> methodNames,
   for (var arg in method.args) {
     if (arg.direction == DBusArgumentDirection.in_) {
       var type = getDartType(arg.type);
-      var argName = arg.name ?? 'arg_${index}';
+      var argName = arg.name ?? 'arg_$index';
       var convertedValue = type.nativeToDBus(argName);
-      argsList.add('${type.nativeType} ${argName}');
+      argsList.add('${type.nativeType} $argName');
       argValues.add(convertedValue);
     }
     index++;
@@ -700,14 +699,14 @@ String generateRemoteMethodCall(List<String> methodNames,
 
   var source = '';
   source += '  /// Invokes ${interface.name}.${method.name}()\n';
-  source += '  ${returnType} ${methodName}(${argsList.join(', ')}) async {\n';
+  source += '  $returnType $methodName(${argsList.join(', ')}) async {\n';
   if (returnTypes.isEmpty) {
-    source += '    ${methodCall}\n';
+    source += '    $methodCall\n';
   } else if (returnTypes.length == 1) {
-    source += '    var result = ${methodCall}\n';
+    source += '    var result = $methodCall\n';
     source += '    return ${returnValues[0]};\n';
   } else {
-    source += '    var result = ${methodCall}\n';
+    source += '    var result = $methodCall\n';
     source += '    return result.returnValues;\n';
   }
   source += '  }\n';
@@ -769,27 +768,26 @@ String generateRemoteSignalClass(String classPrefix,
     var type = getDartType(arg.type);
 
     // Modify the arg name if it collides.
-    var argName = arg.name ?? 'arg_${index}';
+    var argName = arg.name ?? 'arg_$index';
     while (argNames.contains(argName)) {
       argName += '_';
     }
     argNames.add(argName);
 
-    var valueName = 'values[${index}]';
+    var valueName = 'values[$index]';
     var convertedValue = type.dbusToNative(valueName);
-    properties
-        .add('  ${type.nativeType} get ${argName} => ${convertedValue};\n');
-    params.add('this.${argName}');
+    properties.add('  ${type.nativeType} get $argName => $convertedValue;\n');
+    params.add('this.$argName');
     index++;
   }
 
   var source = '';
   source += '/// Signal data for ${interface.name}.${signal.name}.\n';
-  source += 'class ${classPrefix}${signal.name} extends DBusSignal{\n';
+  source += 'class $classPrefix${signal.name} extends DBusSignal{\n';
   source += properties.join();
   source += '\n';
   source +=
-      '  ${classPrefix}${signal.name}(DBusSignal signal) : super(signal.sender, signal.path, signal.interface, signal.member, signal.values);\n';
+      '  $classPrefix${signal.name}(DBusSignal signal) : super(signal.sender, signal.path, signal.interface, signal.member, signal.values);\n';
   source += '}\n';
 
   return source;
@@ -809,9 +807,9 @@ String generateRemoteSignalSubscription(
     valueChecks.add('signal.values.length == ${signal.args.length}');
   }
   for (var arg in signal.args) {
-    var valueName = 'signal.values[${index}]';
+    var valueName = 'signal.values[$index]';
     valueChecks
-        .add("${valueName}.signature == DBusSignature('${arg.type.value}')");
+        .add("$valueName.signature == DBusSignature('${arg.type.value}')");
     index++;
   }
 
@@ -819,12 +817,12 @@ String generateRemoteSignalSubscription(
 
   var source = '';
   source += '  /// Subscribes to ${interface.name}.${signal.name}.\n';
-  source += '  Stream<${classPrefix}${signal.name}> ${methodName}() async* {\n';
+  source += '  Stream<$classPrefix${signal.name}> $methodName() async* {\n';
   source +=
       "    var signals = await subscribeSignal('${interface.name}', '${signal.name}');\n";
   source += '    await for (var signal in signals) {\n';
   source += '      if (${valueChecks.join(' && ')}) {\n';
-  source += '        yield ${classPrefix}${signal.name}(signal);\n';
+  source += '        yield $classPrefix${signal.name}(signal);\n';
   source += '      }\n';
   source += '    }\n';
   source += '  }\n';
@@ -877,7 +875,7 @@ String makeSwitch(Iterable<SwitchBranch> branches, [String? defaultBranch]) {
   var isFirst = true;
   for (var branch in branches) {
     var statement = isFirst ? 'if' : '} else if';
-    source += '${statement} (${branch.condition}) {\n';
+    source += '$statement (${branch.condition}) {\n';
     source += indentSource(1, branch.source);
     isFirst = false;
   }

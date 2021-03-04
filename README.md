@@ -31,7 +31,7 @@ import 'hostname1.dart';
 var client = DBusClient.system();
 var hostname1 = OrgFreeDesktopHostname1(client, 'org.freedesktop.hostname1');
 var hostname = await hostname1.getHostname();
-print('hostname: ${hostname}')
+print('hostname: $hostname')
 await client.close();
 ```
 

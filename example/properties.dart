@@ -8,7 +8,7 @@ void main() async {
   var properties =
       await object.getAllProperties('org.freedesktop.NetworkManager');
   properties.forEach((name, value) {
-    print('${name}: ${value.toNative()}');
+    print('$name: ${value.toNative()}');
   });
 
   print('');
@@ -26,7 +26,7 @@ void main() async {
 
   object.subscribePropertiesChanged().listen((signal) {
     signal.changedProperties.forEach((name, value) {
-      print('${name}: ${value.toNative()}');
+      print('$name: ${value.toNative()}');
     });
   });
 }

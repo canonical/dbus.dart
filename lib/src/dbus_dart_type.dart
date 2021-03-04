@@ -71,12 +71,12 @@ class DBusBoolType extends DBusDartType {
 
   @override
   String nativeToDBus(String name) {
-    return 'DBusBoolean(${name})';
+    return 'DBusBoolean($name)';
   }
 
   @override
   String dbusToNative(String name) {
-    return '(${name} as DBusBoolean).value';
+    return '($name as DBusBoolean).value';
   }
 }
 
@@ -96,12 +96,12 @@ class DBusByteType extends DBusIntegerType {
 
   @override
   String nativeToDBus(String name) {
-    return 'DBusByte(${name})';
+    return 'DBusByte($name)';
   }
 
   @override
   String dbusToNative(String name) {
-    return '(${name} as DBusByte).value';
+    return '($name as DBusByte).value';
   }
 }
 
@@ -114,12 +114,12 @@ class DBusInt16Type extends DBusIntegerType {
 
   @override
   String nativeToDBus(String name) {
-    return 'DBusInt16(${name})';
+    return 'DBusInt16($name)';
   }
 
   @override
   String dbusToNative(String name) {
-    return '(${name} as DBusInt16).value';
+    return '($name as DBusInt16).value';
   }
 }
 
@@ -132,12 +132,12 @@ class DBusUint16Type extends DBusIntegerType {
 
   @override
   String nativeToDBus(String name) {
-    return 'DBusUint16(${name})';
+    return 'DBusUint16($name)';
   }
 
   @override
   String dbusToNative(String name) {
-    return '(${name} as DBusUint16).value';
+    return '($name as DBusUint16).value';
   }
 }
 
@@ -150,12 +150,12 @@ class DBusInt32Type extends DBusIntegerType {
 
   @override
   String nativeToDBus(String name) {
-    return 'DBusInt32(${name})';
+    return 'DBusInt32($name)';
   }
 
   @override
   String dbusToNative(String name) {
-    return '(${name} as DBusInt32).value';
+    return '($name as DBusInt32).value';
   }
 }
 
@@ -168,12 +168,12 @@ class DBusUint32Type extends DBusIntegerType {
 
   @override
   String nativeToDBus(String name) {
-    return 'DBusUint32(${name})';
+    return 'DBusUint32($name)';
   }
 
   @override
   String dbusToNative(String name) {
-    return '(${name} as DBusUint32).value';
+    return '($name as DBusUint32).value';
   }
 }
 
@@ -186,12 +186,12 @@ class DBusInt64Type extends DBusIntegerType {
 
   @override
   String nativeToDBus(String name) {
-    return 'DBusInt64(${name})';
+    return 'DBusInt64($name)';
   }
 
   @override
   String dbusToNative(String name) {
-    return '(${name} as DBusInt64).value';
+    return '($name as DBusInt64).value';
   }
 }
 
@@ -204,12 +204,12 @@ class DBusUint64Type extends DBusIntegerType {
 
   @override
   String nativeToDBus(String name) {
-    return 'DBusUint64(${name})';
+    return 'DBusUint64($name)';
   }
 
   @override
   String dbusToNative(String name) {
-    return '(${name} as DBusUint64).value';
+    return '($name as DBusUint64).value';
   }
 }
 
@@ -227,12 +227,12 @@ class DBusDoubleType extends DBusDartType {
 
   @override
   String nativeToDBus(String name) {
-    return 'DBusDouble(${name})';
+    return 'DBusDouble($name)';
   }
 
   @override
   String dbusToNative(String name) {
-    return '(${name} as DBusDouble).value';
+    return '($name as DBusDouble).value';
   }
 }
 
@@ -250,12 +250,12 @@ class DBusStringType extends DBusDartType {
 
   @override
   String nativeToDBus(String name) {
-    return 'DBusString(${name})';
+    return 'DBusString($name)';
   }
 
   @override
   String dbusToNative(String name) {
-    return '(${name} as DBusString).value';
+    return '($name as DBusString).value';
   }
 }
 
@@ -268,12 +268,12 @@ class DBusObjectPathType extends DBusStringType {
 
   @override
   String nativeToDBus(String name) {
-    return 'DBusObjectPath(${name})';
+    return 'DBusObjectPath($name)';
   }
 
   @override
   String dbusToNative(String name) {
-    return '(${name} as DBusObjectPath).value';
+    return '($name as DBusObjectPath).value';
   }
 }
 
@@ -291,12 +291,12 @@ class DBusVariantType extends DBusDartType {
 
   @override
   String nativeToDBus(String name) {
-    return 'DBusVariant(${name})';
+    return 'DBusVariant($name)';
   }
 
   @override
   String dbusToNative(String name) {
-    return '(${name} as DBusVariant).value';
+    return '($name as DBusVariant).value';
   }
 }
 
@@ -321,14 +321,14 @@ class DBusArrayType extends DBusDartType {
   String nativeToDBus(String name) {
     var childType = getDartType(childSignature);
     var convertedValue = childType.nativeToDBus('child');
-    return "DBusArray(DBusSignature('${childSignature.value}'), ${name}.map((child) => ${convertedValue}))";
+    return "DBusArray(DBusSignature('${childSignature.value}'), $name.map((child) => $convertedValue))";
   }
 
   @override
   String dbusToNative(String name) {
     var childType = getDartType(childSignature);
     var convertedValue = childType.dbusToNative('child');
-    return '(${name} as DBusArray).children.map((child) => ${convertedValue}).toList()';
+    return '($name as DBusArray).children.map((child) => $convertedValue).toList()';
   }
 }
 
@@ -357,7 +357,7 @@ class DBusDictType extends DBusDartType {
     var convertedKey = keyType.nativeToDBus('key');
     var valueType = getDartType(valueSignature);
     var convertedValue = valueType.nativeToDBus('value');
-    return "DBusDict(DBusSignature('${keySignature.value}'), DBusSignature('${valueSignature.value}'), ${name}.map((key, value) => MapEntry(${convertedKey}, ${convertedValue})))";
+    return "DBusDict(DBusSignature('${keySignature.value}'), DBusSignature('${valueSignature.value}'), $name.map((key, value) => MapEntry($convertedKey, $convertedValue)))";
   }
 
   @override
@@ -366,7 +366,7 @@ class DBusDictType extends DBusDartType {
     var convertedKey = keyType.dbusToNative('key');
     var valueType = getDartType(valueSignature);
     var convertedValue = valueType.dbusToNative('value');
-    return '(${name} as DBusDict).children.map((key, value) => MapEntry(${convertedKey}, ${convertedValue}))';
+    return '($name as DBusDict).children.map((key, value) => MapEntry($convertedKey, $convertedValue))';
   }
 }
 

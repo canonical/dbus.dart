@@ -119,9 +119,9 @@ class DBusClient {
       var runtimeDir = Platform.environment['XDG_USER_DIR'];
       if (runtimeDir == null) {
         var uid = getuid();
-        runtimeDir = '/run/user/${uid}';
+        runtimeDir = '/run/user/$uid';
       }
-      address = 'unix:path=${runtimeDir}/bus';
+      address = 'unix:path=$runtimeDir/bus';
     }
     _address = address;
   }
@@ -180,7 +180,7 @@ class DBusClient {
         values: [DBusString(name), DBusUint32(flagsValue)]);
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('u')) {
-      throw 'org.freedesktop.DBus.RequestName returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.RequestName returned invalid result: $values';
     }
     var returnCode = (result.returnValues[0] as DBusUint32).value;
     switch (returnCode) {
@@ -194,7 +194,7 @@ class DBusClient {
       case 4:
         return DBusRequestNameReply.alreadyOwner;
       default:
-        throw 'org.freedesktop.DBusRequestName returned unknown return code: ${returnCode}';
+        throw 'org.freedesktop.DBusRequestName returned unknown return code: $returnCode';
     }
   }
 
@@ -208,7 +208,7 @@ class DBusClient {
         values: [DBusString(name)]);
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('u')) {
-      throw 'org.freedesktop.DBus.ReleaseName returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.ReleaseName returned invalid result: $values';
     }
     var returnCode = (result.returnValues[0] as DBusUint32).value;
     switch (returnCode) {
@@ -220,7 +220,7 @@ class DBusClient {
       case 3:
         return DBusReleaseNameReply.notOwner;
       default:
-        throw 'org.freedesktop.DBus.ReleaseName returned unknown return code: ${returnCode}';
+        throw 'org.freedesktop.DBus.ReleaseName returned unknown return code: $returnCode';
     }
   }
 
@@ -233,7 +233,7 @@ class DBusClient {
         member: 'ListQueuedOwners');
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('as')) {
-      throw 'org.freedesktop.DBus.ListQueuedOwners returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.ListQueuedOwners returned invalid result: $values';
     }
     return (values[0] as DBusArray)
         .children
@@ -250,7 +250,7 @@ class DBusClient {
         member: 'ListNames');
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('as')) {
-      throw 'org.freedesktop.DBus.ListNames returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.ListNames returned invalid result: $values';
     }
     return (values[0] as DBusArray)
         .children
@@ -267,7 +267,7 @@ class DBusClient {
         member: 'ListActivatableNames');
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('as')) {
-      throw 'org.freedesktop.DBus.ListActivatableNames returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.ListActivatableNames returned invalid result: $values';
     }
     return (values[0] as DBusArray)
         .children
@@ -285,7 +285,7 @@ class DBusClient {
         values: [DBusString(name)]);
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('b')) {
-      throw 'org.freedesktop.DBus.NameHasOwner returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.NameHasOwner returned invalid result: $values';
     }
     return (values[0] as DBusBoolean).value;
   }
@@ -304,7 +304,7 @@ class DBusClient {
     }
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.GetNameOwner returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.GetNameOwner returned invalid result: $values';
     }
     return (values[0] as DBusString).value;
   }
@@ -318,7 +318,7 @@ class DBusClient {
         member: 'GetId');
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.GetId returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.GetId returned invalid result: $values';
     }
     return (values[0] as DBusString).value;
   }
@@ -344,7 +344,7 @@ class DBusClient {
         member: 'GetMachineId');
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.Peer.GetMachineId returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.Peer.GetMachineId returned invalid result: $values';
     }
     return (values[0] as DBusString).value;
   }
@@ -415,7 +415,7 @@ class DBusClient {
   Future<void> _openSocket() async {
     var address = DBusAddress.fromString(_address!);
     if (address.transport != 'unix') {
-      throw 'D-Bus address transport not supported: ${_address}';
+      throw 'D-Bus address transport not supported: $_address';
     }
 
     var paths = <String>[];
@@ -425,7 +425,7 @@ class DBusClient {
       }
     }
     if (paths.isEmpty) {
-      throw 'Unable to determine D-Bus unix address path: ${_address}';
+      throw 'Unable to determine D-Bus unix address path: $_address';
     }
 
     var socket_address =
@@ -445,7 +445,7 @@ class DBusClient {
     for (var c in uid.toString().runes) {
       uidString += c.toRadixString(16).padLeft(2, '0');
     }
-    _socket?.write('AUTH EXTERNAL ${uidString}\r\n');
+    _socket?.write('AUTH EXTERNAL $uidString\r\n');
 
     return _authenticateCompleter.future;
   }
@@ -473,7 +473,7 @@ class DBusClient {
         requireConnect: false);
     var values = result.returnValues;
     if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.Hello returned invalid result: ${values}';
+      throw 'org.freedesktop.DBus.Hello returned invalid result: $values';
     }
     _uniqueName = (values[0] as DBusString).value;
 
@@ -551,18 +551,18 @@ class DBusClient {
   String _makeMatchRule(String type, String? sender, String? interface,
       String? member, DBusObjectPath? path, DBusObjectPath? pathNamespace) {
     var rules = <String>[];
-    rules.add("type='${type}'");
+    rules.add("type='$type'");
     if (sender != null) {
-      rules.add("sender='${sender}'");
+      rules.add("sender='$sender'");
     }
     if (interface != null) {
-      rules.add("interface='${interface}'");
+      rules.add("interface='$interface'");
     }
     if (member != null) {
-      rules.add("member='${member}'");
+      rules.add("member='$member'");
     }
     if (path != null) {
-      rules.add("path='${path.value}'");
+      rules.add("path='$path.value'");
     }
     if (pathNamespace != null) {
       rules.add("path_namespace='${pathNamespace.value}'");
@@ -582,7 +582,7 @@ class DBusClient {
           values: [DBusString(rule)]);
       var values = result.returnValues;
       if (values.isNotEmpty) {
-        throw 'org.freedesktop.DBus.AddMatch returned invalid result: ${values}';
+        throw 'org.freedesktop.DBus.AddMatch returned invalid result: $values';
       }
       count = 1;
     } else {
@@ -595,7 +595,7 @@ class DBusClient {
   Future<void> _removeMatch(String rule) async {
     var count = _matchRules[rule];
     if (count == null) {
-      throw 'Attempted to remove match that is not added: ${rule}';
+      throw 'Attempted to remove match that is not added: $rule';
     }
 
     if (count == 1) {
@@ -607,7 +607,7 @@ class DBusClient {
           values: [DBusString(rule)]);
       var values = result.returnValues;
       if (values.isNotEmpty) {
-        throw 'org.freedesktop.DBus.RemoveMatch returned invalid result: ${values}';
+        throw 'org.freedesktop.DBus.RemoveMatch returned invalid result: $values';
       }
       _matchRules.remove(rule);
     } else {
@@ -641,7 +641,7 @@ class DBusClient {
       _socket?.write('BEGIN\r\n');
       _authenticateCompleter.complete();
     } else {
-      throw 'Failed to authenticate: ${line}';
+      throw 'Failed to authenticate: $line';
     }
 
     return false;
@@ -861,6 +861,6 @@ class DBusClient {
 
   @override
   String toString() {
-    return "DBusClient('${_address}')";
+    return "DBusClient('$_address')";
   }
 }

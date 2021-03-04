@@ -100,7 +100,7 @@ class DBusMessage {
     } else if (type == MessageType.Signal) {
       text += 'MessageType.Signal';
     } else {
-      text += '${type}';
+      text += '$type';
     }
     if (flags != 0) {
       var flagNames = <String>[];
@@ -118,27 +118,27 @@ class DBusMessage {
       }
       text += ' flags=${flagNames.join('|')}';
     }
-    text += ' serial=${serial}';
+    text += ' serial=$serial';
     if (path != null) {
-      text += ", path='${path}'";
+      text += ", path='$path'";
     }
     if (interface != null) {
-      text += ", interface='${interface}'";
+      text += ", interface='$interface'";
     }
     if (member != null) {
-      text += ", member='${member}'";
+      text += ", member='$member'";
     }
     if (errorName != null) {
-      text += ", errorName='${errorName}'";
+      text += ", errorName='$errorName'";
     }
     if (replySerial != null) {
-      text += ', replySerial=${replySerial}';
+      text += ', replySerial=$replySerial';
     }
     if (destination != null) {
-      text += ", destination='${destination}'";
+      text += ", destination='$destination'";
     }
     if (sender != null) {
-      text += ", sender='${sender}'";
+      text += ", sender='$sender'";
     }
     if (values.isNotEmpty) {
       var valueText = <String>[];
