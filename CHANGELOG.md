@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.3
+
+* Fix DBusClient blocking when cancelling signal streams.
+
 ## 0.2.2
 
 * Fix regression in matching signals using pathNamespace, which affects ObjectManager usage.
