@@ -48,6 +48,10 @@ class DBusSignal {
 
   const DBusSignal(
       this.sender, this.path, this.interface, this.member, this.values);
+
+  @override
+  String toString() =>
+      "DBusSignal(sender: '$sender', path: $path, interface: '$interface', member: '$member', values: $values)";
 }
 
 class _DBusSignalSubscription {
