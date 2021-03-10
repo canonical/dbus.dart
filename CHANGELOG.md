@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.2
+
+* Fix regression in matching signals using pathNamespace, which affects ObjectManager usage.
+* Code tidy ups to pass dart analyze in 1.12 final release.
+
 ## 0.2.1
 
 * Use a meta version that works with the Dart 1.12 SDK.
