@@ -125,19 +125,19 @@ class DBusRemoteObject {
   }
 
   /// Subscribes to property changes.
-  Stream<DBusPropertiesChangedSignal> subscribePropertiesChanged() async* {
+  Stream<DBusPropertiesChangedSignal> subscribePropertiesChanged() {
     var signals =
         subscribeSignal('org.freedesktop.DBus.Properties', 'PropertiesChanged');
-    await for (var signal in signals) {
-      if (signal.values.length != 3 ||
-          signal.values[0].signature != DBusSignature('s') ||
-          signal.values[1].signature != DBusSignature('a{sv}') ||
-          signal.values[2].signature != DBusSignature('as')) {
-        continue;
+    return signals.map((signal) {
+      if (signal.values.length == 3 &&
+          signal.values[0].signature == DBusSignature('s') &&
+          signal.values[1].signature == DBusSignature('a{sv}') &&
+          signal.values[2].signature == DBusSignature('as')) {
+        return DBusPropertiesChangedSignal(signal);
+      } else {
+        throw 'org.freedesktop.DBus.Properties.PropertiesChanged contains invalid values ${signal.values}';
       }
-
-      yield DBusPropertiesChangedSignal(signal);
-    }
+    });
   }
 
   /// Invokes a method on this object.
@@ -184,39 +184,33 @@ class DBusRemoteObject {
   /// Subscribes to signals using object manager.
   /// The stream will contain [DBusPropertiesChangedSignal], [DBusObjectManagerInterfacesAddedSignal], [DBusObjectManagerInterfacesRemovedSignal] and [DBusSignal] for all other signals on these objects.
   /// Requires the remote object to implement the org.freedesktop.DBus.ObjectManager interface.
-  Stream<DBusSignal> subscribeObjectManagerSignals() async* {
+  Stream<DBusSignal> subscribeObjectManagerSignals() {
     var signals =
         client.subscribeSignals(sender: destination, pathNamespace: path);
-    await for (var signal in signals) {
+    return signals.map((signal) {
       if (signal.interface == 'org.freedesktop.DBus.ObjectManager' &&
-          signal.member == 'InterfacesAdded') {
-        if (signal.values.length != 2 ||
-            signal.values[0].signature != DBusSignature('o') ||
-            signal.values[1].signature != DBusSignature('a{sa{sv}}')) {
-          continue;
-        }
-        yield DBusObjectManagerInterfacesAddedSignal(signal);
+          signal.member == 'InterfacesAdded' &&
+          signal.values.length == 2 &&
+          signal.values[0].signature == DBusSignature('o') &&
+          signal.values[1].signature == DBusSignature('a{sa{sv}}')) {
+        return DBusObjectManagerInterfacesAddedSignal(signal);
       } else if (signal.interface == 'org.freedesktop.DBus.ObjectManager' &&
-          signal.member == 'InterfacesRemoved') {
-        if (signal.values.length != 2 ||
-            signal.values[0].signature != DBusSignature('o') ||
-            signal.values[1].signature != DBusSignature('as')) {
-          continue;
-        }
-        yield DBusObjectManagerInterfacesRemovedSignal(signal);
+          signal.member == 'InterfacesRemoved' &&
+          signal.values.length == 2 &&
+          signal.values[0].signature == DBusSignature('o') &&
+          signal.values[1].signature == DBusSignature('as')) {
+        return DBusObjectManagerInterfacesRemovedSignal(signal);
       } else if (signal.interface == 'org.freedesktop.DBus.Properties' &&
-          signal.member == 'PropertiesChanged') {
-        if (signal.values.length != 3 ||
-            signal.values[0].signature != DBusSignature('s') ||
-            signal.values[1].signature != DBusSignature('a{sv}') ||
-            signal.values[2].signature != DBusSignature('as')) {
-          continue;
-        }
-        yield DBusPropertiesChangedSignal(signal);
+          signal.member == 'PropertiesChanged' &&
+          signal.values.length == 3 &&
+          signal.values[0].signature == DBusSignature('s') &&
+          signal.values[1].signature == DBusSignature('a{sv}') &&
+          signal.values[2].signature == DBusSignature('as')) {
+        return DBusPropertiesChangedSignal(signal);
       } else {
-        yield signal;
+        return signal;
       }
-    }
+    });
   }
 
   @override

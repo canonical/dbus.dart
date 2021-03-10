@@ -817,14 +817,17 @@ String generateRemoteSignalSubscription(
 
   var source = '';
   source += '  /// Subscribes to ${interface.name}.${signal.name}.\n';
-  source += '  Stream<$classPrefix${signal.name}> $methodName() async* {\n';
+  source += '  Stream<$classPrefix${signal.name}> $methodName() {\n';
   source +=
-      "    var signals = await subscribeSignal('${interface.name}', '${signal.name}');\n";
-  source += '    await for (var signal in signals) {\n';
+      "    var signals = subscribeSignal('${interface.name}', '${signal.name}');\n";
+  source += '    return signals.map((signal) {\n';
   source += '      if (${valueChecks.join(' && ')}) {\n';
-  source += '        yield $classPrefix${signal.name}(signal);\n';
+  source += '        return $classPrefix${signal.name}(signal);\n';
+  source += '      } else {\n';
+  source +=
+      "        throw '${interface.name}.${signal.name} conatins invalid values \\\${signal.values}';\n";
   source += '      }\n';
-  source += '    }\n';
+  source += '    });\n';
   source += '  }\n';
 
   return source;
