@@ -23,8 +23,7 @@ Future<DBusMethodResponse> handlePeerMethodCall(
     if (values.isNotEmpty) {
       return DBusMethodErrorResponse.invalidArgs();
     }
-    final machineId = await _getMachineId();
-    return DBusMethodSuccessResponse([DBusString(machineId)]);
+    return DBusMethodSuccessResponse([DBusString(await getMachineId())]);
   } else if (member == 'Ping') {
     if (values.isNotEmpty) {
       return DBusMethodErrorResponse.invalidArgs();
@@ -36,7 +35,7 @@ Future<DBusMethodResponse> handlePeerMethodCall(
 }
 
 /// Returns the unique ID for this machine.
-Future<String> _getMachineId() async {
+Future<String> getMachineId() async {
   Future<String> readFirstLine(String path) async {
     var file = File(path);
     try {

@@ -30,6 +30,68 @@ class DBusMatchRule {
       this.path,
       this.pathNamespace});
 
+  /// Creates a match rule from the string [rule] which is in the format used by D-Bus messages.
+  factory DBusMatchRule.fromDBusString(String rule) {
+    var values = <String, String>{};
+    var offset = 0;
+    while (offset < rule.length) {
+      var keyStart = offset;
+      while (offset < rule.length && rule[offset] != '=') {
+        offset++;
+      }
+      var key = rule.substring(keyStart, offset);
+      if (offset >= rule.length) {
+        throw 'Invalid D-Bus rule, key $key missing value';
+      }
+      offset++;
+
+      var value = '';
+      var inQuotes = false;
+      while (offset < rule.length) {
+        if (rule[offset] == "'") {
+          inQuotes = !inQuotes;
+          offset++;
+          continue;
+        } else if (rule[offset] == '\\') {
+          if (!inQuotes) {
+            if (offset + 1 < rule.length && rule[offset + 1] == "'") {
+              offset++;
+            }
+          }
+        } else if (rule[offset] == ',' && !inQuotes) {
+          break;
+        }
+        value += rule[offset];
+        offset++;
+      }
+
+      values[key] = value;
+
+      if (offset < rule.length) {
+        if (rule[offset] != ',') {
+          throw 'Invalid D-Bus rule, missing trailing comma after $key value';
+        }
+        offset++;
+      }
+    }
+
+    return DBusMatchRule(
+      type: {
+        'method_call': DBusMessageType.methodCall,
+        'method_return': DBusMessageType.methodReturn,
+        'error': DBusMessageType.error,
+        'signal': DBusMessageType.signal
+      }[values['type']],
+      sender: values['sender'],
+      interface: values['interface'],
+      member: values['member'],
+      path: values['path'] != null ? DBusObjectPath(values['path']!) : null,
+      pathNamespace: values['pathNamespace'] != null
+          ? DBusObjectPath(values['pathNamespace']!)
+          : null,
+    );
+  }
+
   /// Converts the match rule to the string format used by D-Bus messages.
   String toDBusString() {
     var matches = <String, String>{};
@@ -98,6 +160,16 @@ class DBusMatchRule {
 
     return true;
   }
+
+  @override
+  bool operator ==(other) =>
+      other is DBusMatchRule &&
+      other.type == type &&
+      other.sender == sender &&
+      other.interface == interface &&
+      other.member == member &&
+      other.path == path &&
+      other.pathNamespace == pathNamespace;
 
   @override
   String toString() {
