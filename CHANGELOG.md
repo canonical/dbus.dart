@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.4
+
+* Fix regression subcribing to signals introduced in 0.2.1.
+
 ## 0.2.3
 
 * Fix DBusClient blocking when cancelling signal streams.
