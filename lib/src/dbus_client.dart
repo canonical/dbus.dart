@@ -566,7 +566,7 @@ class DBusClient {
       rules.add("member='$member'");
     }
     if (path != null) {
-      rules.add("path='$path.value'");
+      rules.add("path='${path.value}'");
     }
     if (pathNamespace != null) {
       rules.add("path_namespace='${pathNamespace.value}'");
