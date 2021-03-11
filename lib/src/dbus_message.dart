@@ -45,6 +45,10 @@ class DBusMessage {
   /// Values being sent with this message.
   final List<DBusValue> values;
 
+  /// The signature of the values.
+  DBusSignature get signature =>
+      DBusSignature(values.map((value) => value.signature.value).join());
+
   /// Creates a new D-Bus message.
   DBusMessage(this.type,
       {this.flags = const {},
