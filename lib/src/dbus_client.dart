@@ -6,6 +6,7 @@ import 'package:meta/meta.dart';
 
 import 'dbus_address.dart';
 import 'dbus_introspectable.dart';
+import 'dbus_match_rule.dart';
 import 'dbus_message.dart';
 import 'dbus_method_response.dart';
 import 'dbus_object.dart';
@@ -56,29 +57,30 @@ class DBusSignal {
 
 class _DBusSignalSubscription {
   final DBusClient client;
-  final String? sender;
-  final String? interface;
-  final String? member;
-  final DBusObjectPath? path;
-  final DBusObjectPath? pathNamespace;
+  final DBusMatchRule rule;
   final controller = StreamController<DBusSignal>();
 
   Stream<DBusSignal> get stream => controller.stream;
 
-  _DBusSignalSubscription(this.client, this.sender, this.interface, this.member,
-      this.path, this.pathNamespace) {
+  _DBusSignalSubscription(this.client, String? sender, String? interface,
+      String? member, DBusObjectPath? path, DBusObjectPath? pathNamespace)
+      : rule = DBusMatchRule(
+            type: 'signal',
+            sender: sender,
+            interface: interface,
+            member: member,
+            path: path,
+            pathNamespace: pathNamespace) {
     controller.onListen = onListen;
     controller.onCancel = onCancel;
   }
 
   void onListen() {
-    client._addMatch(client._makeMatchRule(
-        'signal', sender, interface, member, path, pathNamespace));
+    client._addMatch(rule.toDBusString());
   }
 
   Future<void> onCancel() async {
-    await client._removeMatch(client._makeMatchRule(
-        'signal', sender, interface, member, path, pathNamespace));
+    await client._removeMatch(rule.toDBusString());
     client._signalSubscriptions.remove(this);
   }
 }
@@ -98,8 +100,14 @@ class DBusClient {
   StreamSubscription<DBusSignal>? _nameOwnerSubscription;
   final _objectTree = DBusObjectTree();
   final _matchRules = <String, int>{};
+
+  // Maps D-Bus names (e.g. 'org.freedesktop.DBus') to unique names (e.g. ':1').
   final _nameOwners = <String, String>{};
+
+  // Names owned by this client. e.g. [ 'com.example.Foo', 'com.example.Bar' ].
   final _ownedNames = <String>{};
+
+  // Unique name of this client, e.g. ':42'.
   String? _uniqueName;
   final _nameAcquiredController = StreamController<String>();
   final _nameLostController = StreamController<String>();
@@ -551,29 +559,6 @@ class DBusClient {
     }
   }
 
-  /// Match a match rule for the given filter.
-  String _makeMatchRule(String type, String? sender, String? interface,
-      String? member, DBusObjectPath? path, DBusObjectPath? pathNamespace) {
-    var rules = <String>[];
-    rules.add("type='$type'");
-    if (sender != null) {
-      rules.add("sender='$sender'");
-    }
-    if (interface != null) {
-      rules.add("interface='$interface'");
-    }
-    if (member != null) {
-      rules.add("member='$member'");
-    }
-    if (path != null) {
-      rules.add("path='${path.value}'");
-    }
-    if (pathNamespace != null) {
-      rules.add("path_namespace='${pathNamespace.value}'");
-    }
-    return rules.join(',');
-  }
-
   /// Adds a rule to match which messages to receive.
   Future<void> _addMatch(String rule) async {
     var count = _matchRules[rule];
@@ -738,31 +723,18 @@ class DBusClient {
     }
 
     for (var subscription in _signalSubscriptions) {
-      String? makeUnique(String? sender) {
-        var uniqueSender = _nameOwners[sender];
-        if (uniqueSender != null) {
-          return uniqueSender;
-        }
-        return sender;
+      // If the subscription is for an owned name, check if that matches the unique name in the message.
+      var sender = message.sender;
+      if (_nameOwners[subscription.rule.sender] == sender) {
+        sender = subscription.rule.sender;
       }
 
-      var sender = makeUnique(subscription.sender);
-      if (sender != null && sender != message.sender) {
-        continue;
-      }
-      if (subscription.interface != null &&
-          subscription.interface != message.interface) {
-        continue;
-      }
-      if (subscription.member != null &&
-          subscription.member != message.member) {
-        continue;
-      }
-      if (subscription.path != null && subscription.path != message.path) {
-        continue;
-      }
-      if (subscription.pathNamespace != null &&
-          !message.path!.isInNamespace(subscription.pathNamespace!)) {
+      if (!subscription.rule.match(
+          type: 'signal',
+          sender: sender,
+          interface: message.interface,
+          member: message.member,
+          path: message.path)) {
         continue;
       }
 
