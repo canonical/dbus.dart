@@ -58,8 +58,26 @@ class DBusReadBuffer extends DBusBuffer {
     }
 
     readDBusByte(); // Endianess.
-    var type = readDBusByte()!.value;
-    var flags = readDBusByte()!.value;
+    var type = {
+      1: DBusMessageType.methodCall,
+      2: DBusMessageType.methodReturn,
+      3: DBusMessageType.error,
+      4: DBusMessageType.signal
+    }[readDBusByte()!.value];
+    if (type == null) {
+      throw 'Invalid type received';
+    }
+    var flags = <DBusMessageFlag>{};
+    var flagsValue = readDBusByte()!.value;
+    if (flagsValue & 0x01 != 0) {
+      flags.add(DBusMessageFlag.noReplyExpected);
+    }
+    if (flagsValue & 0x02 != 0) {
+      flags.add(DBusMessageFlag.noAutoStart);
+    }
+    if (flagsValue & 0x04 != 0) {
+      flags.add(DBusMessageFlag.allowInteractiveAuthorization);
+    }
     readDBusByte(); // Protocol version.
     var dataLength = readDBusUint32()!;
     var serial = readDBusUint32()!.value;
@@ -80,21 +98,21 @@ class DBusReadBuffer extends DBusBuffer {
       var header = child as DBusStruct;
       var code = (header.children.elementAt(0) as DBusByte).value;
       var value = (header.children.elementAt(1) as DBusVariant).value;
-      if (code == HeaderCode.Path) {
+      if (code == 1) {
         path = value as DBusObjectPath;
-      } else if (code == HeaderCode.Interface) {
+      } else if (code == 2) {
         interface = (value as DBusString).value;
-      } else if (code == HeaderCode.Member) {
+      } else if (code == 3) {
         member = (value as DBusString).value;
-      } else if (code == HeaderCode.ErrorName) {
+      } else if (code == 4) {
         errorName = (value as DBusString).value;
-      } else if (code == HeaderCode.ReplySerial) {
+      } else if (code == 5) {
         replySerial = (value as DBusUint32).value;
-      } else if (code == HeaderCode.Destination) {
+      } else if (code == 6) {
         destination = (value as DBusString).value;
-      } else if (code == HeaderCode.Sender) {
+      } else if (code == 7) {
         sender = (value as DBusString).value;
-      } else if (code == HeaderCode.Signature) {
+      } else if (code == 8) {
         signature = value as DBusSignature;
       }
     }
@@ -118,8 +136,7 @@ class DBusReadBuffer extends DBusBuffer {
       }
     }
 
-    return DBusMessage(
-        type: type,
+    return DBusMessage(type,
         flags: flags,
         serial: serial,
         path: path,

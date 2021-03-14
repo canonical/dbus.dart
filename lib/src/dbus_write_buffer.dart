@@ -18,44 +18,55 @@ class DBusWriteBuffer extends DBusBuffer {
     }
 
     // FIXME(robert-ancell): Handle endianess - currently hard-coded to little
-    writeValue(DBusByte(Endianess.Little));
-    writeValue(DBusByte(message.type));
-    writeValue(DBusByte(message.flags));
-    writeValue(DBusByte(ProtocolVersion));
+    writeValue(DBusByte(108)); // ASCII 'l'
+    writeValue(DBusByte({
+          DBusMessageType.methodCall: 1,
+          DBusMessageType.methodReturn: 2,
+          DBusMessageType.error: 3,
+          DBusMessageType.signal: 4
+        }[message.type] ??
+        0));
+    var flagsValue = 0;
+    for (var flag in message.flags) {
+      flagsValue |= {
+            DBusMessageFlag.noReplyExpected: 0x01,
+            DBusMessageFlag.noAutoStart: 0x02,
+            DBusMessageFlag.allowInteractiveAuthorization: 0x04
+          }[flag] ??
+          0;
+    }
+    writeValue(DBusByte(flagsValue));
+    writeValue(DBusByte(1)); // Protocol version.
     writeValue(DBusUint32(valueBuffer.data.length));
     writeValue(DBusUint32(message.serial));
     var headers = <DBusValue>[];
     if (message.path != null) {
-      headers.add(_makeHeader(HeaderCode.Path, message.path!));
+      headers.add(_makeHeader(1, message.path!));
     }
     if (message.interface != null) {
-      headers.add(
-          _makeHeader(HeaderCode.Interface, DBusString(message.interface!)));
+      headers.add(_makeHeader(2, DBusString(message.interface!)));
     }
     if (message.member != null) {
-      headers.add(_makeHeader(HeaderCode.Member, DBusString(message.member!)));
+      headers.add(_makeHeader(3, DBusString(message.member!)));
     }
     if (message.errorName != null) {
-      headers.add(
-          _makeHeader(HeaderCode.ErrorName, DBusString(message.errorName!)));
+      headers.add(_makeHeader(4, DBusString(message.errorName!)));
     }
     if (message.replySerial != null) {
-      headers.add(_makeHeader(
-          HeaderCode.ReplySerial, DBusUint32(message.replySerial!)));
+      headers.add(_makeHeader(5, DBusUint32(message.replySerial!)));
     }
     if (message.destination != null) {
-      headers.add(_makeHeader(
-          HeaderCode.Destination, DBusString(message.destination!)));
+      headers.add(_makeHeader(6, DBusString(message.destination!)));
     }
     if (message.sender != null) {
-      headers.add(_makeHeader(HeaderCode.Sender, DBusString(message.sender!)));
+      headers.add(_makeHeader(7, DBusString(message.sender!)));
     }
     if (message.values.isNotEmpty) {
       var signature = '';
       for (var value in message.values) {
         signature += value.signature.value;
       }
-      headers.add(_makeHeader(HeaderCode.Signature, DBusSignature(signature)));
+      headers.add(_makeHeader(8, DBusSignature(signature)));
     }
     writeValue(DBusArray(DBusSignature('(yv)'), headers));
     align(8);

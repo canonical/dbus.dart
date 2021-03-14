@@ -645,12 +645,12 @@ class DBusClient {
       return true;
     }
 
-    if (message.type == MessageType.MethodCall) {
+    if (message.type == DBusMessageType.methodCall) {
       _processMethodCall(message);
-    } else if (message.type == MessageType.MethodReturn ||
-        message.type == MessageType.Error) {
+    } else if (message.type == DBusMessageType.methodReturn ||
+        message.type == DBusMessageType.error) {
       _processMethodResponse(message);
-    } else if (message.type == MessageType.Signal) {
+    } else if (message.type == DBusMessageType.signal) {
       _processSignal(message);
     }
 
@@ -704,7 +704,7 @@ class DBusClient {
     _methodCalls.remove(message.replySerial);
 
     DBusMethodResponse response;
-    if (message.type == MessageType.Error) {
+    if (message.type == DBusMessageType.error) {
       response = DBusMethodErrorResponse(
           message.errorName ?? '(missing error name)', message.values);
     } else {
@@ -771,8 +771,7 @@ class DBusClient {
       String member,
       Iterable<DBusValue> values,
       {bool requireConnect = true}) async {
-    var message = DBusMessage(
-        type: MessageType.MethodCall,
+    var message = DBusMessage(DBusMessageType.methodCall,
         serial: _lastSerial,
         destination: destination,
         path: path,
@@ -786,8 +785,7 @@ class DBusClient {
   Future<void> _sendReturn(
       int serial, String? destination, Iterable<DBusValue> values) async {
     _lastSerial++;
-    var message = DBusMessage(
-        type: MessageType.MethodReturn,
+    var message = DBusMessage(DBusMessageType.methodReturn,
         serial: _lastSerial,
         replySerial: serial,
         destination: destination,
@@ -799,8 +797,7 @@ class DBusClient {
   Future<void> _sendError(int serial, String? destination, String errorName,
       Iterable<DBusValue> values) async {
     _lastSerial++;
-    var message = DBusMessage(
-        type: MessageType.Error,
+    var message = DBusMessage(DBusMessageType.error,
         serial: _lastSerial,
         errorName: errorName,
         replySerial: serial,
@@ -813,8 +810,7 @@ class DBusClient {
   Future<void> _sendSignal(String? destination, DBusObjectPath path,
       String interface, String member, Iterable<DBusValue> values) async {
     _lastSerial++;
-    var message = DBusMessage(
-        type: MessageType.Signal,
+    var message = DBusMessage(DBusMessageType.signal,
         serial: _lastSerial,
         destination: destination,
         path: path,
