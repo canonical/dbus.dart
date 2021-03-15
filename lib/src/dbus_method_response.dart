@@ -16,6 +16,9 @@ class DBusMethodSuccessResponse extends DBusMethodResponse {
 
   @override
   List<DBusValue> get returnValues => values;
+
+  @override
+  String toString() => 'DBusMethodSuccessResponse($values)';
 }
 
 /// An error response to a method call.
@@ -70,11 +73,17 @@ class DBusMethodErrorResponse extends DBusMethodResponse {
 
   @override
   List<DBusValue> get returnValues => throw 'Error: $errorName';
+
+  @override
+  String toString() => 'DBusMethodSuccessResponse($errorName, $values)';
 }
 
 /// A successful response to [DBusObject.getProperty].
 class DBusGetPropertyResponse extends DBusMethodSuccessResponse {
   DBusGetPropertyResponse(DBusValue value) : super([DBusVariant(value)]);
+
+  @override
+  String toString() => 'DBusGetPropertyResponse($values[0])';
 }
 
 /// A successful response to [DBusObject.getAllProperties].
@@ -87,4 +96,8 @@ class DBusGetAllPropertiesResponse extends DBusMethodSuccessResponse {
               values.map((key, value) =>
                   MapEntry(DBusString(key), DBusVariant(value))))
         ]);
+
+  @override
+  String toString() =>
+      'DBusGetAllPropertiesResponse(${(values[0] as DBusDict).children.map((key, value) => MapEntry((key as DBusString).value, (value as DBusVariant).value))})';
 }
