@@ -12,7 +12,7 @@ enum DBusMessageFlag {
 
 /// A message sent to/from the D-Bus server.
 class DBusMessage {
-  /// Type of the message, e.g. DBusMessageType.MethodCall.
+  /// Type of the message, e.g. DBusMessageType.methodCall.
   final DBusMessageType type;
 
   /// Flags associated with this message, e.g. Flags.NoAutoStart.

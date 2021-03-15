@@ -65,7 +65,7 @@ class _DBusSignalSubscription {
   _DBusSignalSubscription(this.client, String? sender, String? interface,
       String? member, DBusObjectPath? path, DBusObjectPath? pathNamespace)
       : rule = DBusMatchRule(
-            type: 'signal',
+            type: DBusMessageType.signal,
             sender: sender,
             interface: interface,
             member: member,
@@ -730,7 +730,7 @@ class DBusClient {
       }
 
       if (!subscription.rule.match(
-          type: 'signal',
+          type: DBusMessageType.signal,
           sender: sender,
           interface: message.interface,
           member: message.member,
