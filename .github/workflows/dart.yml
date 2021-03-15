@@ -27,3 +27,6 @@ jobs:
 
       - name: Analyze project source
         run: dart analyze --fatal-infos --fatal-warnings .
+
+      - name: Run regression tests
+        run: dart test test/test.dart

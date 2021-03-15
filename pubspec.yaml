@@ -16,5 +16,8 @@ dependencies:
   pedantic: ^1.9.0
   xml: ^5.0.0
 
+dev_dependencies:
+  test: ^1.16.8
+
 executables:
   dart-dbus:
