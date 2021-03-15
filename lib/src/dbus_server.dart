@@ -249,10 +249,17 @@ class DBusServer {
   DBusServer();
 
   /// Listens for connections on a Unix socket at [path].
-  Future<void> listenUnixSocket(String path) async {
+  /// If [path] is not provided a random path is chosen.
+  /// Returns the D-Bus address for clients to connect to this socket.
+  Future<String> listenUnixSocket([String? path]) async {
+    if (path == null) {
+      var directory = await Directory.systemTemp.createTemp();
+      path = '${directory.path}/dbus-socket';
+    }
     var address = InternetAddress(path, type: InternetAddressType.unix);
     var socket = await ServerSocket.bind(address, 0);
     _sockets.add(_DBusServerSocket(this, socket));
+    return 'unix:path=$path';
   }
 
   /// Terminates all active connections. If a server remains unclosed, the Dart process may not terminate.
