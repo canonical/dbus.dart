@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.5
+
+* Fixed namespace matching not working for the root namespace, could cause signals to be incorrectly subscribed.
+* Added DBusServer.
+
 ## 0.2.4
 
 * Fix regression subcribing to signals introduced in 0.2.1.
