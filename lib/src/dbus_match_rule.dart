@@ -1,9 +1,10 @@
+import 'dbus_message.dart';
 import 'dbus_value.dart';
 
 /// A Rule to match D-Bus messages.
 class DBusMatchRule {
   /// Matches messages with this type.
-  final String? type;
+  final DBusMessageType? type;
 
   /// Matches messages from this sender.
   final String? sender;
@@ -33,7 +34,13 @@ class DBusMatchRule {
   String toDBusString() {
     var matches = <String, String>{};
     if (type != null) {
-      matches['type'] = type!;
+      matches['type'] = {
+            DBusMessageType.methodCall: 'method_call',
+            DBusMessageType.methodReturn: 'method_return',
+            DBusMessageType.error: 'error',
+            DBusMessageType.signal: 'signal'
+          }[type] ??
+          '';
     }
     if (sender != null) {
       matches['sender'] = sender!;
@@ -63,7 +70,7 @@ class DBusMatchRule {
 
   /// True if the rule matches the supplied values.
   bool match(
-      {String? type,
+      {DBusMessageType? type,
       String? sender,
       String? interface,
       String? member,
@@ -95,7 +102,7 @@ class DBusMatchRule {
   @override
   String toString() {
     var parameters = <String, String?>{
-      'type': type,
+      'type': type?.toString(),
       'sender': sender,
       'interface': interface,
       'member': member,
