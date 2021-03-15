@@ -84,7 +84,7 @@ class DBusGetAllPropertiesResponse extends DBusMethodSuccessResponse {
           DBusDict(
               DBusSignature('s'),
               DBusSignature('v'),
-              Map.fromIterables(values.keys.map((k) => DBusString(k)),
-                  values.values.map((v) => DBusVariant(v))))
+              values.map((key, value) =>
+                  MapEntry(DBusString(key), DBusVariant(value))))
         ]);
 }
