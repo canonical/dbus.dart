@@ -465,6 +465,9 @@ class DBusSignature extends DBusValue {
   @override
   bool operator ==(other) => other is DBusSignature && other.value == value;
 
+  DBusSignature operator +(DBusSignature other) =>
+      DBusSignature(value + other.value);
+
   @override
   int get hashCode => value.hashCode;
 

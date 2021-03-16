@@ -71,11 +71,10 @@ class DBusRemoteObject {
         path: path,
         interface: 'org.freedesktop.DBus.Introspectable',
         member: 'Introspect');
-    var values = result.returnValues;
-    if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.Introspectable.Introspect returned invalid result: $values';
+    if (result.signature != DBusSignature('s')) {
+      throw 'org.freedesktop.DBus.Introspectable.Introspect returned invalid result: ${result.returnValues}';
     }
-    var xml = (values[0] as DBusString).value;
+    var xml = (result.returnValues[0] as DBusString).value;
     return parseDBusIntrospectXml(xml);
   }
 
@@ -87,11 +86,10 @@ class DBusRemoteObject {
         interface: 'org.freedesktop.DBus.Properties',
         member: 'Get',
         values: [DBusString(interface), DBusString(name)]);
-    var values = result.returnValues;
-    if (values.length != 1 || values[0].signature != DBusSignature('v')) {
-      throw 'org.freedesktop.DBus.Properties.Get returned invalid result: $values';
+    if (result.signature != DBusSignature('v')) {
+      throw 'org.freedesktop.DBus.Properties.Get returned invalid result: ${result.returnValues}';
     }
-    return (values[0] as DBusVariant).value;
+    return (result.returnValues[0] as DBusVariant).value;
   }
 
   /// Gets the values of all the properties on this object.
@@ -102,11 +100,10 @@ class DBusRemoteObject {
         interface: 'org.freedesktop.DBus.Properties',
         member: 'GetAll',
         values: [DBusString(interface)]);
-    var values = result.returnValues;
-    if (values.length != 1 || values[0].signature != DBusSignature('a{sv}')) {
-      throw 'org.freedesktop.DBus.Properties.GetAll returned invalid result: $values';
+    if (result.signature != DBusSignature('a{sv}')) {
+      throw 'org.freedesktop.DBus.Properties.GetAll returned invalid result: ${result.returnValues}';
     }
-    return (values[0] as DBusDict).children.map((key, value) =>
+    return (result.returnValues[0] as DBusDict).children.map((key, value) =>
         MapEntry((key as DBusString).value, (value as DBusVariant).value));
   }
 
@@ -119,9 +116,8 @@ class DBusRemoteObject {
         interface: 'org.freedesktop.DBus.Properties',
         member: 'Set',
         values: [DBusString(interface), DBusString(name), DBusVariant(value)]);
-    var values = result.returnValues;
-    if (values.isNotEmpty) {
-      throw 'org.freedesktop.DBus.Properties.set returned invalid result: $values';
+    if (result.returnValues.isNotEmpty) {
+      throw 'org.freedesktop.DBus.Properties.set returned invalid result: ${result.returnValues}';
     }
   }
 
@@ -130,10 +126,7 @@ class DBusRemoteObject {
     var signals =
         subscribeSignal('org.freedesktop.DBus.Properties', 'PropertiesChanged');
     return signals.map((signal) {
-      if (signal.values.length == 3 &&
-          signal.values[0].signature == DBusSignature('s') &&
-          signal.values[1].signature == DBusSignature('a{sv}') &&
-          signal.values[2].signature == DBusSignature('as')) {
+      if (signal.signature != DBusSignature('sa{sv}as')) {
         return DBusPropertiesChangedSignal(signal);
       } else {
         throw 'org.freedesktop.DBus.Properties.PropertiesChanged contains invalid values ${signal.values}';
@@ -167,10 +160,8 @@ class DBusRemoteObject {
         path: path,
         interface: 'org.freedesktop.DBus.ObjectManager',
         member: 'GetManagedObjects');
-    var values = result.returnValues;
-    if (values.length != 1 ||
-        values[0].signature != DBusSignature('a{oa{sa{sv}}}')) {
-      throw 'GetManagedObjects returned invalid result: $values';
+    if (result.signature != DBusSignature('a{oa{sa{sv}}}')) {
+      throw 'GetManagedObjects returned invalid result: ${result.returnValues}';
     }
 
     Map<DBusObjectPath, Map<String, Map<String, DBusValue>>> decodeObjects(
@@ -179,7 +170,7 @@ class DBusRemoteObject {
           key as DBusObjectPath, _decodeInterfacesAndProperties(value)));
     }
 
-    return decodeObjects(values[0]);
+    return decodeObjects(result.returnValues[0]);
   }
 
   /// Subscribes to signals using object manager.
@@ -191,22 +182,15 @@ class DBusRemoteObject {
     return signals.map((signal) {
       if (signal.interface == 'org.freedesktop.DBus.ObjectManager' &&
           signal.name == 'InterfacesAdded' &&
-          signal.values.length == 2 &&
-          signal.values[0].signature == DBusSignature('o') &&
-          signal.values[1].signature == DBusSignature('a{sa{sv}}')) {
+          signal.signature == DBusSignature('oa{sa{sv}}')) {
         return DBusObjectManagerInterfacesAddedSignal(signal);
       } else if (signal.interface == 'org.freedesktop.DBus.ObjectManager' &&
           signal.name == 'InterfacesRemoved' &&
-          signal.values.length == 2 &&
-          signal.values[0].signature == DBusSignature('o') &&
-          signal.values[1].signature == DBusSignature('as')) {
+          signal.signature == DBusSignature('oas')) {
         return DBusObjectManagerInterfacesRemovedSignal(signal);
       } else if (signal.interface == 'org.freedesktop.DBus.Properties' &&
           signal.name == 'PropertiesChanged' &&
-          signal.values.length == 3 &&
-          signal.values[0].signature == DBusSignature('s') &&
-          signal.values[1].signature == DBusSignature('a{sv}') &&
-          signal.values[2].signature == DBusSignature('as')) {
+          signal.signature == DBusSignature('aa{sv}as')) {
         return DBusPropertiesChangedSignal(signal);
       } else {
         return signal;

@@ -17,6 +17,10 @@ class DBusSignal {
   /// Values associated with the signal.
   final List<DBusValue> values;
 
+  /// Signature of [values].
+  DBusSignature get signature =>
+      values.map((value) => value.signature).reduce((a, b) => a + b);
+
   const DBusSignal(
       this.sender, this.path, this.interface, this.name, this.values);
 
