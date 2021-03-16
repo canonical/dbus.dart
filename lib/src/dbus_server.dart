@@ -281,10 +281,6 @@ class DBusServer {
 
   /// Process an incoming message.
   Future<void> _processMessage(DBusMessage message) async {
-    if (message.destination == null) {
-      return;
-    }
-
     // Forward to any clients that are listening to this message.
     for (var client in _clients) {
       if (client.matchMessage(message)) {
