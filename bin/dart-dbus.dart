@@ -403,25 +403,24 @@ String generateHandleMethodCall(DBusIntrospectNode node) {
     var methodBranches = <SwitchBranch>[];
     for (var method in interface.methods) {
       var argValues = <String>[];
-      var argChecks = <String>[];
       var inputArgs = method.args
           .where((arg) => arg.direction == DBusArgumentDirection.in_);
+      String argCheck;
       if (inputArgs.isEmpty) {
-        argChecks.add('methodCall.values.isNotEmpty');
+        argCheck = 'methodCall.values.isNotEmpty';
       } else {
-        argChecks.add('methodCall.values.length != ${argValues.length}');
+        argCheck =
+            "methodCall.signature != DBusSignature('${method.inputSignature.value}')";
       }
       for (var arg in inputArgs) {
         var argName = 'methodCall.values[${argValues.length}]';
-        argChecks
-            .add("$argName.signature != DBusSignature('${arg.type.value}')");
         var type = getDartType(arg.type);
         var convertedValue = type.dbusToNative(argName);
         argValues.add(convertedValue);
       }
 
       var source = '';
-      source += 'if (${argChecks.join(' || ')}) {\n';
+      source += 'if ($argCheck) {\n';
       source += '  return DBusMethodErrorResponse.invalidArgs();\n';
       source += '}\n';
       source += 'return do${method.name}(${argValues.join(', ')});\n';
@@ -798,18 +797,12 @@ String generateRemoteSignalSubscription(
     String classPrefix,
     DBusIntrospectInterface interface,
     DBusIntrospectSignal signal) {
-  var index = 0;
-  var valueChecks = <String>[];
+  String valueCheck;
   if (signal.args.isEmpty) {
-    valueChecks.add('signal.values.isEmpty');
+    valueCheck = 'signal.values.isEmpty';
   } else {
-    valueChecks.add('signal.values.length == ${signal.args.length}');
-  }
-  for (var arg in signal.args) {
-    var valueName = 'signal.values[$index]';
-    valueChecks
-        .add("$valueName.signature == DBusSignature('${arg.type.value}')");
-    index++;
+    valueCheck =
+        "signal.signature == DBusSignature('${signal.signature.value}')";
   }
 
   var methodName = getUniqueMethodName(methodNames, 'subscribe${signal.name}');
@@ -820,7 +813,7 @@ String generateRemoteSignalSubscription(
   source +=
       "    var signals = subscribeSignal('${interface.name}', '${signal.name}');\n";
   source += '    return signals.map((signal) {\n';
-  source += '      if (${valueChecks.join(' && ')}) {\n';
+  source += '      if ($valueCheck) {\n';
   source += '        return $classPrefix${signal.name}(signal);\n';
   source += '      } else {\n';
   source +=

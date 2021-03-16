@@ -167,9 +167,8 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         member: 'RequestName',
         values: [DBusString(name), DBusUint32(flagsValue)]);
-    var values = result.returnValues;
-    if (values.length != 1 || values[0].signature != DBusSignature('u')) {
-      throw 'org.freedesktop.DBus.RequestName returned invalid result: $values';
+    if (result.signature != DBusSignature('u')) {
+      throw 'org.freedesktop.DBus.RequestName returned invalid result: ${result.returnValues}';
     }
     var returnCode = (result.returnValues[0] as DBusUint32).value;
     switch (returnCode) {
@@ -195,9 +194,8 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         member: 'ReleaseName',
         values: [DBusString(name)]);
-    var values = result.returnValues;
-    if (values.length != 1 || values[0].signature != DBusSignature('u')) {
-      throw 'org.freedesktop.DBus.ReleaseName returned invalid result: $values';
+    if (result.signature != DBusSignature('u')) {
+      throw 'org.freedesktop.DBus.ReleaseName returned invalid result: ${result.returnValues}';
     }
     var returnCode = (result.returnValues[0] as DBusUint32).value;
     switch (returnCode) {
@@ -220,11 +218,10 @@ class DBusClient {
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
         member: 'ListQueuedOwners');
-    var values = result.returnValues;
-    if (values.length != 1 || values[0].signature != DBusSignature('as')) {
-      throw 'org.freedesktop.DBus.ListQueuedOwners returned invalid result: $values';
+    if (result.signature != DBusSignature('as')) {
+      throw 'org.freedesktop.DBus.ListQueuedOwners returned invalid result: ${result.returnValues}';
     }
-    return (values[0] as DBusArray)
+    return (result.returnValues[0] as DBusArray)
         .children
         .map((v) => (v as DBusString).value)
         .toList();
@@ -237,11 +234,10 @@ class DBusClient {
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
         member: 'ListNames');
-    var values = result.returnValues;
-    if (values.length != 1 || values[0].signature != DBusSignature('as')) {
-      throw 'org.freedesktop.DBus.ListNames returned invalid result: $values';
+    if (result.signature != DBusSignature('as')) {
+      throw 'org.freedesktop.DBus.ListNames returned invalid result: ${result.returnValues}';
     }
-    return (values[0] as DBusArray)
+    return (result.returnValues[0] as DBusArray)
         .children
         .map((v) => (v as DBusString).value)
         .toList();
@@ -254,11 +250,10 @@ class DBusClient {
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
         member: 'ListActivatableNames');
-    var values = result.returnValues;
-    if (values.length != 1 || values[0].signature != DBusSignature('as')) {
-      throw 'org.freedesktop.DBus.ListActivatableNames returned invalid result: $values';
+    if (result.signature != DBusSignature('as')) {
+      throw 'org.freedesktop.DBus.ListActivatableNames returned invalid result: ${result.returnValues}';
     }
-    return (values[0] as DBusArray)
+    return (result.returnValues[0] as DBusArray)
         .children
         .map((v) => (v as DBusString).value)
         .toList();
@@ -272,11 +267,10 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         member: 'NameHasOwner',
         values: [DBusString(name)]);
-    var values = result.returnValues;
-    if (values.length != 1 || values[0].signature != DBusSignature('b')) {
-      throw 'org.freedesktop.DBus.NameHasOwner returned invalid result: $values';
+    if (result.signature != DBusSignature('b')) {
+      throw 'org.freedesktop.DBus.NameHasOwner returned invalid result: ${result.returnValues}';
     }
-    return (values[0] as DBusBoolean).value;
+    return (result.returnValues[0] as DBusBoolean).value;
   }
 
   /// Returns the unique connection name of the client that owns [name].
@@ -291,11 +285,10 @@ class DBusClient {
         result.errorName == 'org.freedesktop.DBus.Error.NameHasNoOwner') {
       return null;
     }
-    var values = result.returnValues;
-    if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.GetNameOwner returned invalid result: $values';
+    if (result.signature != DBusSignature('s')) {
+      throw 'org.freedesktop.DBus.GetNameOwner returned invalid result: ${result.returnValues}';
     }
-    return (values[0] as DBusString).value;
+    return (result.returnValues[0] as DBusString).value;
   }
 
   /// Gets the unique ID of the bus.
@@ -305,11 +298,10 @@ class DBusClient {
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
         member: 'GetId');
-    var values = result.returnValues;
-    if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.GetId returned invalid result: $values';
+    if (result.signature != DBusSignature('s')) {
+      throw 'org.freedesktop.DBus.GetId returned invalid result: ${result.returnValues}';
     }
-    return (values[0] as DBusString).value;
+    return (result.returnValues[0] as DBusString).value;
   }
 
   /// Sends a ping request to the client at the given [destination].
@@ -334,11 +326,10 @@ class DBusClient {
         path: DBusObjectPath('/'),
         interface: 'org.freedesktop.DBus.Peer',
         member: 'GetMachineId');
-    var values = result.returnValues;
-    if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.Peer.GetMachineId returned invalid result: $values';
+    if (result.signature != DBusSignature('s')) {
+      throw 'org.freedesktop.DBus.Peer.GetMachineId returned invalid result: ${result.returnValues}';
     }
-    return (values[0] as DBusString).value;
+    return (result.returnValues[0] as DBusString).value;
   }
 
   /// Invokes a method on a D-Bus object.
@@ -463,11 +454,10 @@ class DBusClient {
         'Hello',
         [],
         requireConnect: false);
-    var values = result.returnValues;
-    if (values.length != 1 || values[0].signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.Hello returned invalid result: $values';
+    if (result.signature != DBusSignature('s')) {
+      throw 'org.freedesktop.DBus.Hello returned invalid result: ${result.returnValues}';
     }
-    _uniqueName = (values[0] as DBusString).value;
+    _uniqueName = (result.returnValues[0] as DBusString).value;
 
     // Notify anyone else awaiting connection.
     _connectCompleter?.complete();
@@ -493,8 +483,7 @@ class DBusClient {
 
   /// Handles the org.freedesktop.DBus.NameAcquired signal.
   void _handleNameAcquired(DBusSignal signal) {
-    if (signal.values.length != 1 ||
-        signal.values[0].signature != DBusSignature('s')) {
+    if (signal.signature != DBusSignature('s')) {
       throw 'org.freedesktop.DBus.NameAcquired received with invalid arguments: ${signal.values}';
     }
 
@@ -508,8 +497,7 @@ class DBusClient {
 
   /// Handles the org.freedesktop.DBus.NameLost signal.
   void _handleNameLost(DBusSignal signal) {
-    if (signal.values.length != 1 ||
-        signal.values[0].signature != DBusSignature('s')) {
+    if (signal.signature != DBusSignature('s')) {
       throw 'org.freedesktop.DBus.NameLost received with invalid arguments: ${signal.values}';
     }
 
@@ -523,10 +511,7 @@ class DBusClient {
 
   /// Handles the org.freedesktop.DBus.NameOwnerChanged signal and updates the table of known names.
   void _handleNameOwnerChanged(DBusSignal signal) {
-    if (signal.values.length != 3 ||
-        signal.values[0].signature != DBusSignature('s') ||
-        signal.values[1].signature != DBusSignature('s') ||
-        signal.values[2].signature != DBusSignature('s')) {
+    if (signal.signature != DBusSignature('sss')) {
       throw 'org.freedesktop.DBus.NameOwnerChanged received with invalid arguments: ${signal.values}';
     }
 
@@ -549,9 +534,8 @@ class DBusClient {
           interface: 'org.freedesktop.DBus',
           member: 'AddMatch',
           values: [DBusString(rule)]);
-      var values = result.returnValues;
-      if (values.isNotEmpty) {
-        throw 'org.freedesktop.DBus.AddMatch returned invalid result: $values';
+      if (result.returnValues.isNotEmpty) {
+        throw 'org.freedesktop.DBus.AddMatch returned invalid result: ${result.returnValues}';
       }
       count = 1;
     } else {
@@ -574,9 +558,8 @@ class DBusClient {
           interface: 'org.freedesktop.DBus',
           member: 'RemoveMatch',
           values: [DBusString(rule)]);
-      var values = result.returnValues;
-      if (values.isNotEmpty) {
-        throw 'org.freedesktop.DBus.RemoveMatch returned invalid result: $values';
+      if (result.returnValues.isNotEmpty) {
+        throw 'org.freedesktop.DBus.RemoveMatch returned invalid result: ${result.returnValues}';
       }
       _matchRules.remove(rule);
     } else {

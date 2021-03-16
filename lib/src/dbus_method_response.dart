@@ -4,6 +4,10 @@ import 'dbus_value.dart';
 abstract class DBusMethodResponse {
   /// Gets the value returned from this method or throws an exception if an error received.
   List<DBusValue> get returnValues;
+
+  /// Gets the signature of the [returnValues].
+  DBusSignature get signature =>
+      returnValues.map((value) => value.signature).reduce((a, b) => a + b);
 }
 
 /// A success response to a method call.
