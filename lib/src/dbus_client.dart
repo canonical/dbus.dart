@@ -14,6 +14,7 @@ import 'dbus_object_tree.dart';
 import 'dbus_peer.dart';
 import 'dbus_properties.dart';
 import 'dbus_read_buffer.dart';
+import 'dbus_signal.dart';
 import 'dbus_value.dart';
 import 'dbus_write_buffer.dart';
 import 'getuid.dart';
@@ -29,31 +30,6 @@ enum DBusRequestNameFlag { allowReplacement, replaceExisting, doNotQueue }
 
 /// Reply received when calling [DBusClient.releaseName].
 enum DBusReleaseNameReply { released, nonExistant, notOwner }
-
-/// A signal received from a client.
-class DBusSignal {
-  /// Client that sent the signal.
-  final String? sender;
-
-  /// Path of the object emitting the signal.
-  final DBusObjectPath path;
-
-  /// Interface emitting the signal.
-  final String interface;
-
-  /// Signal name;
-  final String member;
-
-  /// Values associated with the signal.
-  final List<DBusValue> values;
-
-  const DBusSignal(
-      this.sender, this.path, this.interface, this.member, this.values);
-
-  @override
-  String toString() =>
-      "DBusSignal(sender: '$sender', path: $path, interface: '$interface', member: '$member', values: $values)";
-}
 
 class _DBusSignalSubscription {
   final DBusClient client;
