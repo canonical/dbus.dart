@@ -1,6 +1,7 @@
 import 'dbus_client.dart';
 import 'dbus_introspect.dart';
 import 'dbus_method_response.dart';
+import 'dbus_signal.dart';
 import 'dbus_value.dart';
 
 /// Signal received when properties are changed.
