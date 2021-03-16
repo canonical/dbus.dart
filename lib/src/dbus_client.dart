@@ -336,7 +336,8 @@ class DBusClient {
   }
 
   /// Sends a ping request to the client at the given [destination].
-  Future<void> ping(String destination) async {
+  /// If [destination] is not set, pings the D-Bus server.
+  Future<void> ping([String destination = 'org.freedesktop.DBus']) async {
     var result = await callMethod(
         destination: destination,
         path: DBusObjectPath('/'),
@@ -348,7 +349,9 @@ class DBusClient {
   }
 
   /// Gets the machine ID of the client at the given [destination].
-  Future<String> getMachineId(String destination) async {
+  /// If [destination] is not set, gets the machine the D-Bus server is running on.
+  Future<String> getMachineId(
+      [String destination = 'org.freedesktop.DBus']) async {
     var result = await callMethod(
         destination: destination,
         path: DBusObjectPath('/'),
