@@ -78,7 +78,7 @@ void main() {
       expect(signal.sender, equals(client1.uniqueName));
       expect(signal.path, equals(DBusObjectPath('/')));
       expect(signal.interface, equals('com.example.Test'));
-      expect(signal.member, equals('Ping'));
+      expect(signal.name, equals('Ping'));
       expect(signal.values, equals([DBusString('Hello'), DBusUint32(42)]));
     }));
 

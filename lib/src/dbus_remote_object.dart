@@ -21,7 +21,7 @@ class DBusPropertiesChangedSignal extends DBusSignal {
       .toList();
 
   DBusPropertiesChangedSignal(DBusSignal signal)
-      : super(signal.sender, signal.path, signal.interface, signal.member,
+      : super(signal.sender, signal.path, signal.interface, signal.name,
             signal.values);
 }
 
@@ -35,7 +35,7 @@ class DBusObjectManagerInterfacesAddedSignal extends DBusSignal {
       _decodeInterfacesAndProperties(values[1]);
 
   DBusObjectManagerInterfacesAddedSignal(DBusSignal signal)
-      : super(signal.sender, signal.path, signal.interface, signal.member,
+      : super(signal.sender, signal.path, signal.interface, signal.name,
             signal.values);
 }
 
@@ -51,7 +51,7 @@ class DBusObjectManagerInterfacesRemovedSignal extends DBusSignal {
       .toList();
 
   DBusObjectManagerInterfacesRemovedSignal(DBusSignal signal)
-      : super(signal.sender, signal.path, signal.interface, signal.member,
+      : super(signal.sender, signal.path, signal.interface, signal.name,
             signal.values);
 }
 
@@ -190,19 +190,19 @@ class DBusRemoteObject {
         client.subscribeSignals(sender: destination, pathNamespace: path);
     return signals.map((signal) {
       if (signal.interface == 'org.freedesktop.DBus.ObjectManager' &&
-          signal.member == 'InterfacesAdded' &&
+          signal.name == 'InterfacesAdded' &&
           signal.values.length == 2 &&
           signal.values[0].signature == DBusSignature('o') &&
           signal.values[1].signature == DBusSignature('a{sa{sv}}')) {
         return DBusObjectManagerInterfacesAddedSignal(signal);
       } else if (signal.interface == 'org.freedesktop.DBus.ObjectManager' &&
-          signal.member == 'InterfacesRemoved' &&
+          signal.name == 'InterfacesRemoved' &&
           signal.values.length == 2 &&
           signal.values[0].signature == DBusSignature('o') &&
           signal.values[1].signature == DBusSignature('as')) {
         return DBusObjectManagerInterfacesRemovedSignal(signal);
       } else if (signal.interface == 'org.freedesktop.DBus.Properties' &&
-          signal.member == 'PropertiesChanged' &&
+          signal.name == 'PropertiesChanged' &&
           signal.values.length == 3 &&
           signal.values[0].signature == DBusSignature('s') &&
           signal.values[1].signature == DBusSignature('a{sv}') &&

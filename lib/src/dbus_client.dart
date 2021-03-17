@@ -717,8 +717,12 @@ class DBusClient {
         continue;
       }
 
-      subscription.controller.add(DBusSignal(message.sender, message.path!,
-          message.interface!, message.member!, message.values));
+      subscription.controller.add(DBusSignal(
+          message.sender ?? '',
+          message.path ?? DBusObjectPath('/'),
+          message.interface ?? '',
+          message.member ?? '',
+          message.values));
     }
   }
 
