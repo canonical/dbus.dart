@@ -653,32 +653,31 @@ List<String> generateRemotePropertyMethods(List<String> methodNames,
 /// Generates a method for a remote D-Bus method call.
 String generateRemoteMethodCall(List<String> methodNames,
     DBusIntrospectInterface interface, DBusIntrospectMethod method) {
+  var inputArgs =
+      method.args.where((arg) => arg.direction == DBusArgumentDirection.in_);
+  var outputArgs =
+      method.args.where((arg) => arg.direction == DBusArgumentDirection.out);
+
   var argValues = <String>[];
   var argsList = <String>[];
   var index = 0;
-  for (var arg in method.args) {
-    if (arg.direction == DBusArgumentDirection.in_) {
-      var type = getDartType(arg.type);
-      var argName = arg.name ?? 'arg_$index';
-      var convertedValue = type.nativeToDBus(argName);
-      argsList.add('${type.nativeType} $argName');
-      argValues.add(convertedValue);
-    }
+  for (var arg in inputArgs) {
+    var type = getDartType(arg.type);
+    var argName = arg.name ?? 'arg_$index';
+    var convertedValue = type.nativeToDBus(argName);
+    argsList.add('${type.nativeType} $argName');
+    argValues.add(convertedValue);
     index++;
   }
 
   var returnTypes = <String>[];
   var returnValues = <String>[];
-  index = 0;
-  for (var arg in method.args) {
-    if (arg.direction == DBusArgumentDirection.out) {
-      var type = getDartType(arg.type);
-      var returnValue = 'result.returnValues[${returnTypes.length}]';
-      returnTypes.add(type.nativeType);
-      var convertedValue = type.dbusToNative(returnValue);
-      returnValues.add(convertedValue);
-    }
-    index++;
+  for (var arg in outputArgs) {
+    var type = getDartType(arg.type);
+    var returnValue = 'result.returnValues[${returnTypes.length}]';
+    returnTypes.add(type.nativeType);
+    var convertedValue = type.dbusToNative(returnValue);
+    returnValues.add(convertedValue);
   }
 
   String returnType;
@@ -698,13 +697,15 @@ String generateRemoteMethodCall(List<String> methodNames,
   var source = '';
   source += '  /// Invokes ${interface.name}.${method.name}()\n';
   source += '  $returnType $methodName(${argsList.join(', ')}) async {\n';
-  if (returnTypes.isEmpty) {
-    source += '    $methodCall\n';
-  } else if (returnTypes.length == 1) {
-    source += '    var result = $methodCall\n';
+  source += '    var result = $methodCall\n';
+  source +=
+      "    if (result.signature != DBusSignature('${method.outputSignature.value}')) {\n";
+  source +=
+      "      throw '${interface.name}.${method.name} returned invalid values \\\${result.values}';\n";
+  source += '    }\n';
+  if (returnTypes.length == 1) {
     source += '    return ${returnValues[0]};\n';
-  } else {
-    source += '    var result = $methodCall\n';
+  } else if (returnTypes.length > 1) {
     source += '    return result.returnValues;\n';
   }
   source += '  }\n';
