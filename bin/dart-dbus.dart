@@ -817,7 +817,7 @@ String generateRemoteSignalSubscription(
   source += '        return $classPrefix${signal.name}(signal);\n';
   source += '      } else {\n';
   source +=
-      "        throw '${interface.name}.${signal.name} conatins invalid values \\\${signal.values}';\n";
+      "        throw '${interface.name}.${signal.name} contains invalid values \\\${signal.values}';\n";
   source += '      }\n';
   source += '    });\n';
   source += '  }\n';
