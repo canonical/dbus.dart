@@ -33,17 +33,13 @@ class _DBusRemoteClient {
   /// True when have received a Hello message.
   bool receivedHello = false;
 
-  /// Names owned by this client.
-  final names = <String>[];
-
   /// Unique name of this client.
-  String get uniqueName => names[0];
+  final String uniqueName;
 
   /// Message match rules.
   final matchRules = <DBusMatchRule>[];
 
-  _DBusRemoteClient(this.serverSocket, this._socket, String uniqueName) {
-    names.add(uniqueName);
+  _DBusRemoteClient(this.serverSocket, this._socket, this.uniqueName) {
     _socket.listen(_processData);
   }
 
@@ -224,6 +220,77 @@ class _DBusServerSocket {
   }
 }
 
+/// An open request for a name.
+class _DBusNameRequest {
+  /// True if this client allows another client to take this name.
+  bool allowReplacement;
+
+  /// True if this client will take a name off another client.
+  bool replaceExisting;
+
+  /// True if this client wants to be removed from the queue if not the owner.
+  bool doNotQueue;
+
+  _DBusNameRequest(
+      this.allowReplacement, this.replaceExisting, this.doNotQueue);
+}
+
+/// A queue of clients requesting a name.
+class _DBusNameQueue {
+  /// The name being queued for.
+  final String name;
+
+  /// Queued requests.
+  final requests = <_DBusRemoteClient, _DBusNameRequest>{};
+
+  /// The current owner of this name.
+  _DBusRemoteClient? get owner =>
+      requests.isNotEmpty ? requests.keys.first : null;
+
+  /// Creates a new name queue for [name].
+  _DBusNameQueue(this.name);
+
+  /// Add/update a request from [client] for this name.
+  void addRequest(_DBusRemoteClient client, bool allowReplacement,
+      bool replaceExisting, bool doNotQueue) {
+    var currentOwner = owner;
+
+    var request = requests[client];
+    if (request == null) {
+      request = _DBusNameRequest(allowReplacement, replaceExisting, doNotQueue);
+      requests[client] = request;
+    }
+    request.allowReplacement = allowReplacement;
+    request.replaceExisting = replaceExisting;
+    request.doNotQueue = doNotQueue;
+
+    // If can take an existing name, move to the front of the queue
+    if (currentOwner != null &&
+        currentOwner != client &&
+        requests[currentOwner]!.allowReplacement &&
+        replaceExisting) {
+      requests.remove(client);
+      var otherRequests = requests.entries.toList();
+      requests.clear();
+      requests[client] = request;
+      requests.addEntries(otherRequests);
+    }
+
+    /// Purge any do not queue requests.
+    requests.removeWhere(
+        (client, request) => client != owner && request.doNotQueue);
+  }
+
+  /// Returns true if [client] has a request on this name.
+  bool hasRequest(_DBusRemoteClient client) => requests.containsKey(client);
+
+  /// Remove a request from [client] for this name.
+  /// Returns true if there was a reuest to remove.
+  bool removeRequest(_DBusRemoteClient client) {
+    return requests.remove(client) != null;
+  }
+}
+
 /// A D-Bus server.
 class DBusServer {
   /// Sockets being listened on.
@@ -238,6 +305,9 @@ class DBusServer {
 
   /// Next serial number to use for messages from the server.
   int _nextSerial = 1;
+
+  /// Queues for name ownership.
+  final _nameQueues = <String, _DBusNameQueue>{};
 
   /// Feature flags exposed by the server.
   final _features = <String>[];
@@ -272,11 +342,11 @@ class DBusServer {
   /// Get the client that is currently owning [name].
   _DBusRemoteClient? _getClientByName(String name) {
     for (var client in _clients) {
-      if (client.names.contains(name)) {
+      if (client.uniqueName == name) {
         return client;
       }
     }
-    return null;
+    return _nameQueues[name]?.owner;
   }
 
   /// Process an incoming message.
@@ -527,53 +597,86 @@ class DBusServer {
   DBusMethodResponse _requestName(DBusMessage message, String name,
       bool allowReplacement, bool replaceExisting, bool doNotQueue) {
     var client = _getClientByName(message.sender!)!;
-    var owningClient = _getClientByName(name);
-    int returnValue;
-    if (owningClient == null) {
-      /// FIXME(robert-ancell): Implement a name queue and honor replaceExisting/doNotQueue
-      client.names.add(name);
-      _emitNameOwnerChanged(name, '', client.uniqueName);
-      _emitNameAcquired(client.uniqueName, name);
-      returnValue = 1; // primaryOwner
-    } else if (owningClient == client) {
-      returnValue = 4; // alreadyOwner
-    } else {
-      if (doNotQueue) {
-        returnValue = 3; // exists
-      } else {
-        returnValue = 2; // inQueue
-      }
+    var queue = _nameQueues[name];
+    var oldOwner = queue?.owner;
+    if (queue == null) {
+      queue = _DBusNameQueue(name);
+      _nameQueues[name] = queue;
     }
+    queue.addRequest(client, allowReplacement, replaceExisting, doNotQueue);
+
+    int returnValue;
+    if (queue.owner == client) {
+      if (oldOwner == client) {
+        returnValue = 4; // alreadyOwner
+      } else {
+        returnValue = 1; // primaryOwner
+      }
+    } else if (queue.hasRequest(client)) {
+      returnValue = 2; // inQueue
+    } else {
+      returnValue = 3; // exists
+    }
+
+    _emitNameSignals(name, oldOwner);
+
     return DBusMethodSuccessResponse([DBusUint32(returnValue)]);
   }
 
   // Implementation of org.freedesktop.DBus.ReleaseName
   DBusMethodResponse _releaseName(DBusMessage message, String name) {
     var client = _getClientByName(message.sender!)!;
+    var queue = _nameQueues[name];
+    var oldOwner = queue?.owner;
     int returnValue;
-    if (client.names.remove(name)) {
+    if (queue == null) {
+      returnValue = 2; // nonExistant
+    } else if (queue.removeRequest(client)) {
+      // Remove empty queues.
+      if (queue.requests.isEmpty) {
+        _nameQueues.remove(name);
+      }
       returnValue = 1; // released
     } else {
-      if (_getClientByName(name) == null) {
-        returnValue = 2; // nonEsistant
-      } else {
-        returnValue = 3; // notOwned
-      }
+      returnValue = 3; // notOwned
     }
+
+    _emitNameSignals(name, oldOwner);
+
     return DBusMethodSuccessResponse([DBusUint32(returnValue)]);
+  }
+
+  /// Emit signals if [name] is no longer owned by [oldOwner].
+  void _emitNameSignals(String name, _DBusRemoteClient? oldOwner) {
+    var queue = _nameQueues[name];
+    var newOwner = queue?.owner;
+    if (oldOwner == newOwner) {
+      return;
+    }
+
+    _emitNameOwnerChanged(
+        name, oldOwner?.uniqueName ?? '', newOwner?.uniqueName ?? '');
+    if (oldOwner != null) {
+      _emitNameLost(oldOwner.uniqueName, name);
+    }
+    if (newOwner != null) {
+      _emitNameAcquired(newOwner.uniqueName, name);
+    }
   }
 
   // Implementation of org.freedesktop.DBus.ListQueuedOwners
   DBusMethodResponse _listQueuedOwners(DBusMessage message, String name) {
-    return DBusMethodSuccessResponse([DBusArray(DBusSignature('s'), [])]);
+    var queue = _nameQueues[name] ?? _DBusNameQueue('');
+    var names =
+        queue.requests.keys.map((client) => DBusString(client.uniqueName));
+    return DBusMethodSuccessResponse([DBusArray(DBusSignature('s'), names)]);
   }
 
   // Implementation of org.freedesktop.DBus.ListNames
   DBusMethodResponse _listNames(DBusMessage message) {
     var names = <DBusValue>[DBusString('org.freedesktop.DBus')];
-    for (var client in _clients) {
-      names.addAll(client.names.map((name) => DBusString(name)));
-    }
+    names.addAll(_clients.map((client) => DBusString(client.uniqueName)));
+    names.addAll(_nameQueues.keys.map((name) => DBusString(name)));
     return DBusMethodSuccessResponse([DBusArray(DBusSignature('s'), names)]);
   }
 
@@ -841,6 +944,13 @@ class DBusServer {
   void _emitNameAcquired(String destination, String name) {
     _emitSignal(DBusObjectPath('/org/freedesktop/DBus'), 'org.freedesktop.DBus',
         'NameAcquired',
+        values: [DBusString(name)], destination: destination);
+  }
+
+  /// Emits org.freedesktop.DBus.NameLost.
+  void _emitNameLost(String destination, String name) {
+    _emitSignal(DBusObjectPath('/org/freedesktop/DBus'), 'org.freedesktop.DBus',
+        'NameLost',
         values: [DBusString(name)], destination: destination);
   }
 
