@@ -40,7 +40,7 @@ void main(List<String> args) async {
   } else if (mode == 'server') {
     await client.requestName('com.canonical.DBusDart');
     var object = TestObject();
-    client.registerObject(object);
+    await client.registerObject(object);
     var count = 0;
     Timer.periodic(Duration(seconds: 1), (timer) {
       print('Ping $count!');
