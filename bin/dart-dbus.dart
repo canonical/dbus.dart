@@ -404,22 +404,20 @@ String generateHandleMethodCall(DBusIntrospectNode node) {
     for (var method in interface.methods) {
       var argValues = <String>[];
       var argChecks = <String>[];
-      if (method.args
-          .where((arg) => arg.direction == DBusArgumentDirection.in_)
-          .isEmpty) {
+      var inputArgs = method.args
+          .where((arg) => arg.direction == DBusArgumentDirection.in_);
+      if (inputArgs.isEmpty) {
         argChecks.add('methodCall.values.isNotEmpty');
       } else {
         argChecks.add('methodCall.values.length != ${argValues.length}');
       }
-      for (var arg in method.args) {
-        if (arg.direction == DBusArgumentDirection.in_) {
-          var argName = 'methodCall.values[${argValues.length}]';
-          argChecks
-              .add("$argName.signature != DBusSignature('${arg.type.value}')");
-          var type = getDartType(arg.type);
-          var convertedValue = type.dbusToNative(argName);
-          argValues.add(convertedValue);
-        }
+      for (var arg in inputArgs) {
+        var argName = 'methodCall.values[${argValues.length}]';
+        argChecks
+            .add("$argName.signature != DBusSignature('${arg.type.value}')");
+        var type = getDartType(arg.type);
+        var convertedValue = type.dbusToNative(argName);
+        argValues.add(convertedValue);
       }
 
       var source = '';
