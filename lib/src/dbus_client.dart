@@ -386,12 +386,13 @@ class DBusClient {
   }
 
   /// Registers an [object] on the bus.
-  void registerObject(DBusObject object) {
+  Future<void> registerObject(DBusObject object) async {
     if (object.client != null) {
       throw 'Client already registered';
     }
     object.client = this;
     _objectTree.add(object.path, object);
+    await _connect();
   }
 
   /// Open a socket connection to the D-Bus server.

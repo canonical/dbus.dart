@@ -40,10 +40,7 @@ void main() {
 
     // Create a client that exposes a method.
     var client1 = DBusClient(address);
-    client1.registerObject(EchoObject());
-
-    // Make sure client1 is connected to the Bus.
-    await client1.ping();
+    await client1.registerObject(EchoObject());
 
     // Call the method from another client.
     var client2 = DBusClient(address);
@@ -64,10 +61,7 @@ void main() {
     // Create a client that exposes a method.
     var client1 = DBusClient(address);
     var object = DBusObject();
-    client1.registerObject(object);
-
-    // Make sure client1 is connected to the Bus.
-    await client1.ping();
+    await client1.registerObject(object);
 
     // Subscribe to the signal from another client.
     var client2 = DBusClient(address);
@@ -95,10 +89,7 @@ void main() {
 
     // Create a client that exposes introspection data.
     var client1 = DBusClient(address);
-    client1.registerObject(IntrospectObject());
-
-    // Make sure client1 is connected to the Bus.
-    await client1.ping();
+    await client1.registerObject(IntrospectObject());
 
     // Read introspection data from the first client.
     var client2 = DBusClient(address);
