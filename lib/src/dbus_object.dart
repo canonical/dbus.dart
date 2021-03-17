@@ -1,5 +1,6 @@
 import 'dbus_client.dart';
 import 'dbus_introspect.dart';
+import 'dbus_method_call.dart';
 import 'dbus_method_response.dart';
 import 'dbus_value.dart';
 
@@ -19,8 +20,7 @@ class DBusObject {
   }
 
   /// Called when a method call is received on this object.
-  Future<DBusMethodResponse> handleMethodCall(String? sender, String? interface,
-      String member, List<DBusValue> values) async {
+  Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
     return DBusMethodErrorResponse.unknownInterface();
   }
 
