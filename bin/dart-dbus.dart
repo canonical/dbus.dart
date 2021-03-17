@@ -425,12 +425,13 @@ String generateHandleMethodCall(DBusIntrospectNode node) {
       source += '  return DBusMethodErrorResponse.invalidArgs();\n';
       source += '}\n';
       source += 'return do${method.name}(${argValues.join(', ')});\n';
-      methodBranches.add(SwitchBranch("methodCall.name == '${method.name}'", source));
+      methodBranches
+          .add(SwitchBranch("methodCall.name == '${method.name}'", source));
     }
     var source = makeSwitch(
         methodBranches, 'return DBusMethodErrorResponse.unknownMethod();\n');
-    interfaceBranches
-        .add(SwitchBranch("methodCall.interface == '${interface.name}'", source));
+    interfaceBranches.add(
+        SwitchBranch("methodCall.interface == '${interface.name}'", source));
   }
 
   var source = '';
@@ -462,8 +463,7 @@ String generateGetProperty(
       } else {
         source = 'return DBusMethodErrorResponse.propertyWriteOnly()\n';
       }
-      propertyBranches
-          .add(SwitchBranch("name == '${property.name}'", source));
+      propertyBranches.add(SwitchBranch("name == '${property.name}'", source));
     }
     var source = makeSwitch(propertyBranches,
         'return DBusMethodErrorResponse.unknownProperty();\n');
@@ -506,8 +506,7 @@ String generateSetProperty(
       } else {
         source = 'return DBusMethodErrorResponse.propertyReadOnly()\n';
       }
-      propertyBranches
-          .add(SwitchBranch("name == '${property.name}'", source));
+      propertyBranches.add(SwitchBranch("name == '${property.name}'", source));
     }
     var source = makeSwitch(propertyBranches,
         'return DBusMethodErrorResponse.unknownProperty();\n');
