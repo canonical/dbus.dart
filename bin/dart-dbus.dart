@@ -787,7 +787,7 @@ String generateRemoteSignalClass(String classPrefix,
   source += properties.join();
   source += '\n';
   source +=
-      '  $classPrefix${signal.name}(DBusSignal signal) : super(signal.sender, signal.path, signal.interface, signal.member, signal.values);\n';
+      '  $classPrefix${signal.name}(DBusSignal signal) : super(signal.sender, signal.path, signal.interface, signal.name, signal.values);\n';
   source += '}\n';
 
   return source;
