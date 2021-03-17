@@ -6,8 +6,9 @@ abstract class DBusMethodResponse {
   List<DBusValue> get returnValues;
 
   /// Gets the signature of the [returnValues].
-  DBusSignature get signature =>
-      returnValues.map((value) => value.signature).reduce((a, b) => a + b);
+  DBusSignature get signature => returnValues
+      .map((value) => value.signature)
+      .fold(DBusSignature(''), (a, b) => a + b);
 }
 
 /// A success response to a method call.

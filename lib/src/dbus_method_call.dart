@@ -15,8 +15,9 @@ class DBusMethodCall {
   final List<DBusValue> values;
 
   /// Signature of [values].
-  DBusSignature get signature =>
-      values.map((value) => value.signature).reduce((a, b) => a + b);
+  DBusSignature get signature => values
+      .map((value) => value.signature)
+      .fold(DBusSignature(''), (a, b) => a + b);
 
   const DBusMethodCall(this.sender, this.interface, this.name, this.values);
 
