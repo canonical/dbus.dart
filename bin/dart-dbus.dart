@@ -684,7 +684,7 @@ String generateRemoteMethodCall(List<String> methodNames,
 
   String returnType;
   if (returnTypes.isEmpty) {
-    returnType = 'Future';
+    returnType = 'Future<void>';
   } else if (returnTypes.length == 1) {
     returnType = 'Future<${returnTypes[0]}>';
   } else {
