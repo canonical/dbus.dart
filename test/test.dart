@@ -4,10 +4,9 @@ import 'package:test/test.dart';
 // Test object which has an Echo() method.
 class EchoObject extends DBusObject {
   @override
-  Future<DBusMethodResponse> handleMethodCall(String? sender, String? interface,
-      String member, List<DBusValue> values) async {
-    if (member == 'Echo') {
-      return DBusMethodSuccessResponse(values);
+  Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
+    if (methodCall.name == 'Echo') {
+      return DBusMethodSuccessResponse(methodCall.values);
     } else {
       return DBusMethodErrorResponse.unknownMethod();
     }

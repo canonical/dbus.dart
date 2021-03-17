@@ -405,13 +405,13 @@ String generateHandleMethodCall(DBusIntrospectNode node) {
       var argValues = <String>[];
       var argChecks = <String>[];
       if (argValues.isEmpty) {
-        argChecks.add('values.isNotEmpty');
+        argChecks.add('methodCall.values.isNotEmpty');
       } else {
-        argChecks.add('values.length != ${argValues.length}');
+        argChecks.add('methodCall.values.length != ${argValues.length}');
       }
       for (var arg in method.args) {
         if (arg.direction == DBusArgumentDirection.in_) {
-          var argName = 'values[${argValues.length}]';
+          var argName = 'methodCall.values[${argValues.length}]';
           argChecks
               .add("$argName.signature != DBusSignature('${arg.type.value}')");
           var type = getDartType(arg.type);
@@ -425,18 +425,18 @@ String generateHandleMethodCall(DBusIntrospectNode node) {
       source += '  return DBusMethodErrorResponse.invalidArgs();\n';
       source += '}\n';
       source += 'return do${method.name}(${argValues.join(', ')});\n';
-      methodBranches.add(SwitchBranch("member == '${method.name}'", source));
+      methodBranches.add(SwitchBranch("methodCall.name == '${method.name}'", source));
     }
     var source = makeSwitch(
         methodBranches, 'return DBusMethodErrorResponse.unknownMethod();\n');
     interfaceBranches
-        .add(SwitchBranch("interface == '${interface.name}'", source));
+        .add(SwitchBranch("methodCall.interface == '${interface.name}'", source));
   }
 
   var source = '';
   source += '  @override\n';
   source +=
-      '  Future<DBusMethodResponse> handleMethodCall(String? sender, String? interface, String member, List<DBusValue> values) async {\n';
+      '  Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {\n';
   source += indentSource(
       2,
       makeSwitch(interfaceBranches,
@@ -463,7 +463,7 @@ String generateGetProperty(
         source = 'return DBusMethodErrorResponse.propertyWriteOnly()\n';
       }
       propertyBranches
-          .add(SwitchBranch("member == '${property.name}'", source));
+          .add(SwitchBranch("name == '${property.name}'", source));
     }
     var source = makeSwitch(propertyBranches,
         'return DBusMethodErrorResponse.unknownProperty();\n');
@@ -474,7 +474,7 @@ String generateGetProperty(
   var source = '';
   source += '  @override\n';
   source +=
-      '  Future<DBusMethodResponse> getProperty(String interface, String member) async {\n';
+      '  Future<DBusMethodResponse> getProperty(String interface, String name) async {\n';
   source += indentSource(
       2,
       makeSwitch(interfaceBranches,
@@ -507,7 +507,7 @@ String generateSetProperty(
         source = 'return DBusMethodErrorResponse.propertyReadOnly()\n';
       }
       propertyBranches
-          .add(SwitchBranch("member == '${property.name}'", source));
+          .add(SwitchBranch("name == '${property.name}'", source));
     }
     var source = makeSwitch(propertyBranches,
         'return DBusMethodErrorResponse.unknownProperty();\n');
@@ -518,7 +518,7 @@ String generateSetProperty(
   var source = '';
   source += '  @override\n';
   source +=
-      '  Future<DBusMethodResponse> setProperty(String interface, String member, DBusValue value) async {\n';
+      '  Future<DBusMethodResponse> setProperty(String interface, String name, DBusValue value) async {\n';
   source += indentSource(
       2,
       makeSwitch(interfaceBranches,

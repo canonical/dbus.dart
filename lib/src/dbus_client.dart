@@ -8,6 +8,7 @@ import 'dbus_address.dart';
 import 'dbus_introspectable.dart';
 import 'dbus_match_rule.dart';
 import 'dbus_message.dart';
+import 'dbus_method_call.dart';
 import 'dbus_method_response.dart';
 import 'dbus_object.dart';
 import 'dbus_object_tree.dart';
@@ -654,8 +655,9 @@ class DBusClient {
     } else {
       var object = _objectTree.lookupObject(message.path!);
       if (object != null) {
-        response = await object.handleMethodCall(
-            message.sender, message.interface, message.member!, message.values);
+        var methodCall = DBusMethodCall(message.sender ?? '', message.interface,
+            message.member ?? '', message.values);
+        response = await object.handleMethodCall(methodCall);
       } else {
         response = DBusMethodErrorResponse.unknownInterface();
       }
