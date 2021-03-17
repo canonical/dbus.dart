@@ -404,7 +404,9 @@ String generateHandleMethodCall(DBusIntrospectNode node) {
     for (var method in interface.methods) {
       var argValues = <String>[];
       var argChecks = <String>[];
-      if (argValues.isEmpty) {
+      if (method.args
+          .where((arg) => arg.direction == DBusArgumentDirection.in_)
+          .isEmpty) {
         argChecks.add('methodCall.values.isNotEmpty');
       } else {
         argChecks.add('methodCall.values.length != ${argValues.length}');
