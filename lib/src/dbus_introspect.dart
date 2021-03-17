@@ -133,13 +133,13 @@ class DBusIntrospectMethod {
   DBusSignature get inputSignature => args
       .where((arg) => arg.direction == DBusArgumentDirection.in_)
       .map((arg) => arg.type)
-      .reduce((a, b) => a + b);
+      .fold(DBusSignature(''), (a, b) => a + b);
 
   /// The signature for the output arguments in this method call.
   DBusSignature get outputSignature => args
       .where((arg) => arg.direction == DBusArgumentDirection.out)
       .map((arg) => arg.type)
-      .reduce((a, b) => a + b);
+      .fold(DBusSignature(''), (a, b) => a + b);
 
   DBusIntrospectMethod(this.name,
       {this.args = const [], this.annotations = const []});
@@ -188,7 +188,7 @@ class DBusIntrospectSignal {
 
   /// The signature for the arguments in this signals.
   DBusSignature get signature =>
-      args.map((arg) => arg.type).reduce((a, b) => a + b);
+      args.map((arg) => arg.type).fold(DBusSignature(''), (a, b) => a + b);
 
   DBusIntrospectSignal(this.name,
       {this.args = const [], this.annotations = const []});
