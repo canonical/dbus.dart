@@ -217,7 +217,8 @@ class DBusClient {
         destination: 'org.freedesktop.DBus',
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
-        member: 'ListQueuedOwners');
+        member: 'ListQueuedOwners',
+        values: [DBusString(name)]);
     if (result.signature != DBusSignature('as')) {
       throw 'org.freedesktop.DBus.ListQueuedOwners returned invalid result: ${result.returnValues}';
     }
