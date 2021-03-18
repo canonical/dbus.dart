@@ -430,7 +430,7 @@ void main() {
 
     // Read introspection data from the first client.
     var remoteObject =
-        DBusRemoteObject(client2, client1.uniqueName!, DBusObjectPath('/'));
+        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
     var node = await remoteObject.introspect();
     expect(
         node.toXml().toXmlString(),

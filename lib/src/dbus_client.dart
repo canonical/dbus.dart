@@ -132,8 +132,7 @@ class DBusClient {
   }
 
   /// Gets the unique name this connection uses.
-  /// Only set once [connect] is completed.
-  String? get uniqueName => _uniqueName;
+  String get uniqueName => _uniqueName ?? '';
 
   /// Gets the names owned by this connection.
   Iterable<String> get ownedNames => _ownedNames;
