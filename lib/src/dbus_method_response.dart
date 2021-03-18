@@ -38,43 +38,44 @@ class DBusMethodErrorResponse extends DBusMethodResponse {
   DBusMethodErrorResponse(this.errorName, [this.values = const []]);
 
   /// Creates a new error response indicating the request failed.
-  DBusMethodErrorResponse.failed(String message)
-      : this('org.freedesktop.DBus.Error.Failed', [DBusString(message)]);
+  DBusMethodErrorResponse.failed([String? message])
+      : this('org.freedesktop.DBus.Error.Failed',
+            message != null ? [DBusString(message)] : []);
 
   /// Creates a new error response indicating an unknown object.
-  DBusMethodErrorResponse.unknownObject()
+  DBusMethodErrorResponse.unknownObject([String? message])
       : this('org.freedesktop.DBus.Error.UnknownObject',
-            [DBusString('Unknown object')]);
+            message != null ? [DBusString(message)] : []);
 
   /// Creates a new error response indicating an unknown interface.
-  DBusMethodErrorResponse.unknownInterface()
+  DBusMethodErrorResponse.unknownInterface([String? message])
       : this('org.freedesktop.DBus.Error.UnknownInterface',
-            [DBusString('Object does not implement the interface')]);
+            message != null ? [DBusString(message)] : []);
 
   /// Creates a new error response indicating an unknown method.
-  DBusMethodErrorResponse.unknownMethod()
+  DBusMethodErrorResponse.unknownMethod([String? message])
       : this('org.freedesktop.DBus.Error.UnknownMethod',
-            [DBusString('Unknown / invalid message')]);
+            message != null ? [DBusString(message)] : []);
 
   /// Creates a new error response indicating the arguments passed were invalid.
-  DBusMethodErrorResponse.invalidArgs()
+  DBusMethodErrorResponse.invalidArgs([String? message])
       : this('org.freedesktop.DBus.Error.InvalidArgs',
-            [DBusString('Invalid type / number of args')]);
+            message != null ? [DBusString(message)] : []);
 
   /// Creates a new error response indicating an unknown property.
-  DBusMethodErrorResponse.unknownProperty()
+  DBusMethodErrorResponse.unknownProperty([String? message])
       : this('org.freedesktop.DBus.Error.UnknownProperty',
-            [DBusString('Unknown property')]);
+            message != null ? [DBusString(message)] : []);
 
   /// Creates a new error response when attempting to write to a read-only property.
-  DBusMethodErrorResponse.propertyReadOnly()
+  DBusMethodErrorResponse.propertyReadOnly([String? message])
       : this('org.freedesktop.DBus.Error.PropertyReadOnly',
-            [DBusString('Property is read-only')]);
+            message != null ? [DBusString(message)] : []);
 
   /// Creates a new error response when attempting to read to a write-only property.
-  DBusMethodErrorResponse.propertyWriteOnly()
+  DBusMethodErrorResponse.propertyWriteOnly([String? message])
       : this('org.freedesktop.DBus.Error.PropertyWriteOnly',
-            [DBusString('Property is write-only')]);
+            message != null ? [DBusString(message)] : []);
 
   @override
   List<DBusValue> get returnValues => throw 'Error: $errorName';
