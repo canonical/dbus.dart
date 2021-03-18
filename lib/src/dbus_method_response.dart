@@ -77,6 +77,11 @@ class DBusMethodErrorResponse extends DBusMethodResponse {
       : this('org.freedesktop.DBus.Error.PropertyWriteOnly',
             message != null ? [DBusString(message)] : []);
 
+  /// Creates a new error response indicating access was denied.
+  DBusMethodErrorResponse.accessDenied([String? message])
+      : this('org.freedesktop.DBus.Error.AccessDenied',
+            message != null ? [DBusString(message)] : []);
+
   @override
   List<DBusValue> get returnValues => throw 'Error: $errorName';
 
