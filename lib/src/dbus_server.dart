@@ -722,7 +722,7 @@ class DBusServer {
     DBusMatchRule rule;
     try {
       rule = DBusMatchRule.fromDBusString(ruleString);
-    } on Exception {
+    } on DBusMatchRuleException {
       return _DBusServerErrorResponse.matchRuleInvalid();
     }
     client.matchRules.add(rule);
@@ -735,7 +735,7 @@ class DBusServer {
     DBusMatchRule rule;
     try {
       rule = DBusMatchRule.fromDBusString(ruleString);
-    } on Exception {
+    } on DBusMatchRuleException {
       return _DBusServerErrorResponse.matchRuleInvalid();
     }
     if (!client.matchRules.remove(rule)) {
