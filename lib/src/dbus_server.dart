@@ -219,16 +219,22 @@ class _DBusServerSocket {
   /// Socket being listened on.
   final ServerSocket socket;
 
+  /// Id for this connection.
+  final int connectionId;
+
+  /// Next Id to use to generate a unique name for each client.
+  int _nextClientId = 0;
+
   /// Unique ID for this socket.
   final uuid = _DBusUUID();
 
   /// Connected clients.
   final _clients = <_DBusRemoteClient>[];
 
-  _DBusServerSocket(this.server, this.socket) {
+  _DBusServerSocket(this.server, this.socket, this.connectionId) {
     socket.listen((clientSocket) {
-      var uniqueName = ':${server._nextClientId}';
-      server._nextClientId++;
+      var uniqueName = ':$connectionId.$_nextClientId';
+      _nextClientId++;
       _clients.add(_DBusRemoteClient(this, clientSocket, uniqueName));
     });
   }
@@ -319,12 +325,12 @@ class DBusServer {
   /// Sockets being listened on.
   final _sockets = <_DBusServerSocket>[];
 
+  /// Next Id to use for connections.
+  int _nextConnectionId = 1;
+
   /// Connected clients.
   Iterable<_DBusRemoteClient> get _clients =>
       _sockets.map((s) => s._clients).expand((c) => c);
-
-  /// Next Id to use to generate a unique name for each client.
-  int _nextClientId = 1;
 
   /// Next serial number to use for messages from the server.
   int _nextSerial = 1;
@@ -351,7 +357,8 @@ class DBusServer {
     }
     var address = InternetAddress(path, type: InternetAddressType.unix);
     var socket = await ServerSocket.bind(address, 0);
-    _sockets.add(_DBusServerSocket(this, socket));
+    _sockets.add(_DBusServerSocket(this, socket, _nextConnectionId));
+    _nextConnectionId++;
     return 'unix:path=$path';
   }
 
