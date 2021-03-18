@@ -370,6 +370,25 @@ void main() {
     expect(names, equals([client2.uniqueName]));
   });
 
+  test('release name - empty', () async {
+    var server = DBusServer();
+    var address = await server.listenUnixSocket();
+    var client = DBusClient(address);
+
+    // Attempt to release an empty bus name.
+    expect(client.releaseName(''), throwsA(isMethodResponseException));
+  });
+
+  test('release name - unique name', () async {
+    var server = DBusServer();
+    var address = await server.listenUnixSocket();
+    var client = DBusClient(address);
+
+    // Attempt to release the unique name of this client.
+    expect(client.releaseName(client.uniqueName),
+        throwsA(isMethodResponseException));
+  });
+
   test('call method', () async {
     var server = DBusServer();
     var address = await server.listenUnixSocket();

@@ -633,6 +633,18 @@ class DBusServer {
 
   // Implementation of org.freedesktop.DBus.ReleaseName
   DBusMethodResponse _releaseName(DBusMessage message, String name) {
+    DBusBusName busName;
+    try {
+      busName = DBusBusName(name);
+    } on DBusBusNameException {
+      return DBusMethodErrorResponse.invalidArgs(
+          "Requested bus name '$name' not valid");
+    }
+    if (busName.isUnique) {
+      return DBusMethodErrorResponse.invalidArgs(
+          'Not allowed to release a unique bus name');
+    }
+
     var client = _getClientByName(message.sender!)!;
     var queue = _nameQueues[name];
     var oldOwner = queue?.owner;
