@@ -13,6 +13,7 @@ import 'dbus_method_response.dart';
 import 'dbus_peer.dart';
 import 'dbus_properties.dart';
 import 'dbus_read_buffer.dart';
+import 'dbus_uuid.dart';
 import 'dbus_value.dart';
 import 'dbus_write_buffer.dart';
 
@@ -195,23 +196,6 @@ class _DBusRemoteClient {
   }
 }
 
-/// Unique ID used by D-Bus.
-class _DBusUUID {
-  late final List<int> value;
-
-  /// Creates a new random UUID.
-  _DBusUUID() {
-    var random = Random();
-    value =
-        List<int>.generate(16, (index) => random.nextInt(256), growable: false);
-  }
-
-  /// Converts the
-  String toHexString() {
-    return value.map((v) => v.toRadixString(16).padLeft(2, '0')).join();
-  }
-}
-
 /// A socket for incoming D-Bus server connections.
 class _DBusServerSocket {
   /// The server this socket is listening for.
@@ -227,7 +211,7 @@ class _DBusServerSocket {
   int _nextClientId = 0;
 
   /// Unique ID for this socket.
-  final uuid = _DBusUUID();
+  final uuid = DBusUUID();
 
   /// Connected clients.
   final _clients = <_DBusRemoteClient>[];
