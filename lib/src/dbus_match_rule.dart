@@ -1,6 +1,13 @@
 import 'dbus_message.dart';
 import 'dbus_value.dart';
 
+/// Exception thrown for invalid match rules.
+class DBusMatchRuleException implements Exception {
+  final String message;
+
+  DBusMatchRuleException(this.message);
+}
+
 /// A Rule to match D-Bus messages.
 class DBusMatchRule {
   /// Matches messages with this type.
@@ -41,7 +48,8 @@ class DBusMatchRule {
       }
       var key = rule.substring(keyStart, offset);
       if (offset >= rule.length) {
-        throw 'Invalid D-Bus rule, key $key missing value';
+        throw DBusMatchRuleException(
+            'Invalid D-Bus rule, key $key missing value');
       }
       offset++;
 
@@ -69,7 +77,8 @@ class DBusMatchRule {
 
       if (offset < rule.length) {
         if (rule[offset] != ',') {
-          throw 'Invalid D-Bus rule, missing trailing comma after $key value';
+          throw DBusMatchRuleException(
+              'Invalid D-Bus rule, missing trailing comma after $key value');
         }
         offset++;
       }
