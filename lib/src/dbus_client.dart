@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:meta/meta.dart';
 
 import 'dbus_address.dart';
+import 'dbus_auth_client.dart';
 import 'dbus_introspectable.dart';
 import 'dbus_match_rule.dart';
 import 'dbus_message.dart';
@@ -67,7 +68,7 @@ class DBusClient {
   late final String _address;
   Socket? _socket;
   final _readBuffer = DBusReadBuffer();
-  final _authenticateCompleter = Completer();
+  final _authClient = DBusAuthClient();
   Completer? _connectCompleter;
   var _lastSerial = 0;
   final _methodCalls = <int, Completer<DBusMethodResponse>>{};
@@ -419,19 +420,11 @@ class DBusClient {
   }
 
   /// Performs authentication with D-Bus server.
-  Future<dynamic> _authenticate() async {
-    // Send an empty byte, as this is required if sending the credentials as a socket control message.
-    // We rely on the server using SO_PEERCRED to check out credentials.
-    _socket?.add([0]);
+  Future<bool> _authenticate() async {
+    _authClient.requests.listen((message) => _socket?.write(message + '\r\n'));
+    await _authClient.done;
 
-    var uid = getuid();
-    var uidString = '';
-    for (var c in uid.toString().runes) {
-      uidString += c.toRadixString(16).padLeft(2, '0');
-    }
-    _socket?.write('AUTH EXTERNAL $uidString\r\n');
-
-    return _authenticateCompleter.future;
+    return _authClient.isAuthenticated;
   }
 
   /// Connects to the D-Bus server.
@@ -443,7 +436,10 @@ class DBusClient {
     _connectCompleter = Completer();
 
     await _openSocket();
-    await _authenticate();
+    if (!await _authenticate()) {
+      await _socket?.close();
+      return;
+    }
 
     // The first message to the bus must be this call, note requireConnect is
     // false as the _connect call hasn't yet completed and would otherwise have
@@ -574,7 +570,7 @@ class DBusClient {
 
     var complete = false;
     while (!complete) {
-      if (!_authenticateCompleter.isCompleted) {
+      if (!_authClient.isAuthenticated) {
         complete = _processAuth();
       } else {
         complete = _processMessages();
@@ -590,13 +586,7 @@ class DBusClient {
       return true;
     }
 
-    if (line.startsWith('OK ')) {
-      _socket?.write('BEGIN\r\n');
-      _authenticateCompleter.complete();
-    } else {
-      throw 'Failed to authenticate: $line';
-    }
-
+    _authClient.processResponse(line);
     return false;
   }
 
