@@ -2,7 +2,7 @@ import 'dbus_value.dart';
 
 /// A response to a method call.
 abstract class DBusMethodResponse {
-  /// Gets the value returned from this method or throws an exception if an error received.
+  /// Gets the value returned from this method or throws a [DBusMethodResponseException] if an error received.
   List<DBusValue> get returnValues;
 
   /// Gets the signature of the [returnValues].
@@ -24,6 +24,25 @@ class DBusMethodSuccessResponse extends DBusMethodResponse {
 
   @override
   String toString() => 'DBusMethodSuccessResponse($values)';
+}
+
+/// Exception when error received calling a D-Bus method on a remote object.
+class DBusMethodResponseException implements Exception {
+  /// The response that generated the exception
+  final DBusMethodErrorResponse response;
+
+  DBusMethodResponseException(this.response);
+
+  @override
+  String toString() {
+    if (response.values.isEmpty) {
+      return response.errorName;
+    } else if (response.values.length == 1) {
+      return '${response.errorName}: ${response.values.first.toNative()}';
+    } else {
+      return '${response.errorName}: ${response.values.map((value) => value.toNative())}';
+    }
+  }
 }
 
 /// An error response to a method call.
@@ -83,7 +102,7 @@ class DBusMethodErrorResponse extends DBusMethodResponse {
             message != null ? [DBusString(message)] : []);
 
   @override
-  List<DBusValue> get returnValues => throw 'Error: $errorName';
+  List<DBusValue> get returnValues => throw DBusMethodResponseException(this);
 
   @override
   String toString() => 'DBusMethodSuccessResponse($errorName, $values)';
