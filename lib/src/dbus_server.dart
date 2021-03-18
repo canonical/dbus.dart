@@ -15,6 +15,29 @@ import 'dbus_read_buffer.dart';
 import 'dbus_value.dart';
 import 'dbus_write_buffer.dart';
 
+/// Server-only error responses.
+class _DBusServerErrorResponse extends DBusMethodErrorResponse {
+  _DBusServerErrorResponse.serviceUnknown([String? message])
+      : super('org.freedesktop.DBus.Error.ServiceUnknown',
+            message != null ? [DBusString(message)] : []);
+
+  _DBusServerErrorResponse.serviceNotFound([String? message])
+      : super('org.freedesktop.DBus.Error.ServiceNotFound',
+            message != null ? [DBusString(message)] : []);
+
+  _DBusServerErrorResponse.nameHasNoOwner([String? message])
+      : super('org.freedesktop.DBus.Error.NameHasNoOwner',
+            message != null ? [DBusString(message)] : []);
+
+  _DBusServerErrorResponse.matchRuleInvalid([String? message])
+      : super('org.freedesktop.DBus.Error.MatchRuleInvalid',
+            message != null ? [DBusString(message)] : []);
+
+  _DBusServerErrorResponse.matchRuleNotFound([String? message])
+      : super('org.freedesktop.DBus.Error.MatchRuleNotFound',
+            message != null ? [DBusString(message)] : []);
+}
+
 /// A client connected to a D-Bus server.
 class _DBusRemoteClient {
   /// The socket this client connected on.
@@ -367,11 +390,8 @@ class DBusServer {
             message.interface == 'org.freedesktop.DBus' &&
             message.member == 'Hello')) {
       await client.close();
-      response =
-          DBusMethodErrorResponse('org.freedesktop.DBus.Error.AccessDenied', [
-        DBusString(
-            'Client tried to send a message other than Hello without being registered')
-      ]);
+      response = DBusMethodErrorResponse.accessDenied(
+          'Client tried to send a message other than Hello without being registered');
     } else if (message.destination == 'org.freedesktop.DBus') {
       if (message.type == DBusMessageType.methodCall) {
         response = await _processServerMethodCall(message);
@@ -380,9 +400,8 @@ class DBusServer {
       // No-one is going to handle this message.
       if (message.destination != null &&
           _getClientByName(message.destination!) == null) {
-        response = DBusMethodErrorResponse(
-            'org.freedesktop.DBus.Error.ServiceUnknown',
-            [DBusString('The name ${message.destination} is not registered')]);
+        response = _DBusServerErrorResponse.serviceUnknown(
+            'The name ${message.destination} is not registered');
       }
     }
 
@@ -420,8 +439,7 @@ class DBusServer {
           return _hello(message);
         case 'RequestName':
           if (message.signature != DBusSignature('su')) {
-            return DBusMethodErrorResponse(
-                'org.freedesktop.DBus.Error.InvalidArgs', []);
+            return DBusMethodErrorResponse.invalidArgs();
           }
           var name = (message.values[0] as DBusString).value;
           var flags = (message.values[1] as DBusUint32).value;
@@ -432,129 +450,105 @@ class DBusServer {
               message, name, allowReplacement, replaceExisting, doNotQueue);
         case 'ReleaseName':
           if (message.signature != DBusSignature('s')) {
-            return DBusMethodErrorResponse(
-                'org.freedesktop.DBus.Error.InvalidArgs', []);
+            return DBusMethodErrorResponse.invalidArgs();
           }
           var name = (message.values[0] as DBusString).value;
           return _releaseName(message, name);
         case 'ListQueuedOwners':
           if (message.signature != DBusSignature('s')) {
-            return DBusMethodErrorResponse(
-                'org.freedesktop.DBus.Error.InvalidArgs', []);
+            return DBusMethodErrorResponse.invalidArgs();
           }
           var name = (message.values[0] as DBusString).value;
           return _listQueuedOwners(message, name);
         case 'ListNames':
           if (message.values.isNotEmpty) {
-            return DBusMethodErrorResponse(
-                'org.freedesktop.DBus.Error.InvalidArgs', []);
+            return DBusMethodErrorResponse.invalidArgs();
           }
           return _listNames(message);
         case 'ListActivatableNames':
           if (message.values.isNotEmpty) {
-            return DBusMethodErrorResponse(
-                'org.freedesktop.DBus.Error.InvalidArgs', []);
+            return DBusMethodErrorResponse.invalidArgs();
           }
           return _listActivatableNames(message);
         case 'NameHasOwner':
           if (message.signature != DBusSignature('s')) {
-            return DBusMethodErrorResponse(
-                'org.freedesktop.DBus.Error.InvalidArgs', []);
+            return DBusMethodErrorResponse.invalidArgs();
           }
           var name = (message.values[0] as DBusString).value;
           return _nameHasOwner(message, name);
         case 'StartServiceByName':
           if (message.signature != DBusSignature('su')) {
-            return DBusMethodErrorResponse(
-                'org.freedesktop.DBus.Error.InvalidArgs', []);
+            return DBusMethodErrorResponse.invalidArgs();
           }
           var name = (message.values[0] as DBusString).value;
           var flags = (message.values[1] as DBusUint32).value;
           return _startServiceByName(message, name, flags);
         case 'GetNameOwner':
           if (message.signature != DBusSignature('s')) {
-            return DBusMethodErrorResponse(
-                'org.freedesktop.DBus.Error.InvalidArgs', []);
+            return DBusMethodErrorResponse.invalidArgs();
           }
           var name = (message.values[0] as DBusString).value;
           return _getNameOwner(message, name);
         case 'AddMatch':
           if (message.signature != DBusSignature('s')) {
-            return DBusMethodErrorResponse(
-                'org.freedesktop.DBus.Error.InvalidArgs', []);
+            return DBusMethodErrorResponse.invalidArgs();
           }
           var rule = (message.values[0] as DBusString).value;
           return _addMatch(message, rule);
         case 'RemoveMatch':
           if (message.signature != DBusSignature('s')) {
-            return DBusMethodErrorResponse(
-                'org.freedesktop.DBus.Error.InvalidArgs', []);
+            return DBusMethodErrorResponse.invalidArgs();
           }
           var rule = (message.values[0] as DBusString).value;
           return _removeMatch(message, rule);
         case 'GetId':
           if (message.values.isNotEmpty) {
-            return DBusMethodErrorResponse(
-                'org.freedesktop.DBus.Error.InvalidArgs', []);
+            return DBusMethodErrorResponse.invalidArgs();
           }
           return _getId(message);
         default:
-          return DBusMethodErrorResponse(
-              'org.freedesktop.DBus.Error.UnknownMethod', [
-            DBusString(
-                'Method ${message.interface}.${message.member} not provided')
-          ]);
+          return DBusMethodErrorResponse.unknownMethod(
+              'Method ${message.interface}.${message.member} not provided');
       }
     } else if (message.interface == 'org.freedesktop.DBus.Introspectable') {
       switch (message.member) {
         case 'Introspect':
           if (message.values.isNotEmpty) {
-            return DBusMethodErrorResponse(
-                'org.freedesktop.DBus.Error.InvalidArgs', []);
+            return DBusMethodErrorResponse.invalidArgs();
           }
           return _introspect(message);
         default:
-          return DBusMethodErrorResponse(
-              'org.freedesktop.DBus.Error.UnknownMethod', [
-            DBusString(
-                'Method ${message.interface}.${message.member} not provided')
-          ]);
+          return DBusMethodErrorResponse.unknownMethod(
+              'Method ${message.interface}.${message.member} not provided');
       }
     } else if (message.interface == 'org.freedesktop.DBus.Peer') {
       switch (message.member) {
         case 'Ping':
           if (message.values.isNotEmpty) {
-            return DBusMethodErrorResponse(
-                'org.freedesktop.DBus.Error.InvalidArgs', []);
+            return DBusMethodErrorResponse.invalidArgs();
           }
           return _ping(message);
         case 'GetMachineId':
           if (message.values.isNotEmpty) {
-            return DBusMethodErrorResponse(
-                'org.freedesktop.DBus.Error.InvalidArgs', []);
+            return DBusMethodErrorResponse.invalidArgs();
           }
           return _getMachineId(message);
         default:
-          return DBusMethodErrorResponse(
-              'org.freedesktop.DBus.Error.UnknownMethod', [
-            DBusString(
-                'Method ${message.interface}.${message.member} not provided')
-          ]);
+          return DBusMethodErrorResponse.unknownMethod(
+              'Method ${message.interface}.${message.member} not provided');
       }
     } else if (message.interface == 'org.freedesktop.DBus.Properties') {
       switch (message.member) {
         case 'Get':
           if (message.signature != DBusSignature('ss')) {
-            return DBusMethodErrorResponse(
-                'org.freedesktop.DBus.Error.InvalidArgs', []);
+            return DBusMethodErrorResponse.invalidArgs();
           }
           var interfaceName = (message.values[0] as DBusString).value;
           var name = (message.values[1] as DBusString).value;
           return _propertiesGet(message, interfaceName, name);
         case 'Set':
           if (message.signature != DBusSignature('ssv')) {
-            return DBusMethodErrorResponse(
-                'org.freedesktop.DBus.Error.InvalidArgs', []);
+            return DBusMethodErrorResponse.invalidArgs();
           }
           var interfaceName = (message.values[0] as DBusString).value;
           var name = (message.values[1] as DBusString).value;
@@ -562,22 +556,17 @@ class DBusServer {
           return _propertiesSet(message, interfaceName, name, value);
         case 'GetAll':
           if (message.signature != DBusSignature('s')) {
-            return DBusMethodErrorResponse(
-                'org.freedesktop.DBus.Error.InvalidArgs', []);
+            return DBusMethodErrorResponse.invalidArgs();
           }
           var interfaceName = (message.values[0] as DBusString).value;
           return _propertiesGetAll(message, interfaceName);
         default:
-          return DBusMethodErrorResponse(
-              'org.freedesktop.DBus.Error.UnknownMethod', [
-            DBusString(
-                'Method ${message.interface}.${message.member} not provided')
-          ]);
+          return DBusMethodErrorResponse.unknownMethod(
+              'Method ${message.interface}.${message.member} not provided');
       }
     } else {
-      return DBusMethodErrorResponse(
-          'org.freedesktop.DBus.Error.UnknownInterface',
-          [DBusString('Interface ${message.interface} not provided')]);
+      return DBusMethodErrorResponse.unknownInterface(
+          'Interface ${message.interface} not provided');
     }
   }
 
@@ -585,8 +574,7 @@ class DBusServer {
   DBusMethodResponse _hello(DBusMessage message) {
     var client = _getClientByName(message.sender!)!;
     if (client.receivedHello) {
-      return DBusMethodErrorResponse('org.freedesktop.DBus.Error.Failed',
-          [DBusString('Already handled Hello message')]);
+      return DBusMethodErrorResponse.failed('Already handled Hello message');
     } else {
       client.receivedHello = true;
       return DBusMethodSuccessResponse([DBusString(message.sender!)]);
@@ -705,8 +693,7 @@ class DBusServer {
       returnValue = 2; // alreadyRunning
     } else {
       // TODO(robert-ancell): Support launching of services.
-      return DBusMethodErrorResponse(
-          'org.freedesktop.DBus.Error.ServiceNotFound');
+      return _DBusServerErrorResponse.serviceNotFound();
     }
     return DBusMethodSuccessResponse([DBusUint32(returnValue)]);
   }
@@ -725,9 +712,7 @@ class DBusServer {
     if (owner != null) {
       return DBusMethodSuccessResponse([DBusString(owner)]);
     } else {
-      return DBusMethodErrorResponse(
-          'org.freedesktop.DBus.Error.NameHasNoOwner',
-          [DBusString('Name $name not owned')]);
+      return _DBusServerErrorResponse.nameHasNoOwner('Name $name not owned');
     }
   }
 
@@ -738,8 +723,7 @@ class DBusServer {
     try {
       rule = DBusMatchRule.fromDBusString(ruleString);
     } on Exception {
-      return DBusMethodErrorResponse(
-          'org.freedesktop.DBus.Error.MatchRuleInvalid');
+      return _DBusServerErrorResponse.matchRuleInvalid();
     }
     client.matchRules.add(rule);
     return DBusMethodSuccessResponse([]);
@@ -752,12 +736,10 @@ class DBusServer {
     try {
       rule = DBusMatchRule.fromDBusString(ruleString);
     } on Exception {
-      return DBusMethodErrorResponse(
-          'org.freedesktop.DBus.Error.MatchRuleInvalid');
+      return _DBusServerErrorResponse.matchRuleInvalid();
     }
     if (!client.matchRules.remove(rule)) {
-      return DBusMethodErrorResponse(
-          'org.freedesktop.DBus.Error.MatchRuleNotFound');
+      return _DBusServerErrorResponse.matchRuleNotFound();
     }
     return DBusMethodSuccessResponse([]);
   }
@@ -901,8 +883,8 @@ class DBusServer {
               _interfaces.map((value) => DBusString(value))));
       }
     }
-    return DBusMethodErrorResponse('org.freedesktop.DBus.Error.UnknownProperty',
-        [DBusString('Properies $interfaceName.$name does not exist')]);
+    return DBusMethodErrorResponse.unknownProperty(
+        'Properies $interfaceName.$name does not exist');
   }
 
   // Implementation of org.freedesktop.DBus.Properties.Set
@@ -912,12 +894,11 @@ class DBusServer {
       switch (name) {
         case 'Features':
         case 'Interfaces':
-          return DBusMethodErrorResponse(
-              'org.freedesktop.DBus.Error.PropertyReadOnly');
+          return DBusMethodErrorResponse.propertyReadOnly();
       }
     }
-    return DBusMethodErrorResponse('org.freedesktop.DBus.Error.UnknownProperty',
-        [DBusString('Properies $interfaceName.$name does not exist')]);
+    return DBusMethodErrorResponse.unknownProperty(
+        'Properies $interfaceName.$name does not exist');
   }
 
   // Implementation of org.freedesktop.DBus.Properties.GetAll
