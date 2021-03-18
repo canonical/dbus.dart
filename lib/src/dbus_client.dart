@@ -64,7 +64,7 @@ class _DBusSignalSubscription {
 
 /// A client connection to a D-Bus server.
 class DBusClient {
-  String? _address;
+  late final String _address;
   Socket? _socket;
   final _readBuffer = DBusReadBuffer();
   final _authenticateCompleter = Completer();
@@ -397,7 +397,7 @@ class DBusClient {
 
   /// Open a socket connection to the D-Bus server.
   Future<void> _openSocket() async {
-    var address = DBusAddress.fromString(_address!);
+    var address = DBusAddress.fromString(_address);
     if (address.transport != 'unix') {
       throw 'D-Bus address transport not supported: $_address';
     }
