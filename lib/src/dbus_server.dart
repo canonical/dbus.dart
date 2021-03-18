@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:pedantic/pedantic.dart';
 
+import 'dbus_bus_name.dart';
 import 'dbus_introspect.dart';
 import 'dbus_introspectable.dart';
 import 'dbus_match_rule.dart';
@@ -591,6 +592,18 @@ class DBusServer {
   // Implementation of org.freedesktop.DBus.RequestName
   DBusMethodResponse _requestName(DBusMessage message, String name,
       bool allowReplacement, bool replaceExisting, bool doNotQueue) {
+    DBusBusName busName;
+    try {
+      busName = DBusBusName(name);
+    } on DBusBusNameException {
+      return DBusMethodErrorResponse.invalidArgs(
+          "Requested bus name '$name' not valid");
+    }
+    if (busName.isUnique) {
+      return DBusMethodErrorResponse.invalidArgs(
+          'Not allowed to request a unique bus name');
+    }
+
     var client = _getClientByName(message.sender!)!;
     var queue = _nameQueues[name];
     var oldOwner = queue?.owner;

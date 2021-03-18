@@ -1,6 +1,8 @@
 import 'package:dbus/dbus.dart';
 import 'package:test/test.dart';
 
+const isMethodResponseException = TypeMatcher<DBusMethodResponseException>();
+
 // Test object which has an Echo() method.
 class EchoObject extends DBusObject {
   @override
@@ -230,6 +232,60 @@ void main() {
     expect(owner, equals(client1.uniqueName));
     var names = await client1.listQueuedOwners('com.example.Test');
     expect(names, equals([client1.uniqueName, client2.uniqueName]));
+  });
+
+  test('request name - empty', () async {
+    var server = DBusServer();
+    var address = await server.listenUnixSocket();
+    var client = DBusClient(address);
+
+    // Attempt to request an empty bus name
+    expect(client.requestName(''), throwsA(isMethodResponseException));
+  });
+
+  test('request name - unique', () async {
+    var server = DBusServer();
+    var address = await server.listenUnixSocket();
+    var client = DBusClient(address);
+
+    // Attempt to request a unique bus name
+    expect(client.requestName(':unique'), throwsA(isMethodResponseException));
+  });
+
+  test('request name - not enough elements', () async {
+    var server = DBusServer();
+    var address = await server.listenUnixSocket();
+    var client = DBusClient(address);
+
+    // Attempt to request a unique bus name
+    expect(client.requestName('foo'), throwsA(isMethodResponseException));
+  });
+
+  test('request name - leading period', () async {
+    var server = DBusServer();
+    var address = await server.listenUnixSocket();
+    var client = DBusClient(address);
+
+    // Attempt to request a unique bus name
+    expect(client.requestName('.foo.bar'), throwsA(isMethodResponseException));
+  });
+
+  test('request name - trailing period', () async {
+    var server = DBusServer();
+    var address = await server.listenUnixSocket();
+    var client = DBusClient(address);
+
+    // Attempt to request a unique bus name
+    expect(client.requestName('foo.bar.'), throwsA(isMethodResponseException));
+  });
+
+  test('request name - empty element', () async {
+    var server = DBusServer();
+    var address = await server.listenUnixSocket();
+    var client = DBusClient(address);
+
+    // Attempt to request a unique bus name
+    expect(client.requestName('foo..bar'), throwsA(isMethodResponseException));
   });
 
   test('release name', () async {
