@@ -1,9 +1,9 @@
 import 'dart:io';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:pedantic/pedantic.dart';
 
+import 'dbus_auth_server.dart';
 import 'dbus_bus_name.dart';
 import 'dbus_introspect.dart';
 import 'dbus_introspectable.dart';
@@ -51,9 +51,8 @@ class _DBusRemoteClient {
   /// Incoming data.
   final _readBuffer = DBusReadBuffer();
 
-  /// True once authentication is complete.
-  bool isAuthenticated = false;
-  bool readSocketControlMessage = false;
+  /// Authentication server.
+  final DBusAuthServer _authServer;
 
   /// True when have received a Hello message.
   bool receivedHello = false;
@@ -64,7 +63,9 @@ class _DBusRemoteClient {
   /// Message match rules.
   final matchRules = <DBusMatchRule>[];
 
-  _DBusRemoteClient(this.serverSocket, this._socket, this.uniqueName) {
+  _DBusRemoteClient(this.serverSocket, this._socket, this.uniqueName)
+      : _authServer = DBusAuthServer(serverSocket.uuid) {
+    _authServer.responses.listen((message) => _socket.write(message + '\r\n'));
     _socket.listen(_processData);
   }
 
@@ -102,7 +103,7 @@ class _DBusRemoteClient {
 
     var complete = false;
     while (!complete) {
-      if (!isAuthenticated) {
+      if (!_authServer.isAuthenticated) {
         complete = _processAuth();
       } else {
         complete = _processMessages();
@@ -111,62 +112,14 @@ class _DBusRemoteClient {
     }
   }
 
-  /// Send an authentication response to the client.
-  void _writeAuthResponse(String message) {
-    _socket.write(message + '\r\n');
-  }
-
   /// Processes authentication messages received from the D-Bus client.
   bool _processAuth() {
-    // Skip the empty byte sent if the client used a socket control message to send credentials.
-    if (!readSocketControlMessage) {
-      _readBuffer.readByte();
-      readSocketControlMessage = true;
-    }
-
     var line = _readBuffer.readLine();
     if (line == null) {
       return true;
     }
 
-    var words = line.split(' ');
-    var command = words.isEmpty ? '' : words[0];
-    var args = words.skip(1).toList();
-    switch (command) {
-      case 'AUTH':
-        if (args.isEmpty) {
-          /// Respond with the mechanisms we support
-          _writeAuthResponse('REJECTED EXTERNAL');
-        } else {
-          var mechanism = args[0];
-          if (mechanism == 'EXTERNAL' && args.length == 2) {
-            //var uid = args[1];
-            _writeAuthResponse('OK ${serverSocket.uuid.toHexString()}');
-          } else {
-            _writeAuthResponse('REJECTED');
-          }
-        }
-        break;
-      case 'CANCEL':
-        _writeAuthResponse('REJECTED');
-        break;
-      case 'BEGIN':
-        isAuthenticated = true;
-        break;
-      case 'DATA':
-        _writeAuthResponse('REJECTED');
-        break;
-      case 'ERROR':
-        _writeAuthResponse('REJECTED');
-        break;
-      case 'NEGOTIATE_UNIX_FD':
-        _writeAuthResponse('ERROR Unix fd not supported');
-        break;
-      default:
-        _writeAuthResponse('ERROR Unknown command');
-        break;
-    }
-
+    _authServer.processRequest(line);
     return false;
   }
 
