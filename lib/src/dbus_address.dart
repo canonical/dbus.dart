@@ -1,23 +1,12 @@
 import 'dart:convert';
 
-/// A property of a [DBusAddress].
-class DBusAddressProperty {
-  /// The name of the property, e.g. 'path'.
-  String key;
-
-  /// The value of the property, e.g. '/run/user/1000/bus'.
-  String value;
-
-  DBusAddressProperty(this.key, this.value);
-}
-
 /// An address of a D-Bus server.
 class DBusAddress {
   /// The method of transport, e.g. 'unix', 'tcp'.
-  String transport;
+  late final String transport;
 
   /// Transport properties, e.g. 'path': '/run/user/1000/bus'.
-  List<DBusAddressProperty> properties;
+  late final Map<String, String> properties;
 
   /// Creates a new address using [transport] and [properties]
   DBusAddress(this.transport, this.properties);
@@ -36,8 +25,8 @@ class DBusAddress {
   }
 
   /// Parse properties from a property list, e.g. 'path=/run/user/1000/bus'.
-  static List<DBusAddressProperty> _parseProperties(String propertiesList) {
-    var properties = <DBusAddressProperty>[];
+  static Map<String, String> _parseProperties(String propertiesList) {
+    var properties = <String, String>{};
     if (propertiesList == '') {
       return properties;
     }
@@ -45,16 +34,20 @@ class DBusAddress {
     for (var property in propertiesList.split(',')) {
       var index = property.indexOf('=');
       if (index < 0) {
-        throw 'Invalid D-Bus address property: $property';
+        throw FormatException('Invalid D-Bus address property: $property');
       }
 
       var key = property.substring(0, index);
       var value = _decodeValue(property.substring(index + 1));
       if (value == null) {
-        throw 'Invalid value in D-Bus address property: $property';
+        throw FormatException(
+            'Invalid value in D-Bus address property: $property');
       }
 
-      properties.add(DBusAddressProperty(key, value));
+      if (properties.containsKey(key)) {
+        throw FormatException("D-Bus address conatins duplicate key '$key'");
+      }
+      properties[key] = value;
     }
 
     return properties;

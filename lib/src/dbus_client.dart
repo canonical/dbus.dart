@@ -403,18 +403,12 @@ class DBusClient {
       throw 'D-Bus address transport not supported: $_address';
     }
 
-    var paths = <String>[];
-    for (var property in address.properties) {
-      if (property.key == 'path') {
-        paths.add(property.value);
-      }
-    }
-    if (paths.isEmpty) {
+    var path = address.properties['path'];
+    if (path == null) {
       throw 'Unable to determine D-Bus unix address path: $_address';
     }
 
-    var socket_address =
-        InternetAddress(paths[0], type: InternetAddressType.unix);
+    var socket_address = InternetAddress(path, type: InternetAddressType.unix);
     _socket = await Socket.connect(socket_address, 0);
     _socket?.listen(_processData);
   }
