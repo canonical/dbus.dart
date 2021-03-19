@@ -399,17 +399,57 @@ class DBusClient {
   /// Open a socket connection to the D-Bus server.
   Future<void> _openSocket() async {
     var address = DBusAddress.fromString(_address);
-    if (address.transport != 'unix') {
-      throw 'D-Bus address transport not supported: $_address';
+    InternetAddress socketAddress;
+    var port = 0;
+    switch (address.transport) {
+      case 'unix':
+        var path = address.properties['path'];
+        if (path == null) {
+          throw "Unable to determine D-Bus unix address path from address '$_address'";
+        }
+
+        socketAddress = InternetAddress(path, type: InternetAddressType.unix);
+        break;
+      case 'tcp':
+        var host = address.properties['host'];
+        if (host == null) {
+          throw "'Unable to determine hostname from address '$_address'";
+        }
+
+        InternetAddressType type;
+        var family = address.properties['family'];
+        switch (family) {
+          case null:
+            type = InternetAddressType.any;
+            break;
+          case 'ipv4':
+            type = InternetAddressType.IPv4;
+            break;
+          case 'ipv6':
+            type = InternetAddressType.IPv6;
+            break;
+          default:
+            throw "Invalid D-Bus address family: '$family'";
+        }
+
+        try {
+          port = int.parse(address.properties['port'] ?? '0');
+        } on FormatException {
+          throw "Invalid port number in address '$address'";
+        }
+
+        var addresses = await InternetAddress.lookup(host, type: type);
+        if (addresses.isEmpty) {
+          throw "Failed to resolve host '$host'";
+        }
+
+        socketAddress = addresses[0];
+        break;
+      default:
+        throw 'D-Bus address transport not supported: $_address';
     }
 
-    var path = address.properties['path'];
-    if (path == null) {
-      throw 'Unable to determine D-Bus unix address path: $_address';
-    }
-
-    var socket_address = InternetAddress(path, type: InternetAddressType.unix);
-    _socket = await Socket.connect(socket_address, 0);
+    _socket = await Socket.connect(socketAddress, port);
     _socket?.listen(_processData);
   }
 
