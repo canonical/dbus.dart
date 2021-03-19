@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:pedantic/pedantic.dart';
 
+import 'dbus_address.dart';
 import 'dbus_auth_server.dart';
 import 'dbus_bus_name.dart';
 import 'dbus_introspect.dart';
@@ -285,6 +286,39 @@ class DBusServer {
   /// Creates a new DBus server.
   DBusServer();
 
+  /// Listen on the given D-Bus [address].
+  Future<void> listenAddress(String address) async {
+    var address_ = DBusAddress.fromString(address);
+    switch (address_.transport) {
+      case 'unix':
+        var path = address_.properties['path'];
+        if (path == null) {
+          throw FormatException('Missing Unix path in D-Bus address');
+        }
+        await listenUnixSocket(path);
+        break;
+      case 'tcp':
+        var bindAddress =
+            address_.properties['bind'] ?? address_.properties['host'];
+        if (bindAddress == null) {
+          throw FormatException('Missing bind or host in D-Bus address');
+        }
+        int port;
+        try {
+          port = int.parse(address_.properties['port'] ?? '0');
+        } on FormatException {
+          throw FormatException('Invalid port number in D-Bus address');
+        }
+
+        await listenTcpSocket(address: bindAddress, port: port);
+
+        break;
+      default:
+        throw FormatException(
+            "Unknown D-Bus transport '${address_.transport}'");
+    }
+  }
+
   /// Listens for connections on a Unix socket at [path].
   /// If [path] is not provided a random path is chosen.
   /// Returns the D-Bus address for clients to connect to this socket.
@@ -294,10 +328,57 @@ class DBusServer {
       path = '${directory.path}/dbus-socket';
     }
     var address = InternetAddress(path, type: InternetAddressType.unix);
-    var socket = await ServerSocket.bind(address, 0);
-    _sockets.add(_DBusServerSocket(this, socket, _nextConnectionId));
-    _nextConnectionId++;
+    await _addServerSocket(address, 0);
     return 'unix:path=$path';
+  }
+
+  /// Listens for connections on a TCP/IP socket.
+  Future<String> listenTcpSocket(
+      {String? address, int port = 0, type = InternetAddressType.any}) async {
+    InternetAddress anyAddress;
+    String? family;
+    switch (type) {
+      case InternetAddressType.any:
+        anyAddress = InternetAddress.anyIPv4;
+        break;
+      case InternetAddressType.IPv4:
+        anyAddress = InternetAddress.anyIPv4;
+        family = 'ipv4';
+        break;
+      case InternetAddressType.IPv6:
+        anyAddress = InternetAddress.anyIPv6;
+        family = 'ipv6';
+        break;
+      default:
+        throw "Unsupported adddress type '$type'";
+    }
+
+    InternetAddress address_;
+    if (address != null) {
+      var addresses = await InternetAddress.lookup(address, type: type);
+      if (addresses.isEmpty) {
+        throw "Failed to resolve host '$address'";
+      }
+      address_ = addresses[0];
+    } else {
+      address_ = anyAddress;
+    }
+    var serverSocket = await _addServerSocket(address_, port);
+    var addressText =
+        'tcp:host=${address ?? 'localhost'},port=${serverSocket.socket.port}';
+    if (family != null) {
+      addressText += ',family=$family';
+    }
+    return addressText;
+  }
+
+  Future<_DBusServerSocket> _addServerSocket(
+      InternetAddress address, int port) async {
+    var socket = await ServerSocket.bind(address, 0);
+    var serverSocket = _DBusServerSocket(this, socket, _nextConnectionId);
+    _sockets.add(serverSocket);
+    _nextConnectionId++;
+    return serverSocket;
   }
 
   /// Terminates all active connections. If a server remains unclosed, the Dart process may not terminate.

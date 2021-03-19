@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dbus/dbus.dart';
 import 'package:test/test.dart';
 
@@ -35,6 +37,24 @@ void main() {
     // Check can ping the server.
     await client.ping();
   });
+
+  test('ping - ipv4 tcp', () async {
+    var server = DBusServer();
+    var address = await server.listenTcpSocket(type: InternetAddressType.IPv4);
+    var client = DBusClient(address);
+
+    // Check can ping the server.
+    await client.ping();
+  });
+
+  test('ping - ipv6 tcp', () async {
+    var server = DBusServer();
+    var address = await server.listenTcpSocket(type: InternetAddressType.IPv6);
+    var client = DBusClient(address);
+
+    // Check can ping the server.
+    await client.ping();
+  }, tags: ['ipv6']);
 
   test('list names', () async {
     var server = DBusServer();
