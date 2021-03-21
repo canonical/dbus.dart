@@ -1,3 +1,4 @@
+export 'src/dbus_address.dart';
 export 'src/dbus_client.dart';
 export 'src/dbus_introspect.dart';
 export 'src/dbus_method_call.dart';

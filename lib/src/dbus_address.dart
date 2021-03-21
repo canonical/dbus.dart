@@ -1,4 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
+
+/// IP address family used in [DBusAddress.tcp].
+enum DBusAddressTcpFamily { ipv4, ipv6 }
 
 /// An address of a D-Bus server.
 class DBusAddress {
@@ -8,11 +12,14 @@ class DBusAddress {
   /// Transport properties, e.g. 'path': '/run/user/1000/bus'.
   late final Map<String, String> properties;
 
-  /// Creates a new address using [transport] and [properties]
-  DBusAddress(this.transport, this.properties);
+  /// Gets this address in string format.
+  String get value {
+    return '$transport:' +
+        properties.keys.map((key) => '$key=${properties[key]}').join(',');
+  }
 
   /// Creates a new address from the given [address] string, e.g. 'unix:path=/run/user/1000/bus'.
-  factory DBusAddress.fromString(String address) {
+  factory DBusAddress(String address) {
     // Addresses are in the form 'transport:key1=value1,key2=value2'
     var index = address.indexOf(':');
     if (index < 0) {
@@ -21,7 +28,55 @@ class DBusAddress {
 
     var transport = address.substring(0, index);
     var properties = _parseProperties(address.substring(index + 1));
-    return DBusAddress(transport, properties);
+    return DBusAddress.withTransport(transport, properties);
+  }
+
+  /// Creates a new address using [transport] and [properties]
+  DBusAddress.withTransport(this.transport, this.properties);
+
+  /// Creates a new D-Bus address connecting to a Unix socket.
+  factory DBusAddress.unix(
+      {String? path,
+      Directory? dir,
+      Directory? tmpdir,
+      String? abstract,
+      bool runtime = false}) {
+    var properties = <String, String>{};
+    if (path != null) {
+      properties['path'] = path;
+    }
+    if (dir != null) {
+      properties['dir'] = dir.path;
+    }
+    if (tmpdir != null) {
+      properties['tmpdir'] = tmpdir.path;
+    }
+    if (abstract != null) {
+      properties['abstract'] = abstract;
+    }
+    if (runtime) {
+      properties['runtime'] = 'yes';
+    }
+    return DBusAddress.withTransport('unix', properties);
+  }
+
+  /// Creates a new D-Bus address connecting to a TCP socket.
+  factory DBusAddress.tcp(String host,
+      {String? bind, int? port, DBusAddressTcpFamily? family}) {
+    var properties = <String, String>{'host': host};
+    if (bind != null) {
+      properties['bind'] = bind;
+    }
+    if (port != null) {
+      properties['port'] = '$port';
+    }
+    if (family != null) {
+      properties['family'] = {
+        DBusAddressTcpFamily.ipv4: 'ipv4',
+        DBusAddressTcpFamily.ipv6: 'ipv6'
+      }[family]!;
+    }
+    return DBusAddress.withTransport('tcp', properties);
   }
 
   /// Parse properties from a property list, e.g. 'path=/run/user/1000/bus'.
@@ -96,4 +151,7 @@ class DBusAddress {
       return -1;
     }
   }
+
+  @override
+  String toString() => "DBusAddress('$value')";
 }
