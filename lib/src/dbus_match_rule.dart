@@ -1,3 +1,6 @@
+import 'dbus_bus_name.dart';
+import 'dbus_interface_name.dart';
+import 'dbus_member_name.dart';
 import 'dbus_message.dart';
 import 'dbus_value.dart';
 
@@ -14,13 +17,13 @@ class DBusMatchRule {
   final DBusMessageType? type;
 
   /// Matches messages from this sender.
-  final String? sender;
+  final DBusBusName? sender;
 
   /// Matches messages on this interface.
-  final String? interface;
+  final DBusInterfaceName? interface;
 
   /// Matches messages with this member.
-  final String? member;
+  final DBusMemberName? member;
 
   /// Matches messages on this path.
   final DBusObjectPath? path;
@@ -91,9 +94,12 @@ class DBusMatchRule {
         'error': DBusMessageType.error,
         'signal': DBusMessageType.signal
       }[values['type']],
-      sender: values['sender'],
-      interface: values['interface'],
-      member: values['member'],
+      sender: values['sender'] != null ? DBusBusName(values['sender']!) : null,
+      interface: values['interface'] != null
+          ? DBusInterfaceName(values['interface']!)
+          : null,
+      member:
+          values['member'] != null ? DBusMemberName(values['member']!) : null,
       path: values['path'] != null ? DBusObjectPath(values['path']!) : null,
       pathNamespace: values['pathNamespace'] != null
           ? DBusObjectPath(values['pathNamespace']!)
@@ -114,13 +120,13 @@ class DBusMatchRule {
           '';
     }
     if (sender != null) {
-      matches['sender'] = sender!;
+      matches['sender'] = sender!.value;
     }
     if (interface != null) {
-      matches['interface'] = interface!;
+      matches['interface'] = interface!.value;
     }
     if (member != null) {
-      matches['member'] = member!;
+      matches['member'] = member!.value;
     }
     if (path != null) {
       matches['path'] = path!.value;
@@ -142,9 +148,9 @@ class DBusMatchRule {
   /// True if the rule matches the supplied values.
   bool match(
       {DBusMessageType? type,
-      String? sender,
-      String? interface,
-      String? member,
+      DBusBusName? sender,
+      DBusInterfaceName? interface,
+      DBusMemberName? member,
       DBusObjectPath? path}) {
     if (this.type != null && this.type != type) {
       return false;
@@ -184,9 +190,9 @@ class DBusMatchRule {
   String toString() {
     var parameters = <String, String?>{
       'type': type?.toString(),
-      'sender': sender,
-      'interface': interface,
-      'member': member,
+      'sender': sender?.toString(),
+      'interface': interface?.toString(),
+      'member': member?.toString(),
       'path': path?.toString(),
       'pathNamespace': pathNamespace?.toString()
     };

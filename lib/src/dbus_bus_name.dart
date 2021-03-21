@@ -34,5 +34,8 @@ class DBusBusName {
   bool operator ==(other) => other is DBusBusName && other.value == value;
 
   @override
+  int get hashCode => value.hashCode;
+
+  @override
   String toString() => "DBusBusName('$value')";
 }

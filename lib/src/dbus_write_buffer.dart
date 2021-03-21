@@ -44,10 +44,10 @@ class DBusWriteBuffer extends DBusBuffer {
       headers.add(_makeHeader(1, message.path!));
     }
     if (message.interface != null) {
-      headers.add(_makeHeader(2, DBusString(message.interface!)));
+      headers.add(_makeHeader(2, DBusString(message.interface!.value)));
     }
     if (message.member != null) {
-      headers.add(_makeHeader(3, DBusString(message.member!)));
+      headers.add(_makeHeader(3, DBusString(message.member!.value)));
     }
     if (message.errorName != null) {
       headers.add(_makeHeader(4, DBusString(message.errorName!)));
@@ -56,10 +56,10 @@ class DBusWriteBuffer extends DBusBuffer {
       headers.add(_makeHeader(5, DBusUint32(message.replySerial!)));
     }
     if (message.destination != null) {
-      headers.add(_makeHeader(6, DBusString(message.destination!)));
+      headers.add(_makeHeader(6, DBusString(message.destination!.value)));
     }
     if (message.sender != null) {
-      headers.add(_makeHeader(7, DBusString(message.sender!)));
+      headers.add(_makeHeader(7, DBusString(message.sender!.value)));
     }
     if (message.values.isNotEmpty) {
       var signature = '';

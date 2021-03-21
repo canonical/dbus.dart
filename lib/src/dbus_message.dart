@@ -1,3 +1,6 @@
+import 'dbus_bus_name.dart';
+import 'dbus_interface_name.dart';
+import 'dbus_member_name.dart';
 import 'dbus_value.dart';
 
 /// Type of message.
@@ -25,10 +28,10 @@ class DBusMessage {
   final DBusObjectPath? path;
 
   /// Interface this message refers to or null. e.g. 'org.freedesktop.DBus.Properties'.
-  final String? interface;
+  final DBusInterfaceName? interface;
 
   /// Member this message refers to or null. e.g. 'Get'.
-  final String? member;
+  final DBusMemberName? member;
 
   /// Error name as returned in messages of type DBusMessageType.error or null. e.g. 'org.freedesktop.DBus.Error.UnknownObject'.
   final String? errorName;
@@ -37,10 +40,10 @@ class DBusMessage {
   final int? replySerial;
 
   /// Destination this message is being sent to or null. e.g. 'org.freedesktop.DBus'.
-  final String? destination;
+  final DBusBusName? destination;
 
   /// Sender of this message is being sent to or null. e.g. 'com.exaple.Test'.
-  final String? sender;
+  final DBusBusName? sender;
 
   /// Values being sent with this message.
   final List<DBusValue> values;
