@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'dbus_buffer.dart';
+import 'dbus_bus_name.dart';
+import 'dbus_interface_name.dart';
+import 'dbus_member_name.dart';
 import 'dbus_message.dart';
 import 'dbus_value.dart';
 
@@ -88,12 +91,12 @@ class DBusReadBuffer extends DBusBuffer {
 
     DBusSignature? signature;
     DBusObjectPath? path;
-    String? interface;
-    String? member;
+    DBusInterfaceName? interface;
+    DBusMemberName? member;
     String? errorName;
     int? replySerial;
-    String? destination;
-    String? sender;
+    DBusBusName? destination;
+    DBusBusName? sender;
     for (var child in headers.children) {
       var header = child as DBusStruct;
       var code = (header.children.elementAt(0) as DBusByte).value;
@@ -101,17 +104,20 @@ class DBusReadBuffer extends DBusBuffer {
       if (code == 1) {
         path = value as DBusObjectPath;
       } else if (code == 2) {
-        interface = (value as DBusString).value;
+        interface = DBusInterfaceName((value as DBusString).value);
       } else if (code == 3) {
-        member = (value as DBusString).value;
+        member = DBusMemberName((value as DBusString).value);
       } else if (code == 4) {
         errorName = (value as DBusString).value;
       } else if (code == 5) {
         replySerial = (value as DBusUint32).value;
       } else if (code == 6) {
-        destination = (value as DBusString).value;
+        destination = DBusBusName((value as DBusString).value);
       } else if (code == 7) {
-        sender = (value as DBusString).value;
+        sender = DBusBusName((value as DBusString).value);
+        if (!(sender.value == 'org.freedesktop.DBus' || sender.isUnique)) {
+          throw 'Sender contains non-unique bus name';
+        }
       } else if (code == 8) {
         signature = value as DBusSignature;
       }

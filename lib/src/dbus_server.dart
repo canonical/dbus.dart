@@ -7,9 +7,11 @@ import 'package:pedantic/pedantic.dart';
 import 'dbus_address.dart';
 import 'dbus_auth_server.dart';
 import 'dbus_bus_name.dart';
+import 'dbus_interface_name.dart';
 import 'dbus_introspect.dart';
 import 'dbus_introspectable.dart';
 import 'dbus_match_rule.dart';
+import 'dbus_member_name.dart';
 import 'dbus_message.dart';
 import 'dbus_method_response.dart';
 import 'dbus_peer.dart';
@@ -60,7 +62,7 @@ class _DBusRemoteClient {
   bool receivedHello = false;
 
   /// Unique name of this client.
-  final String uniqueName;
+  final DBusBusName uniqueName;
 
   /// Message match rules.
   final matchRules = <DBusMatchRule>[];
@@ -173,7 +175,7 @@ class _DBusServerSocket {
 
   _DBusServerSocket(this.server, this.socket, this.connectionId) {
     socket.listen((clientSocket) {
-      var uniqueName = ':$connectionId.$_nextClientId';
+      var uniqueName = DBusBusName(':$connectionId.$_nextClientId');
       _nextClientId++;
       _clients.add(_DBusRemoteClient(this, clientSocket, uniqueName));
     });
@@ -207,7 +209,7 @@ class _DBusNameRequest {
 /// A queue of clients requesting a name.
 class _DBusNameQueue {
   /// The name being queued for.
-  final String name;
+  final DBusBusName name;
 
   /// Queued requests.
   final requests = <_DBusRemoteClient, _DBusNameRequest>{};
@@ -276,7 +278,7 @@ class DBusServer {
   int _nextSerial = 1;
 
   /// Queues for name ownership.
-  final _nameQueues = <String, _DBusNameQueue>{};
+  final _nameQueues = <DBusBusName, _DBusNameQueue>{};
 
   /// Feature flags exposed by the server.
   final _features = <String>[];
@@ -425,7 +427,7 @@ class DBusServer {
   }
 
   /// Get the client that is currently owning [name].
-  _DBusRemoteClient? _getClientByName(String name) {
+  _DBusRemoteClient? _getClientByName(DBusBusName name) {
     for (var client in _clients) {
       if (client.uniqueName == name) {
         return client;
@@ -448,13 +450,13 @@ class DBusServer {
     var client = _getClientByName(message.sender!);
     if (client != null &&
         !client.receivedHello &&
-        !(message.destination == 'org.freedesktop.DBus' &&
-            message.interface == 'org.freedesktop.DBus' &&
-            message.member == 'Hello')) {
+        !(message.destination?.value == 'org.freedesktop.DBus' &&
+            message.interface?.value == 'org.freedesktop.DBus' &&
+            message.member?.value == 'Hello')) {
       await client.close();
       response = DBusMethodErrorResponse.accessDenied(
           'Client tried to send a message other than Hello without being registered');
-    } else if (message.destination == 'org.freedesktop.DBus') {
+    } else if (message.destination?.value == 'org.freedesktop.DBus') {
       if (message.type == DBusMessageType.methodCall) {
         response = await _processServerMethodCall(message);
       }
@@ -485,7 +487,7 @@ class DBusServer {
           errorName: errorName,
           replySerial: message.serial,
           destination: message.sender,
-          sender: 'org.freedesktop.DBus',
+          sender: DBusBusName('org.freedesktop.DBus'),
           values: values);
       _nextSerial++;
       unawaited(_processMessage(responseMessage));
@@ -495,8 +497,8 @@ class DBusServer {
   /// Process a method call requested on the D-Bus server.
   Future<DBusMethodResponse> _processServerMethodCall(
       DBusMessage message) async {
-    if (message.interface == 'org.freedesktop.DBus') {
-      switch (message.member) {
+    if (message.interface?.value == 'org.freedesktop.DBus') {
+      switch (message.member?.value) {
         case 'Hello':
           return _hello(message);
         case 'RequestName':
@@ -572,8 +574,9 @@ class DBusServer {
           return DBusMethodErrorResponse.unknownMethod(
               'Method ${message.interface}.${message.member} not provided');
       }
-    } else if (message.interface == 'org.freedesktop.DBus.Introspectable') {
-      switch (message.member) {
+    } else if (message.interface?.value ==
+        'org.freedesktop.DBus.Introspectable') {
+      switch (message.member?.value) {
         case 'Introspect':
           if (message.values.isNotEmpty) {
             return DBusMethodErrorResponse.invalidArgs();
@@ -583,8 +586,8 @@ class DBusServer {
           return DBusMethodErrorResponse.unknownMethod(
               'Method ${message.interface}.${message.member} not provided');
       }
-    } else if (message.interface == 'org.freedesktop.DBus.Peer') {
-      switch (message.member) {
+    } else if (message.interface?.value == 'org.freedesktop.DBus.Peer') {
+      switch (message.member?.value) {
         case 'Ping':
           if (message.values.isNotEmpty) {
             return DBusMethodErrorResponse.invalidArgs();
@@ -599,8 +602,8 @@ class DBusServer {
           return DBusMethodErrorResponse.unknownMethod(
               'Method ${message.interface}.${message.member} not provided');
       }
-    } else if (message.interface == 'org.freedesktop.DBus.Properties') {
-      switch (message.member) {
+    } else if (message.interface?.value == 'org.freedesktop.DBus.Properties') {
+      switch (message.member?.value) {
         case 'Get':
           if (message.signature != DBusSignature('ss')) {
             return DBusMethodErrorResponse.invalidArgs();
@@ -639,31 +642,30 @@ class DBusServer {
       return DBusMethodErrorResponse.failed('Already handled Hello message');
     } else {
       client.receivedHello = true;
-      return DBusMethodSuccessResponse([DBusString(message.sender!)]);
+      return DBusMethodSuccessResponse([DBusString(message.sender!.value)]);
     }
   }
 
   // Implementation of org.freedesktop.DBus.RequestName
   DBusMethodResponse _requestName(DBusMessage message, String name,
       bool allowReplacement, bool replaceExisting, bool doNotQueue) {
-    DBusBusName busName;
+    DBusBusName name_;
     try {
-      busName = DBusBusName(name);
+      name_ = DBusBusName(name);
     } on FormatException {
-      return DBusMethodErrorResponse.invalidArgs(
-          "Requested bus name '$name' not valid");
+      return DBusMethodErrorResponse.invalidArgs("Bus name '$name' not valid");
     }
-    if (busName.isUnique) {
+    if (name_.isUnique) {
       return DBusMethodErrorResponse.invalidArgs(
           'Not allowed to request a unique bus name');
     }
 
     var client = _getClientByName(message.sender!)!;
-    var queue = _nameQueues[name];
+    var queue = _nameQueues[name_];
     var oldOwner = queue?.owner;
     if (queue == null) {
-      queue = _DBusNameQueue(name);
-      _nameQueues[name] = queue;
+      queue = _DBusNameQueue(name_);
+      _nameQueues[name_] = queue;
     }
     queue.addRequest(client, allowReplacement, replaceExisting, doNotQueue);
 
@@ -680,27 +682,26 @@ class DBusServer {
       returnValue = 3; // exists
     }
 
-    _emitNameSignals(name, oldOwner);
+    _emitNameSignals(name_, oldOwner);
 
     return DBusMethodSuccessResponse([DBusUint32(returnValue)]);
   }
 
   // Implementation of org.freedesktop.DBus.ReleaseName
   DBusMethodResponse _releaseName(DBusMessage message, String name) {
-    DBusBusName busName;
+    DBusBusName name_;
     try {
-      busName = DBusBusName(name);
+      name_ = DBusBusName(name);
     } on FormatException {
-      return DBusMethodErrorResponse.invalidArgs(
-          "Requested bus name '$name' not valid");
+      return DBusMethodErrorResponse.invalidArgs("Bus name '$name' not valid");
     }
-    if (busName.isUnique) {
+    if (name_.isUnique) {
       return DBusMethodErrorResponse.invalidArgs(
           'Not allowed to release a unique bus name');
     }
 
     var client = _getClientByName(message.sender!)!;
-    var queue = _nameQueues[name];
+    var queue = _nameQueues[name_];
     var oldOwner = queue?.owner;
     int returnValue;
     if (queue == null) {
@@ -708,28 +709,27 @@ class DBusServer {
     } else if (queue.removeRequest(client)) {
       // Remove empty queues.
       if (queue.requests.isEmpty) {
-        _nameQueues.remove(name);
+        _nameQueues.remove(name_);
       }
       returnValue = 1; // released
     } else {
       returnValue = 3; // notOwned
     }
 
-    _emitNameSignals(name, oldOwner);
+    _emitNameSignals(name_, oldOwner);
 
     return DBusMethodSuccessResponse([DBusUint32(returnValue)]);
   }
 
   /// Emit signals if [name] is no longer owned by [oldOwner].
-  void _emitNameSignals(String name, _DBusRemoteClient? oldOwner) {
+  void _emitNameSignals(DBusBusName name, _DBusRemoteClient? oldOwner) {
     var queue = _nameQueues[name];
     var newOwner = queue?.owner;
     if (oldOwner == newOwner) {
       return;
     }
 
-    _emitNameOwnerChanged(
-        name, oldOwner?.uniqueName ?? '', newOwner?.uniqueName ?? '');
+    _emitNameOwnerChanged(name, oldOwner?.uniqueName, newOwner?.uniqueName);
     if (oldOwner != null) {
       _emitNameLost(oldOwner.uniqueName, name);
     }
@@ -740,17 +740,25 @@ class DBusServer {
 
   // Implementation of org.freedesktop.DBus.ListQueuedOwners
   DBusMethodResponse _listQueuedOwners(DBusMessage message, String name) {
-    var queue = _nameQueues[name] ?? _DBusNameQueue('');
-    var names =
-        queue.requests.keys.map((client) => DBusString(client.uniqueName));
+    DBusBusName name_;
+    try {
+      name_ = DBusBusName(name);
+    } on FormatException {
+      return DBusMethodErrorResponse.invalidArgs("Bus name '$name' not valid");
+    }
+    var queue = _nameQueues[name_];
+    var names = queue != null
+        ? queue.requests.keys
+            .map((client) => DBusString(client.uniqueName.value))
+        : <DBusString>[];
     return DBusMethodSuccessResponse([DBusArray(DBusSignature('s'), names)]);
   }
 
   // Implementation of org.freedesktop.DBus.ListNames
   DBusMethodResponse _listNames(DBusMessage message) {
     var names = <DBusValue>[DBusString('org.freedesktop.DBus')];
-    names.addAll(_clients.map((client) => DBusString(client.uniqueName)));
-    names.addAll(_nameQueues.keys.map((name) => DBusString(name)));
+    names.addAll(_clients.map((client) => DBusString(client.uniqueName.value)));
+    names.addAll(_nameQueues.keys.map((name) => DBusString(name.value)));
     return DBusMethodSuccessResponse([DBusArray(DBusSignature('s'), names)]);
   }
 
@@ -761,11 +769,17 @@ class DBusServer {
 
   // Implementation of org.freedesktop.DBus.NameHasOwner
   DBusMethodResponse _nameHasOwner(DBusMessage message, String name) {
+    DBusBusName name_;
+    try {
+      name_ = DBusBusName(name);
+    } on FormatException {
+      return DBusMethodErrorResponse.invalidArgs("Bus name '$name' not valid");
+    }
     bool returnValue;
     if (name == 'org.freedesktop.DBus') {
       returnValue = true;
     } else {
-      returnValue = _getClientByName(name) != null;
+      returnValue = _getClientByName(name_) != null;
     }
     return DBusMethodSuccessResponse([DBusBoolean(returnValue)]);
   }
@@ -773,8 +787,14 @@ class DBusServer {
   // Implementation of org.freedesktop.DBus.StartServiceByName
   DBusMethodResponse _startServiceByName(
       DBusMessage message, String name, int flags) {
+    DBusBusName name_;
+    try {
+      name_ = DBusBusName(name);
+    } on FormatException {
+      return DBusMethodErrorResponse.invalidArgs("Bus name '$name' not valid");
+    }
     int returnValue;
-    var client = _getClientByName(name);
+    var client = _getClientByName(name_);
     if (client != null || name == 'org.freedesktop.DBus') {
       returnValue = 2; // alreadyRunning
     } else {
@@ -786,17 +806,23 @@ class DBusServer {
 
   // Implementation of org.freedesktop.DBus.GetNameOwner
   DBusMethodResponse _getNameOwner(DBusMessage message, String name) {
-    String? owner;
+    DBusBusName name_;
+    try {
+      name_ = DBusBusName(name);
+    } on FormatException {
+      return DBusMethodErrorResponse.invalidArgs("Bus name '$name' not valid");
+    }
+    DBusBusName? owner;
     if (name == 'org.freedesktop.DBus') {
-      owner = 'org.freedesktop.DBus';
+      owner = DBusBusName('org.freedesktop.DBus');
     } else {
-      var client = _getClientByName(name);
+      var client = _getClientByName(name_);
       if (client != null) {
         owner = client.uniqueName;
       }
     }
     if (owner != null) {
-      return DBusMethodSuccessResponse([DBusString(owner)]);
+      return DBusMethodSuccessResponse([DBusString(owner.value)]);
     } else {
       return _DBusServerErrorResponse.nameHasNoOwner('Name $name not owned');
     }
@@ -1001,29 +1027,40 @@ class DBusServer {
   }
 
   /// Emits org.freedesktop.DBus.NameOwnerChanged.
-  void _emitNameOwnerChanged(String name, String oldOwner, String newOwner) {
-    _emitSignal(DBusObjectPath('/org/freedesktop/DBus'), 'org.freedesktop.DBus',
-        'NameOwnerChanged',
-        values: [DBusString(name), DBusString(oldOwner), DBusString(newOwner)]);
+  void _emitNameOwnerChanged(
+      DBusBusName name, DBusBusName? oldOwner, DBusBusName? newOwner) {
+    _emitSignal(
+        DBusObjectPath('/org/freedesktop/DBus'),
+        DBusInterfaceName('org.freedesktop.DBus'),
+        DBusMemberName('NameOwnerChanged'),
+        values: [
+          DBusString(name.value),
+          DBusString(oldOwner?.value ?? ''),
+          DBusString(newOwner?.value ?? '')
+        ]);
   }
 
   /// Emits org.freedesktop.DBus.NameAcquired.
-  void _emitNameAcquired(String destination, String name) {
-    _emitSignal(DBusObjectPath('/org/freedesktop/DBus'), 'org.freedesktop.DBus',
-        'NameAcquired',
-        values: [DBusString(name)], destination: destination);
+  void _emitNameAcquired(DBusBusName destination, DBusBusName name) {
+    _emitSignal(
+        DBusObjectPath('/org/freedesktop/DBus'),
+        DBusInterfaceName('org.freedesktop.DBus'),
+        DBusMemberName('NameAcquired'),
+        values: [DBusString(name.value)],
+        destination: destination);
   }
 
   /// Emits org.freedesktop.DBus.NameLost.
-  void _emitNameLost(String destination, String name) {
-    _emitSignal(DBusObjectPath('/org/freedesktop/DBus'), 'org.freedesktop.DBus',
-        'NameLost',
-        values: [DBusString(name)], destination: destination);
+  void _emitNameLost(DBusBusName destination, DBusBusName name) {
+    _emitSignal(DBusObjectPath('/org/freedesktop/DBus'),
+        DBusInterfaceName('org.freedesktop.DBus'), DBusMemberName('NameLost'),
+        values: [DBusString(name.value)], destination: destination);
   }
 
   /// Emits a signal from the D-Bus server.
-  void _emitSignal(DBusObjectPath path, String interface, String member,
-      {String? destination, List<DBusValue> values = const []}) {
+  void _emitSignal(
+      DBusObjectPath path, DBusInterfaceName interface, DBusMemberName member,
+      {DBusBusName? destination, List<DBusValue> values = const []}) {
     var message = DBusMessage(DBusMessageType.signal,
         flags: {DBusMessageFlag.noReplyExpected},
         serial: _nextSerial,
@@ -1031,7 +1068,7 @@ class DBusServer {
         interface: interface,
         member: member,
         destination: destination,
-        sender: 'org.freedesktop.DBus',
+        sender: DBusBusName('org.freedesktop.DBus'),
         values: values);
     _nextSerial++;
     unawaited(_processMessage(message));
