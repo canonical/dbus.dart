@@ -65,7 +65,7 @@ class _DBusSignalSubscription {
 
 /// A client connection to a D-Bus server.
 class DBusClient {
-  late final String _address;
+  final DBusAddress _address;
   Socket? _socket;
   final _readBuffer = DBusReadBuffer();
   final _authClient = DBusAuthClient();
@@ -91,19 +91,17 @@ class DBusClient {
   final _nameLostController = StreamController<String>();
 
   /// Creates a new DBus client to connect on [address].
-  DBusClient(String address) {
-    _address = address;
-  }
+  DBusClient(DBusAddress address) : _address = address;
 
   /// Creates a new DBus client to communicate with the system bus.
-  DBusClient.system() {
+  factory DBusClient.system() {
     var address = Platform.environment['DBUS_SYSTEM_BUS_ADDRESS'];
-    address ??= 'unix:path=/run/dbus/system_bus_socket';
-    _address = address;
+    return DBusClient(
+        DBusAddress(address ??= 'unix:path=/run/dbus/system_bus_socket'));
   }
 
   /// Creates a new DBus client to communicate with the session bus.
-  DBusClient.session() {
+  factory DBusClient.session() {
     var address = Platform.environment['DBUS_SESSION_BUS_ADDRESS'];
     if (address == null) {
       var runtimeDir = Platform.environment['XDG_USER_DIR'];
@@ -113,7 +111,7 @@ class DBusClient {
       }
       address = 'unix:path=$runtimeDir/bus';
     }
-    _address = address;
+    return DBusClient(DBusAddress(address));
   }
 
   /// Terminates all active connections. If a client remains unclosed, the Dart process may not terminate.
@@ -398,12 +396,11 @@ class DBusClient {
 
   /// Open a socket connection to the D-Bus server.
   Future<void> _openSocket() async {
-    var address = DBusAddress.fromString(_address);
     InternetAddress socketAddress;
     var port = 0;
-    switch (address.transport) {
+    switch (_address.transport) {
       case 'unix':
-        var path = address.properties['path'];
+        var path = _address.properties['path'];
         if (path == null) {
           throw "Unable to determine D-Bus unix address path from address '$_address'";
         }
@@ -411,13 +408,13 @@ class DBusClient {
         socketAddress = InternetAddress(path, type: InternetAddressType.unix);
         break;
       case 'tcp':
-        var host = address.properties['host'];
+        var host = _address.properties['host'];
         if (host == null) {
           throw "'Unable to determine hostname from address '$_address'";
         }
 
         InternetAddressType type;
-        var family = address.properties['family'];
+        var family = _address.properties['family'];
         switch (family) {
           case null:
             type = InternetAddressType.any;
@@ -433,9 +430,9 @@ class DBusClient {
         }
 
         try {
-          port = int.parse(address.properties['port'] ?? '0');
+          port = int.parse(_address.properties['port'] ?? '0');
         } on FormatException {
-          throw "Invalid port number in address '$address'";
+          throw "Invalid port number in address '$_address'";
         }
 
         var addresses = await InternetAddress.lookup(host, type: type);

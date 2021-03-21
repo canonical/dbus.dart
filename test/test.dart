@@ -31,7 +31,8 @@ class IntrospectObject extends DBusObject {
 void main() {
   test('ping', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
 
     // Check can ping the server.
@@ -40,7 +41,8 @@ void main() {
 
   test('ping - ipv4 tcp', () async {
     var server = DBusServer();
-    var address = await server.listenTcpSocket(type: InternetAddressType.IPv4);
+    var address = await server.listenAddress(
+        DBusAddress.tcp('localhost', family: DBusAddressTcpFamily.ipv4));
     var client = DBusClient(address);
 
     // Check can ping the server.
@@ -49,7 +51,8 @@ void main() {
 
   test('ping - ipv6 tcp', () async {
     var server = DBusServer();
-    var address = await server.listenTcpSocket(type: InternetAddressType.IPv6);
+    var address = await server.listenAddress(
+        DBusAddress.tcp('localhost', family: DBusAddressTcpFamily.ipv6));
     var client = DBusClient(address);
 
     // Check can ping the server.
@@ -58,7 +61,8 @@ void main() {
 
   test('list names', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
 
     // Check the server and this clients name is reported.
@@ -68,7 +72,8 @@ void main() {
 
   test('list activatable names', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
 
     // Not currently supported, so should be empty.
@@ -78,7 +83,8 @@ void main() {
 
   test('request name', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
 
     // Check name is currently unowned.
@@ -113,7 +119,8 @@ void main() {
 
   test('request name - already owned', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
 
     // Request the name twice
@@ -133,7 +140,8 @@ void main() {
 
   test('request name - queue', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
 
@@ -156,7 +164,8 @@ void main() {
 
   test('request name - do not queue', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
 
@@ -180,7 +189,8 @@ void main() {
 
   test('request name - replace', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
 
@@ -205,7 +215,8 @@ void main() {
 
   test('request name - replace, do not queue', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
 
@@ -232,7 +243,8 @@ void main() {
 
   test('request name - replace not allowed', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
 
@@ -256,7 +268,8 @@ void main() {
 
   test('request name - empty', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
 
     // Attempt to request an empty bus name
@@ -265,7 +278,8 @@ void main() {
 
   test('request name - unique', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
 
     // Attempt to request a unique bus name
@@ -274,7 +288,8 @@ void main() {
 
   test('request name - not enough elements', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
 
     // Attempt to request a unique bus name
@@ -283,7 +298,8 @@ void main() {
 
   test('request name - leading period', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
 
     // Attempt to request a unique bus name
@@ -292,7 +308,8 @@ void main() {
 
   test('request name - trailing period', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
 
     // Attempt to request a unique bus name
@@ -301,7 +318,8 @@ void main() {
 
   test('request name - empty element', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
 
     // Attempt to request a unique bus name
@@ -310,7 +328,8 @@ void main() {
 
   test('release name', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
 
     // Check get an event when acquired and lost
@@ -338,7 +357,8 @@ void main() {
 
   test('release name - non existant', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
 
     // Release a name that's not in use.
@@ -348,7 +368,8 @@ void main() {
 
   test('release name - not owner', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
 
@@ -364,7 +385,8 @@ void main() {
 
   test('release name - queue', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
 
@@ -392,7 +414,8 @@ void main() {
 
   test('release name - empty', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
 
     // Attempt to release an empty bus name.
@@ -401,7 +424,8 @@ void main() {
 
   test('release name - unique name', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
 
     // Attempt to release the unique name of this client.
@@ -411,7 +435,8 @@ void main() {
 
   test('call method', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
 
@@ -431,7 +456,8 @@ void main() {
 
   test('emit signal', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
 
@@ -460,7 +486,8 @@ void main() {
 
   test('introspect', () async {
     var server = DBusServer();
-    var address = await server.listenUnixSocket();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
 

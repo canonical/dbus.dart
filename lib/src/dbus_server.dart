@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:pedantic/pedantic.dart';
@@ -287,89 +288,124 @@ class DBusServer {
   DBusServer();
 
   /// Listen on the given D-Bus [address].
-  Future<void> listenAddress(String address) async {
-    var address_ = DBusAddress.fromString(address);
-    switch (address_.transport) {
+  /// Returns an address for clients to connnect on this connection.
+  Future<DBusAddress> listenAddress(DBusAddress address) async {
+    switch (address.transport) {
       case 'unix':
-        var path = address_.properties['path'];
-        if (path == null) {
-          throw FormatException('Missing Unix path in D-Bus address');
-        }
-        await listenUnixSocket(path);
-        break;
+        return await _listenUnixSocket(address);
       case 'tcp':
-        var bindAddress =
-            address_.properties['bind'] ?? address_.properties['host'];
-        if (bindAddress == null) {
-          throw FormatException('Missing bind or host in D-Bus address');
-        }
-        int port;
-        try {
-          port = int.parse(address_.properties['port'] ?? '0');
-        } on FormatException {
-          throw FormatException('Invalid port number in D-Bus address');
-        }
-
-        await listenTcpSocket(address: bindAddress, port: port);
-
-        break;
+        return await _listenTcpSocket(address);
       default:
-        throw FormatException(
-            "Unknown D-Bus transport '${address_.transport}'");
+        throw FormatException("Unknown D-Bus transport '${address.transport}'");
     }
   }
 
-  /// Listens for connections on a Unix socket at [path].
-  /// If [path] is not provided a random path is chosen.
-  /// Returns the D-Bus address for clients to connect to this socket.
-  Future<String> listenUnixSocket([String? path]) async {
-    if (path == null) {
-      var directory = await Directory.systemTemp.createTemp();
-      path = '${directory.path}/dbus-socket';
+  /// Listens for connections on a Unix socket.
+  Future<DBusAddress> _listenUnixSocket(DBusAddress address) async {
+    var path = address.properties['path'];
+    var dir = address.properties['dir'];
+    var tmpdir = address.properties['tmpdir'];
+    var abstract = address.properties['abstract'];
+    var runtime = address.properties['runtime'];
+    if ([path, dir, tmpdir, abstract, runtime]
+            .map((v) => v != null ? 1 : 0)
+            .reduce((a, b) => a + b) !=
+        1) {
+      throw FormatException(
+          'D-Bus Unix address requires one of path, dir, tmpdir, abstract or runtime');
     }
-    var address = InternetAddress(path, type: InternetAddressType.unix);
-    await _addServerSocket(address, 0);
-    return 'unix:path=$path';
+    if (runtime != null && runtime != 'yes') {
+      throw FormatException("Runtime must only contain the value 'yes'");
+    }
+
+    if (path == null) {
+      Directory directory;
+      if (dir != null) {
+        directory = Directory(dir);
+      } else if (runtime != null) {
+        var runtimeDir = Platform.environment['XDG_RUNTIME_DIR'];
+        if (runtimeDir == null) {
+          throw SocketException('Unable to determine runtime directory');
+        }
+        directory = Directory(runtimeDir);
+      } else if (tmpdir != null) {
+        throw "Unix addresses with 'tmpdir' not supported";
+      } else if (abstract != null) {
+        throw "Unix addresses with 'abstract' not supported";
+      } else {
+        // Shouldn't be able to get here.
+        throw 'Not able to determine Unix path';
+      }
+
+      var chars =
+          'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+      var random = Random();
+      var suffix =
+          List<String>.generate(8, (i) => chars[random.nextInt(chars.length)])
+              .join();
+      path = '${directory.path}/dbus-$suffix';
+    }
+    await _addServerSocket(
+        InternetAddress(path, type: InternetAddressType.unix), 0);
+    return DBusAddress.unix(path: path);
   }
 
   /// Listens for connections on a TCP/IP socket.
-  Future<String> listenTcpSocket(
-      {String? address, int port = 0, type = InternetAddressType.any}) async {
-    InternetAddress anyAddress;
-    String? family;
-    switch (type) {
-      case InternetAddressType.any:
-        anyAddress = InternetAddress.anyIPv4;
+  Future<DBusAddress> _listenTcpSocket(DBusAddress address) async {
+    var host = address.properties['host'];
+    if (host == null) {
+      throw FormatException('Missing host in TCP D-Bus address');
+    }
+    var bind = address.properties['bind'];
+    var family = address.properties['family'];
+    var type = InternetAddressType.any;
+    switch (family) {
+      case null:
+        type = InternetAddressType.any;
         break;
-      case InternetAddressType.IPv4:
-        anyAddress = InternetAddress.anyIPv4;
-        family = 'ipv4';
+      case 'ipv4':
+        type = InternetAddressType.IPv4;
         break;
-      case InternetAddressType.IPv6:
-        anyAddress = InternetAddress.anyIPv6;
-        family = 'ipv6';
+      case 'ipv6':
+        type = InternetAddressType.IPv6;
         break;
       default:
-        throw "Unsupported adddress type '$type'";
+        throw FormatException("Invalid family '$family'");
+    }
+    int? port;
+    if (address.properties.containsKey('port')) {
+      try {
+        port = int.parse(address.properties['port']!);
+      } on FormatException {
+        throw FormatException('Invalid port number in D-Bus address');
+      }
     }
 
-    InternetAddress address_;
-    if (address != null) {
-      var addresses = await InternetAddress.lookup(address, type: type);
-      if (addresses.isEmpty) {
-        throw "Failed to resolve host '$address'";
-      }
-      address_ = addresses[0];
+    InternetAddress internetAddress;
+    if (bind == '*') {
+      internetAddress = type == InternetAddressType.IPv6
+          ? InternetAddress.anyIPv6
+          : InternetAddress.anyIPv4;
     } else {
-      address_ = anyAddress;
+      var bindAddress = bind ?? host;
+      var addresses = await InternetAddress.lookup(bindAddress, type: type);
+      if (addresses.isEmpty) {
+        throw "Failed to resolve host '$bindAddress'";
+      }
+      internetAddress = addresses[0];
     }
-    var serverSocket = await _addServerSocket(address_, port);
-    var addressText =
-        'tcp:host=${address ?? 'localhost'},port=${serverSocket.socket.port}';
-    if (family != null) {
-      addressText += ',family=$family';
+    port = port ?? 0;
+    var serverSocket = await _addServerSocket(internetAddress, port);
+    if (port == 0) {
+      port = serverSocket.socket.port;
     }
-    return addressText;
+    // Note the bind address is not provided, as the client doesn't need it for connecting.
+    return DBusAddress.tcp(host,
+        port: port,
+        family: {
+          InternetAddressType.IPv4: DBusAddressTcpFamily.ipv4,
+          InternetAddressType.IPv6: DBusAddressTcpFamily.ipv6
+        }[type]);
   }
 
   Future<_DBusServerSocket> _addServerSocket(
