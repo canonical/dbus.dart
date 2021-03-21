@@ -649,7 +649,7 @@ class DBusServer {
     DBusBusName busName;
     try {
       busName = DBusBusName(name);
-    } on DBusBusNameException {
+    } on FormatException {
       return DBusMethodErrorResponse.invalidArgs(
           "Requested bus name '$name' not valid");
     }
@@ -690,7 +690,7 @@ class DBusServer {
     DBusBusName busName;
     try {
       busName = DBusBusName(name);
-    } on DBusBusNameException {
+    } on FormatException {
       return DBusMethodErrorResponse.invalidArgs(
           "Requested bus name '$name' not valid");
     }

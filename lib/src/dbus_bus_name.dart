@@ -1,10 +1,3 @@
-/// Exception thrown for invalid bus names.
-class DBusBusNameException implements Exception {
-  final String message;
-
-  DBusBusNameException(this.message);
-}
-
 /// A D-Bus bus name.
 class DBusBusName {
   /// The bus name.
@@ -16,31 +9,30 @@ class DBusBusName {
   /// Creates a new bus name from [value].
   DBusBusName(this.value) {
     if (value.isEmpty) {
-      throw DBusBusNameException('Empty bus name');
+      throw FormatException('Empty bus name');
     }
     if (value.length > 255) {
-      throw DBusBusNameException('Name longer than 255 characters');
+      throw FormatException('Bus name too long');
     }
 
     var nameWithoutPrefix = value.substring(isUnique ? 1 : 0);
+    var elementRegexp = isUnique
+        ? RegExp('^[0-9a-zA-Z_-]+\$')
+        : RegExp('^[a-zA-Z_-][0-9a-zA-Z_-]*\$');
 
-    if (nameWithoutPrefix.contains(RegExp('[^A-Za-z0-9_\\-.]'))) {
-      throw DBusBusNameException(
-          'Invalid characters in bus name: $nameWithoutPrefix');
+    if (!nameWithoutPrefix.contains('.')) {
+      throw FormatException('Bus name needs at least two elements');
     }
-
-    // Non-unique connection names have more restrictions.
-    if (!isUnique) {
-      if (nameWithoutPrefix.startsWith(RegExp('[0-9]'))) {
-        throw DBusBusNameException('Bus names cannot start with digit');
-      }
-      if (!nameWithoutPrefix.contains('.') ||
-          nameWithoutPrefix.startsWith('.') ||
-          nameWithoutPrefix.endsWith('.') ||
-          nameWithoutPrefix.contains('..')) {
-        throw DBusBusNameException(
-            'Need at least two non-empty elements in bus name');
+    for (var element in nameWithoutPrefix.split('.')) {
+      if (!element.contains(elementRegexp)) {
+        throw FormatException('Invalid element in bus name');
       }
     }
   }
+
+  @override
+  bool operator ==(other) => other is DBusBusName && other.value == value;
+
+  @override
+  String toString() => "DBusBusName('$value')";
 }
