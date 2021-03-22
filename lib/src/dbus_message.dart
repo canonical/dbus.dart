@@ -1,4 +1,5 @@
 import 'dbus_bus_name.dart';
+import 'dbus_error_name.dart';
 import 'dbus_interface_name.dart';
 import 'dbus_member_name.dart';
 import 'dbus_value.dart';
@@ -34,7 +35,7 @@ class DBusMessage {
   final DBusMemberName? member;
 
   /// Error name as returned in messages of type DBusMessageType.error or null. e.g. 'org.freedesktop.DBus.Error.UnknownObject'.
-  final String? errorName;
+  final DBusErrorName? errorName;
 
   /// Serial number this message is replying to or null.
   final int? replySerial;

@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'dbus_address.dart';
 import 'dbus_auth_client.dart';
 import 'dbus_bus_name.dart';
+import 'dbus_error_name.dart';
 import 'dbus_interface_name.dart';
 import 'dbus_introspectable.dart';
 import 'dbus_match_rule.dart';
@@ -754,7 +755,7 @@ class DBusClient {
     DBusMethodResponse response;
     if (message.type == DBusMessageType.error) {
       response = DBusMethodErrorResponse(
-          message.errorName ?? '(missing error name)', message.values);
+          message.errorName?.value ?? '(missing error name)', message.values);
     } else {
       response = DBusMethodSuccessResponse(message.values);
     }
@@ -854,7 +855,7 @@ class DBusClient {
     _lastSerial++;
     var message = DBusMessage(DBusMessageType.error,
         serial: _lastSerial,
-        errorName: errorName,
+        errorName: DBusErrorName(errorName),
         replySerial: serial,
         destination: destination,
         values: values.toList());

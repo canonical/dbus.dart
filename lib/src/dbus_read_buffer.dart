@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'dbus_buffer.dart';
 import 'dbus_bus_name.dart';
+import 'dbus_error_name.dart';
 import 'dbus_interface_name.dart';
 import 'dbus_member_name.dart';
 import 'dbus_message.dart';
@@ -99,7 +100,7 @@ class DBusReadBuffer extends DBusBuffer {
     DBusObjectPath? path;
     DBusInterfaceName? interface;
     DBusMemberName? member;
-    String? errorName;
+    DBusErrorName? errorName;
     int? replySerial;
     DBusBusName? destination;
     DBusBusName? sender;
@@ -127,7 +128,7 @@ class DBusReadBuffer extends DBusBuffer {
         if (value.signature != DBusSignature('s')) {
           throw 'Invalid message error name header of type ${value.signature}';
         }
-        errorName = (value as DBusString).value;
+        errorName = DBusErrorName((value as DBusString).value);
       } else if (code == 5) {
         if (value.signature != DBusSignature('u')) {
           throw 'Invalid message reply serial header of type ${value.signature}';
