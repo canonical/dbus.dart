@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:meta/meta.dart';
-
 import 'dbus_address.dart';
 import 'dbus_auth_client.dart';
 import 'dbus_bus_name.dart';
@@ -342,15 +340,15 @@ class DBusClient {
   /// Invokes a method on a D-Bus object.
   Future<DBusMethodResponse> callMethod(
       {String? destination,
-      @required DBusObjectPath? path,
+      required DBusObjectPath path,
       String? interface,
-      @required String? member,
+      required String member,
       Iterable<DBusValue> values = const []}) async {
     return await _callMethod(
         destination != null ? DBusBusName(destination) : null,
-        path!,
+        path,
         interface != null ? DBusInterfaceName(interface) : null,
-        DBusMemberName(member!),
+        DBusMemberName(member),
         values);
   }
 
@@ -398,12 +396,12 @@ class DBusClient {
   /// Emits a signal from a D-Bus object.
   Future<void> emitSignal(
       {String? destination,
-      @required DBusObjectPath? path,
-      @required String? interface,
-      @required String? member,
+      required DBusObjectPath path,
+      required String interface,
+      required String member,
       Iterable<DBusValue> values = const []}) async {
     await _sendSignal(destination != null ? DBusBusName(destination) : null,
-        path!, DBusInterfaceName(interface!), DBusMemberName(member!), values);
+        path, DBusInterfaceName(interface), DBusMemberName(member), values);
   }
 
   /// Registers an [object] on the bus.
