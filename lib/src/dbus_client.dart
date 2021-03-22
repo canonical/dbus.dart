@@ -343,13 +343,15 @@ class DBusClient {
       required DBusObjectPath path,
       String? interface,
       required String member,
-      Iterable<DBusValue> values = const []}) async {
+      Iterable<DBusValue> values = const [],
+      Set<DBusMethodCallFlag> flags = const {}}) async {
     return await _callMethod(
-        destination != null ? DBusBusName(destination) : null,
-        path,
-        interface != null ? DBusInterfaceName(interface) : null,
-        DBusMemberName(member),
-        values);
+        destination: destination != null ? DBusBusName(destination) : null,
+        path: path,
+        interface: interface != null ? DBusInterfaceName(interface) : null,
+        member: DBusMemberName(member),
+        values: values,
+        flags: flags);
   }
 
   /// Subscribe to signals that match [sender], [interface], [member], [path] and/or [pathNamespace].
@@ -496,11 +498,10 @@ class DBusClient {
     // false as the _connect call hasn't yet completed and would otherwise have
     // been called again.
     var result = await _callMethod(
-        DBusBusName('org.freedesktop.DBus'),
-        DBusObjectPath('/org/freedesktop/DBus'),
-        DBusInterfaceName('org.freedesktop.DBus'),
-        DBusMemberName('Hello'),
-        [],
+        destination: DBusBusName('org.freedesktop.DBus'),
+        path: DBusObjectPath('/org/freedesktop/DBus'),
+        interface: DBusInterfaceName('org.freedesktop.DBus'),
+        member: DBusMemberName('Hello'),
         requireConnect: false);
     if (result.signature != DBusSignature('s')) {
       throw 'org.freedesktop.DBus.Hello returned invalid result: ${result.returnValues}';
@@ -686,7 +687,17 @@ class DBusClient {
             message.sender?.value ?? '',
             message.interface?.value,
             message.member?.value ?? '',
-            message.values);
+            message.values,
+            message.flags
+                .map((flag) => {
+                      DBusMessageFlag.noReplyExpected:
+                          DBusMethodCallFlag.noReplyExpected,
+                      DBusMessageFlag.noAutoStart:
+                          DBusMethodCallFlag.noAutoStart,
+                      DBusMessageFlag.allowInteractiveAuthorization:
+                          DBusMethodCallFlag.allowInteractiveAuthorization
+                    }[flag]!)
+                .toSet());
         response = await object.handleMethodCall(methodCall);
       } else {
         response = DBusMethodErrorResponse.unknownInterface();
@@ -764,40 +775,43 @@ class DBusClient {
 
   /// Invokes a method on a D-Bus object.
   Future<DBusMethodResponse> _callMethod(
-      DBusBusName? destination,
-      DBusObjectPath path,
+      {DBusBusName? destination,
+      required DBusObjectPath path,
       DBusInterfaceName? interface,
-      DBusMemberName member,
-      Iterable<DBusValue> values,
-      {bool requireConnect = true}) async {
+      required DBusMemberName member,
+      Iterable<DBusValue> values = const {},
+      Set<DBusMethodCallFlag> flags = const {},
+      bool requireConnect = true}) async {
     _lastSerial++;
     var serial = _lastSerial;
-    var completer = Completer<DBusMethodResponse>();
-    _methodCalls[serial] = completer;
+    Future<DBusMethodResponse> response;
+    if (flags.contains(DBusMethodCallFlag.noReplyExpected)) {
+      response = Future<DBusMethodResponse>.value(DBusMethodSuccessResponse());
+    } else {
+      var completer = Completer<DBusMethodResponse>();
+      _methodCalls[serial] = completer;
+      response = completer.future;
+    }
 
-    await _sendMethodCall(serial, destination, path, interface, member, values,
-        requireConnect: requireConnect);
-
-    return completer.future;
-  }
-
-  /// Sends a method call to the D-Bus server.
-  Future<void> _sendMethodCall(
-      int serial,
-      DBusBusName? destination,
-      DBusObjectPath path,
-      DBusInterfaceName? interface,
-      DBusMemberName member,
-      Iterable<DBusValue> values,
-      {bool requireConnect = true}) async {
     var message = DBusMessage(DBusMessageType.methodCall,
         serial: _lastSerial,
         destination: destination,
         path: path,
         interface: interface,
         member: member,
-        values: values.toList());
+        values: values.toList(),
+        flags: flags
+            .map((flag) => {
+                  DBusMethodCallFlag.noReplyExpected:
+                      DBusMessageFlag.noReplyExpected,
+                  DBusMethodCallFlag.noAutoStart: DBusMessageFlag.noAutoStart,
+                  DBusMethodCallFlag.allowInteractiveAuthorization:
+                      DBusMessageFlag.allowInteractiveAuthorization
+                }[flag]!)
+            .toSet());
     await _sendMessage(message, requireConnect: requireConnect);
+
+    return response;
   }
 
   /// Sends a method return to the D-Bus server.

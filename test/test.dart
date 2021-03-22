@@ -5,14 +5,35 @@ import 'package:test/test.dart';
 
 const isMethodResponseException = TypeMatcher<DBusMethodResponseException>();
 
-// Test object which has an Echo() method.
-class EchoObject extends DBusObject {
+// Test object which has expects requests with given flags.
+class MethodCallObject extends DBusObject {
+  final String? name;
+  final List<DBusValue>? values;
+  final Set<DBusMethodCallFlag> flags;
+  final List<DBusValue> responseValues;
+  final String? errorName;
+
+  MethodCallObject(
+      {this.name,
+      this.values,
+      this.flags = const {},
+      this.responseValues = const [],
+      this.errorName});
+
   @override
   Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
-    if (methodCall.name == 'Echo') {
-      return DBusMethodSuccessResponse(methodCall.values);
+    if (name != null) {
+      expect(methodCall.name, equals(name));
+    }
+    if (values != null) {
+      expect(methodCall.values, equals(values));
+    }
+    expect(methodCall.flags, equals(flags));
+
+    if (errorName != null) {
+      return DBusMethodErrorResponse(errorName!, responseValues);
     } else {
-      return DBusMethodErrorResponse.unknownMethod();
+      return DBusMethodSuccessResponse(responseValues);
     }
   }
 }
@@ -441,17 +462,111 @@ void main() {
     var client2 = DBusClient(address);
 
     // Create a client that exposes a method.
-    await client1.registerObject(EchoObject());
+    await client1.registerObject(MethodCallObject(
+        name: 'Test',
+        values: [DBusString('Hello'), DBusUint32(42)],
+        flags: {},
+        responseValues: [DBusString('World'), DBusUint32(99)]));
 
     // Call the method from another client.
     var response = await client2.callMethod(
         destination: client1.uniqueName,
         path: DBusObjectPath('/'),
-        member: 'Echo',
+        member: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)]);
     expect(response, TypeMatcher<DBusMethodSuccessResponse>());
     expect((response as DBusMethodSuccessResponse).values,
-        equals([DBusString('Hello'), DBusUint32(42)]));
+        equals([DBusString('World'), DBusUint32(99)]));
+  });
+
+  test('call method - no response', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes a method.
+    await client1.registerObject(
+        MethodCallObject(flags: {DBusMethodCallFlag.noReplyExpected}));
+
+    // Call the method from another client.
+    var response = await client2.callMethod(
+        destination: client1.uniqueName,
+        path: DBusObjectPath('/'),
+        member: 'Test',
+        values: [DBusString('Hello'), DBusUint32(42)],
+        flags: {DBusMethodCallFlag.noReplyExpected});
+    expect(response, TypeMatcher<DBusMethodSuccessResponse>());
+    expect((response as DBusMethodSuccessResponse).values, equals([]));
+  });
+
+  test('call method - no autostart', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes a method.
+    await client1.registerObject(
+        MethodCallObject(flags: {DBusMethodCallFlag.noAutoStart}));
+
+    // Call the method from another client.
+    var response = await client2.callMethod(
+        destination: client1.uniqueName,
+        path: DBusObjectPath('/'),
+        member: 'Test',
+        values: [DBusString('Hello'), DBusUint32(42)],
+        flags: {DBusMethodCallFlag.noAutoStart});
+    expect(response, TypeMatcher<DBusMethodSuccessResponse>());
+    expect((response as DBusMethodSuccessResponse).values, equals([]));
+  });
+
+  test('call method - allow interactive authorization', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes a method.
+    await client1.registerObject(MethodCallObject(
+        flags: {DBusMethodCallFlag.allowInteractiveAuthorization}));
+
+    // Call the method from another client.
+    var response = await client2.callMethod(
+        destination: client1.uniqueName,
+        path: DBusObjectPath('/'),
+        member: 'Test',
+        values: [DBusString('Hello'), DBusUint32(42)],
+        flags: {DBusMethodCallFlag.allowInteractiveAuthorization});
+    expect(response, TypeMatcher<DBusMethodSuccessResponse>());
+    expect((response as DBusMethodSuccessResponse).values, equals([]));
+  });
+
+  test('call method - error', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes a method.
+    await client1.registerObject(MethodCallObject(
+        name: 'Test',
+        errorName: 'com.example.Error',
+        responseValues: [DBusString('Count'), DBusUint32(42)]));
+
+    // Call the method from another client.
+    var response = await client2.callMethod(
+        destination: client1.uniqueName,
+        path: DBusObjectPath('/'),
+        member: 'Test');
+    expect(response, TypeMatcher<DBusMethodErrorResponse>());
+    expect((response as DBusMethodErrorResponse).errorName,
+        equals('com.example.Error'));
+    expect(response.values, equals([DBusString('Count'), DBusUint32(42)]));
   });
 
   test('emit signal', () async {

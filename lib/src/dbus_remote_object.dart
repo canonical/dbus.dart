@@ -1,5 +1,6 @@
 import 'dbus_client.dart';
 import 'dbus_introspect.dart';
+import 'dbus_method_call.dart';
 import 'dbus_method_response.dart';
 import 'dbus_signal.dart';
 import 'dbus_value.dart';
@@ -136,13 +137,15 @@ class DBusRemoteObject {
 
   /// Invokes a method on this object.
   Future<DBusMethodResponse> callMethod(
-      String? interface, String member, List<DBusValue> values) async {
+      String? interface, String member, List<DBusValue> values,
+      {Set<DBusMethodCallFlag> flags = const {}}) async {
     return client.callMethod(
         destination: destination,
         path: path,
         interface: interface,
         member: member,
-        values: values);
+        values: values,
+        flags: flags);
   }
 
   /// Subscribes to signals [interface].[member] from this object.
