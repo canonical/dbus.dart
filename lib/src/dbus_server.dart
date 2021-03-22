@@ -470,7 +470,8 @@ class DBusServer {
     }
 
     // Send a response message if one generated.
-    if (response != null) {
+    if (response != null &&
+        !message.flags.contains(DBusMessageFlag.noReplyExpected)) {
       var type = DBusMessageType.methodReturn;
       String? errorName;
       var values = const <DBusValue>[];

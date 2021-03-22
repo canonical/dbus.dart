@@ -695,6 +695,10 @@ class DBusClient {
       }
     }
 
+    if (message.flags.contains(DBusMessageFlag.noReplyExpected)) {
+      return;
+    }
+
     if (response is DBusMethodErrorResponse) {
       await _sendError(
           message.serial, message.sender, response.errorName, response.values);
