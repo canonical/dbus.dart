@@ -49,7 +49,7 @@ class DBusWriteBuffer extends DBusBuffer {
       headers.add(_makeHeader(3, DBusString(message.member!.value)));
     }
     if (message.errorName != null) {
-      headers.add(_makeHeader(4, DBusString(message.errorName!)));
+      headers.add(_makeHeader(4, DBusString(message.errorName!.value)));
     }
     if (message.replySerial != null) {
       headers.add(_makeHeader(5, DBusUint32(message.replySerial!)));

@@ -7,6 +7,7 @@ import 'package:pedantic/pedantic.dart';
 import 'dbus_address.dart';
 import 'dbus_auth_server.dart';
 import 'dbus_bus_name.dart';
+import 'dbus_error_name.dart';
 import 'dbus_interface_name.dart';
 import 'dbus_introspect.dart';
 import 'dbus_introspectable.dart';
@@ -491,13 +492,13 @@ class DBusServer {
     if (response != null &&
         !message.flags.contains(DBusMessageFlag.noReplyExpected)) {
       var type = DBusMessageType.methodReturn;
-      String? errorName;
+      DBusErrorName? errorName;
       var values = const <DBusValue>[];
       if (response is DBusMethodSuccessResponse) {
         values = response.values;
       } else if (response is DBusMethodErrorResponse) {
         type = DBusMessageType.error;
-        errorName = response.errorName;
+        errorName = DBusErrorName(response.errorName);
         values = response.values;
       }
       var responseMessage = DBusMessage(type,
