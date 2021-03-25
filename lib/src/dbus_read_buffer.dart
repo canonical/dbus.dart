@@ -88,7 +88,7 @@ class DBusReadBuffer extends DBusBuffer {
     if (protocolVersion != 1) {
       throw 'Unsupported protocol version';
     }
-    var dataLength = readDBusUint32(endian)!;
+    var dataLength = readDBusUint32(endian)!.value;
     var serial = readDBusUint32(endian)!.value;
     var headers = readDBusArray(DBusSignature('(yv)'), endian);
     if (headers == null) {
@@ -162,10 +162,11 @@ class DBusReadBuffer extends DBusBuffer {
       return null;
     }
 
-    if (remaining < dataLength.value) {
+    if (remaining < dataLength) {
       return null;
     }
 
+    var dataEnd = readOffset + dataLength;
     var values = <DBusValue>[];
     if (signature != null) {
       var signatures = signature.split();
@@ -174,7 +175,17 @@ class DBusReadBuffer extends DBusBuffer {
         if (value == null) {
           return null;
         }
+        if (readOffset > dataEnd) {
+          throw 'Message data of size $dataLength too small to contain ${signature.value}';
+        }
         values.add(value);
+      }
+      if (readOffset != dataEnd) {
+        throw 'Message data of size $dataLength too large to contain ${signature.value}';
+      }
+    } else {
+      if (dataLength != 0) {
+        throw 'Message has no signature but contains data of length $dataLength';
       }
     }
 
