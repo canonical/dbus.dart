@@ -84,7 +84,10 @@ class DBusReadBuffer extends DBusBuffer {
     if (flagsValue & 0x04 != 0) {
       flags.add(DBusMessageFlag.allowInteractiveAuthorization);
     }
-    readDBusByte(); // Protocol version.
+    var protocolVersion = readDBusByte()!.value;
+    if (protocolVersion != 1) {
+      throw 'Unsupported protocol version';
+    }
     var dataLength = readDBusUint32(endian)!;
     var serial = readDBusUint32(endian)!.value;
     var headers = readDBusArray(DBusSignature('(yv)'), endian);
@@ -283,7 +286,9 @@ class DBusReadBuffer extends DBusBuffer {
     for (var i = 0; i < length.value; i++) {
       values.add(readByte());
     }
-    readByte(); // Trailing nul.
+    if (readByte() != 0) {
+      throw 'String missing trailing nul';
+    }
 
     return DBusString(utf8.decode(values));
   }
@@ -311,7 +316,9 @@ class DBusReadBuffer extends DBusBuffer {
     for (var i = 0; i < length; i++) {
       values.add(readByte());
     }
-    readByte(); // Trailing nul
+    if (readByte() != 0) {
+      throw 'Signature missing trailing nul';
+    }
 
     return DBusSignature(utf8.decode(values));
   }
@@ -427,7 +434,10 @@ class DBusReadBuffer extends DBusBuffer {
       return readDBusVariant(endian);
     } else if (s.startsWith('a{') && s.endsWith('}')) {
       var childSignature = DBusSignature(s.substring(2, s.length - 1));
-      var signatures = childSignature.split(); // FIXME: Check two signatures
+      var signatures = childSignature.split();
+      if (signatures.length != 2) {
+        throw 'Invalid dict signature ${childSignature.value}';
+      }
       return readDBusDict(signatures[0], signatures[1], endian);
     } else if (s.startsWith('a')) {
       return readDBusArray(DBusSignature(s.substring(1, s.length)), endian);
