@@ -31,6 +31,9 @@ enum DBusRequestNameFlag { allowReplacement, replaceExisting, doNotQueue }
 /// Reply received when calling [DBusClient.releaseName].
 enum DBusReleaseNameReply { released, nonExistant, notOwner }
 
+/// Reply received when calling [DBusClient.startServiceByName].
+enum DBusStartServiceByNameReply { success, alreadyRunning }
+
 class _DBusSignalSubscription {
   final DBusClient client;
   final DBusMatchRule rule;
@@ -259,6 +262,28 @@ class DBusClient {
         .children
         .map((v) => (v as DBusString).value)
         .toList();
+  }
+
+  /// Starts the service with [name].
+  Future<DBusStartServiceByNameReply> startServiceByName(String name) async {
+    var result = await callMethod(
+        destination: 'org.freedesktop.DBus',
+        path: DBusObjectPath('/org/freedesktop/DBus'),
+        interface: 'org.freedesktop.DBus',
+        member: 'StartServiceByName',
+        values: [DBusString(name), DBusUint32(0)]);
+    if (result.signature != DBusSignature('u')) {
+      throw 'org.freedesktop.DBus.StartServiceByName returned invalid result: ${result.returnValues}';
+    }
+    var returnCode = (result.returnValues[0] as DBusUint32).value;
+    switch (returnCode) {
+      case 1:
+        return DBusStartServiceByNameReply.success;
+      case 2:
+        return DBusStartServiceByNameReply.alreadyRunning;
+      default:
+        throw 'org.freedesktop.DBus.StartServiceByName returned unknown return code: $returnCode';
+    }
   }
 
   /// Returns true if the [name] is currently registered on the bus.
