@@ -41,7 +41,6 @@ class DBusByte extends DBusValue {
 
 /// D-Bus representation of a boolean value.
 class DBusBoolean extends DBusValue {
-  // FIXME: extends DBusUint32
   /// A boolean value.
   final bool value;
 
