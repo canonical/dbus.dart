@@ -20,6 +20,7 @@ import 'dbus_read_buffer.dart';
 import 'dbus_uuid.dart';
 import 'dbus_value.dart';
 import 'dbus_write_buffer.dart';
+import 'getuid.dart';
 
 /// Results of starting a service.
 enum DBusServerStartServiceResult { success, alreadyRunning, notFound }
@@ -44,6 +45,10 @@ class _DBusServerErrorResponse extends DBusMethodErrorResponse {
 
   _DBusServerErrorResponse.matchRuleNotFound([String? message])
       : super('org.freedesktop.DBus.Error.MatchRuleNotFound',
+            message != null ? [DBusString(message)] : []);
+
+  _DBusServerErrorResponse.notSupported([String? message])
+      : super('org.freedesktop.DBus.Error.NotSupported',
             message != null ? [DBusString(message)] : []);
 }
 
@@ -567,6 +572,24 @@ class DBusServer {
           }
           var name = (message.values[0] as DBusString).value;
           return _getNameOwner(message, name);
+        case 'GetConnectionUnixUser':
+          if (message.signature != DBusSignature('s')) {
+            return DBusMethodErrorResponse.invalidArgs();
+          }
+          var name = (message.values[0] as DBusString).value;
+          return _getConnectionUnixUser(name);
+        case 'GetConnectionUnixProcessID':
+          if (message.signature != DBusSignature('s')) {
+            return DBusMethodErrorResponse.invalidArgs();
+          }
+          var name = (message.values[0] as DBusString).value;
+          return _getConnectionUnixProcessId(name);
+        case 'GetConnectionCredentials':
+          if (message.signature != DBusSignature('s')) {
+            return DBusMethodErrorResponse.invalidArgs();
+          }
+          var name = (message.values[0] as DBusString).value;
+          return _getConnectionCredentials(name);
         case 'AddMatch':
           if (message.signature != DBusSignature('s')) {
             return DBusMethodErrorResponse.invalidArgs();
@@ -852,6 +875,87 @@ class DBusServer {
     }
   }
 
+  // Implementation of org.freedesktop.DBus.GetConnectionUnixUser
+  DBusMethodResponse _getConnectionUnixUser(String name) {
+    int uid;
+    if (name == 'org.freedesktop.DBus') {
+      uid = getuid();
+    } else {
+      DBusBusName name_;
+      try {
+        name_ = DBusBusName(name);
+      } on FormatException {
+        return DBusMethodErrorResponse.invalidArgs(
+            "Bus name '$name' not valid");
+      }
+      var client = _getClientByName(name_);
+      if (client == null) {
+        return _DBusServerErrorResponse.nameHasNoOwner('Name $name not owned');
+      }
+      return _DBusServerErrorResponse.notSupported(
+          "Can't determine client credentials");
+    }
+
+    return DBusMethodSuccessResponse([DBusUint32(uid)]);
+  }
+
+  // Implementation of org.freedesktop.DBus.GetConnectionUnixProcessId
+  DBusMethodResponse _getConnectionUnixProcessId(String name) {
+    int clientPid;
+    if (name == 'org.freedesktop.DBus') {
+      clientPid = pid;
+    } else {
+      DBusBusName name_;
+      try {
+        name_ = DBusBusName(name);
+      } on FormatException {
+        return DBusMethodErrorResponse.invalidArgs(
+            "Bus name '$name' not valid");
+      }
+      var client = _getClientByName(name_);
+      if (client == null) {
+        return _DBusServerErrorResponse.nameHasNoOwner('Name $name not owned');
+      }
+      return _DBusServerErrorResponse.notSupported(
+          "Can't determine client credentials");
+    }
+
+    return DBusMethodSuccessResponse([DBusUint32(clientPid)]);
+  }
+
+  // Implementation of org.freedesktop.DBus.GetConnectionCredentials
+  DBusMethodResponse _getConnectionCredentials(String name) {
+    var credentials = <String, DBusValue>{};
+    if (name == 'org.freedesktop.DBus') {
+      credentials['UnixUserID'] = DBusUint32(getuid());
+      credentials['ProcessID'] = DBusUint32(pid);
+    } else {
+      DBusBusName name_;
+      try {
+        name_ = DBusBusName(name);
+      } on FormatException {
+        return DBusMethodErrorResponse.invalidArgs(
+            "Bus name '$name' not valid");
+      }
+      var client = _getClientByName(name_);
+      if (client == null) {
+        return _DBusServerErrorResponse.nameHasNoOwner('Name $name not owned');
+      }
+
+      return _DBusServerErrorResponse.notSupported(
+          "Can't determine client credentials");
+    }
+
+    // FIXME
+    return DBusMethodSuccessResponse([
+      DBusDict(
+          DBusSignature('s'),
+          DBusSignature('v'),
+          credentials.map(
+              (key, value) => MapEntry(DBusString(key), DBusVariant(value))))
+    ]);
+  }
+
   // Implementation of org.freedesktop.DBus.AddMatch
   DBusMethodResponse _addMatch(DBusMessage message, String ruleString) {
     var client = _getClientByName(message.sender!)!;
@@ -942,6 +1046,24 @@ class DBusServer {
             'name', DBusSignature('s'), DBusArgumentDirection.in_),
         DBusIntrospectArgument(
             'owner', DBusSignature('s'), DBusArgumentDirection.out)
+      ]),
+      DBusIntrospectMethod('GetConnectionUnixUser', args: [
+        DBusIntrospectArgument(
+            'name', DBusSignature('s'), DBusArgumentDirection.in_),
+        DBusIntrospectArgument(
+            'unix_user_id', DBusSignature('u'), DBusArgumentDirection.out)
+      ]),
+      DBusIntrospectMethod('GetConnectionUnixProcessID', args: [
+        DBusIntrospectArgument(
+            'name', DBusSignature('s'), DBusArgumentDirection.in_),
+        DBusIntrospectArgument(
+            'unix_process_id', DBusSignature('u'), DBusArgumentDirection.out)
+      ]),
+      DBusIntrospectMethod('GetConnectionCredentials', args: [
+        DBusIntrospectArgument(
+            'name', DBusSignature('s'), DBusArgumentDirection.in_),
+        DBusIntrospectArgument(
+            'credentials', DBusSignature('a{sv}'), DBusArgumentDirection.out)
       ]),
       DBusIntrospectMethod('AddMatch', args: [
         DBusIntrospectArgument(
