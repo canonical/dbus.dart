@@ -17,8 +17,7 @@ class DBusWriteBuffer extends DBusBuffer {
       valueBuffer.writeValue(value);
     }
 
-    // FIXME(robert-ancell): Handle endianess - currently hard-coded to little
-    writeValue(DBusByte(108)); // ASCII 'l'
+    writeValue(DBusByte(108)); // Little endian (ASCII 'l')
     writeValue(DBusByte({
           DBusMessageType.methodCall: 1,
           DBusMessageType.methodReturn: 2,
