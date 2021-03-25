@@ -5,6 +5,24 @@ import 'package:test/test.dart';
 
 const isMethodResponseException = TypeMatcher<DBusMethodResponseException>();
 
+// Test server that exposes an activatable service.
+class ServerWithActivatableService extends DBusServer {
+  @override
+  List<String> get activatableNames =>
+      ['com.example.NotRunning', 'com.example.AlreadyRunning'];
+
+  @override
+  Future<DBusServerStartServiceResult> startServiceByName(String name) async {
+    if (name == 'com.example.NotRunning') {
+      return DBusServerStartServiceResult.success;
+    } else if (name == 'com.example.AlreadyRunning') {
+      return DBusServerStartServiceResult.alreadyRunning;
+    } else {
+      return DBusServerStartServiceResult.notFound;
+    }
+  }
+}
+
 // Test object which has expects requests with given flags.
 class MethodCallObject extends DBusObject {
   final String? name;
@@ -89,17 +107,6 @@ void main() {
     // Check the server and this clients name is reported.
     var names = await client.listNames();
     expect(names, equals(['org.freedesktop.DBus', client.uniqueName]));
-  });
-
-  test('list activatable names', () async {
-    var server = DBusServer();
-    var address =
-        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
-    var client = DBusClient(address);
-
-    // Not currently supported, so should be empty.
-    var names = await client.listActivatableNames();
-    expect(names, isEmpty);
   });
 
   test('request name', () async {
@@ -451,6 +458,42 @@ void main() {
 
     // Attempt to release the unique name of this client.
     expect(client.releaseName(client.uniqueName),
+        throwsA(isMethodResponseException));
+  });
+
+  test('list activatable names', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+
+    // Only the bus service available by default.
+    var names = await client.listActivatableNames();
+    expect(names, equals(['org.freedesktop.DBus']));
+  });
+
+  test('start service by name', () async {
+    var server = ServerWithActivatableService();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+
+    var names = await client.listActivatableNames();
+    expect(
+        names,
+        equals([
+          'org.freedesktop.DBus',
+          'com.example.NotRunning',
+          'com.example.AlreadyRunning'
+        ]));
+
+    var result1 = await client.startServiceByName('com.example.NotRunning');
+    expect(result1, equals(DBusStartServiceByNameReply.success));
+
+    var result2 = await client.startServiceByName('com.example.AlreadyRunning');
+    expect(result2, equals(DBusStartServiceByNameReply.alreadyRunning));
+
+    expect(client.startServiceByName('com.example.DoesNotExist'),
         throwsA(isMethodResponseException));
   });
 

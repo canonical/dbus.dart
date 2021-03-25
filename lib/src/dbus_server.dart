@@ -21,6 +21,9 @@ import 'dbus_uuid.dart';
 import 'dbus_value.dart';
 import 'dbus_write_buffer.dart';
 
+/// Results of starting a service.
+enum DBusServerStartServiceResult { success, alreadyRunning, notFound }
+
 /// Server-only error responses.
 class _DBusServerErrorResponse extends DBusMethodErrorResponse {
   _DBusServerErrorResponse.serviceUnknown([String? message])
@@ -264,6 +267,10 @@ class _DBusNameQueue {
 
 /// A D-Bus server.
 class DBusServer {
+  /// Names of services that can be activated.
+  /// Override this property to enable this feature.
+  List<String> get activatableNames => [];
+
   /// Sockets being listened on.
   final _sockets = <_DBusServerSocket>[];
 
@@ -288,6 +295,12 @@ class DBusServer {
 
   /// Creates a new DBus server.
   DBusServer();
+
+  /// Start a service that uses [name].
+  /// Override this method to enable this feature.
+  Future<DBusServerStartServiceResult> startServiceByName(String name) async {
+    return DBusServerStartServiceResult.notFound;
+  }
 
   /// Listen on the given D-Bus [address].
   /// Returns an address for clients to connnect on this connection.
@@ -547,7 +560,7 @@ class DBusServer {
           }
           var name = (message.values[0] as DBusString).value;
           var flags = (message.values[1] as DBusUint32).value;
-          return _startServiceByName(message, name, flags);
+          return await _startServiceByName(message, name, flags);
         case 'GetNameOwner':
           if (message.signature != DBusSignature('s')) {
             return DBusMethodErrorResponse.invalidArgs();
@@ -765,7 +778,12 @@ class DBusServer {
 
   // Implementation of org.freedesktop.DBus.ListActivatableNames
   DBusMethodResponse _listActivatableNames(DBusMessage message) {
-    return DBusMethodSuccessResponse([DBusArray(DBusSignature('s'), [])]);
+    return DBusMethodSuccessResponse([
+      DBusArray(
+          DBusSignature('s'),
+          (['org.freedesktop.DBus'] + activatableNames)
+              .map((name) => DBusString(name)))
+    ]);
   }
 
   // Implementation of org.freedesktop.DBus.NameHasOwner
@@ -786,23 +804,28 @@ class DBusServer {
   }
 
   // Implementation of org.freedesktop.DBus.StartServiceByName
-  DBusMethodResponse _startServiceByName(
-      DBusMessage message, String name, int flags) {
+  Future<DBusMethodResponse> _startServiceByName(
+      DBusMessage message, String name, int flags) async {
     DBusBusName name_;
     try {
       name_ = DBusBusName(name);
     } on FormatException {
       return DBusMethodErrorResponse.invalidArgs("Bus name '$name' not valid");
     }
-    int returnValue;
-    var client = _getClientByName(name_);
-    if (client != null || name == 'org.freedesktop.DBus') {
-      returnValue = 2; // alreadyRunning
+    DBusServerStartServiceResult result;
+    if (_getClientByName(name_) != null || name == 'org.freedesktop.DBus') {
+      result = DBusServerStartServiceResult.alreadyRunning;
     } else {
-      // TODO(robert-ancell): Support launching of services.
-      return _DBusServerErrorResponse.serviceNotFound();
+      result = await startServiceByName(name);
     }
-    return DBusMethodSuccessResponse([DBusUint32(returnValue)]);
+    switch (result) {
+      case DBusServerStartServiceResult.success:
+        return DBusMethodSuccessResponse([DBusUint32(1)]);
+      case DBusServerStartServiceResult.alreadyRunning:
+        return DBusMethodSuccessResponse([DBusUint32(2)]);
+      case DBusServerStartServiceResult.notFound:
+        return _DBusServerErrorResponse.serviceNotFound();
+    }
   }
 
   // Implementation of org.freedesktop.DBus.GetNameOwner
