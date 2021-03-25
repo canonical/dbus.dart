@@ -60,7 +60,10 @@ class DBusReadBuffer extends DBusBuffer {
       return null;
     }
 
-    readDBusByte(); // Endianess.
+    var endian = {108: Endian.little, 66: Endian.big}[readDBusByte()!.value];
+    if (endian == null) {
+      throw 'Invalid endian value received';
+    }
     var type = {
       1: DBusMessageType.methodCall,
       2: DBusMessageType.methodReturn,
@@ -82,9 +85,9 @@ class DBusReadBuffer extends DBusBuffer {
       flags.add(DBusMessageFlag.allowInteractiveAuthorization);
     }
     readDBusByte(); // Protocol version.
-    var dataLength = readDBusUint32()!;
-    var serial = readDBusUint32()!.value;
-    var headers = readDBusArray(DBusSignature('(yv)'));
+    var dataLength = readDBusUint32(endian)!;
+    var serial = readDBusUint32(endian)!.value;
+    var headers = readDBusArray(DBusSignature('(yv)'), endian);
     if (headers == null) {
       return null;
     }
@@ -134,7 +137,7 @@ class DBusReadBuffer extends DBusBuffer {
     if (signature != null) {
       var signatures = signature.split();
       for (var s in signatures) {
-        var value = readDBusValue(s);
+        var value = readDBusValue(s, endian);
         if (value == null) {
           return null;
         }
@@ -157,44 +160,44 @@ class DBusReadBuffer extends DBusBuffer {
 
   /// Reads a 16 bit signed integer from the buffer.
   /// Assumes that there is sufficient data in the buffer.
-  int readInt16() {
-    return ByteData.view(readBytes(2)).getInt16(0, Endian.little);
+  int readInt16([Endian endian = Endian.little]) {
+    return ByteData.view(readBytes(2)).getInt16(0, endian);
   }
 
   /// Reads a 16 bit unsigned integer from the buffer.
   /// Assumes that there is sufficient data in the buffer.
-  int readUint16() {
-    return ByteData.view(readBytes(2)).getUint16(0, Endian.little);
+  int readUint16([Endian endian = Endian.little]) {
+    return ByteData.view(readBytes(2)).getUint16(0, endian);
   }
 
   /// Reads a 32 bit signed integer from the buffer.
   /// Assumes that there is sufficient data in the buffer.
-  int readInt32() {
-    return ByteData.view(readBytes(4)).getInt32(0, Endian.little);
+  int readInt32([Endian endian = Endian.little]) {
+    return ByteData.view(readBytes(4)).getInt32(0, endian);
   }
 
   /// Reads a 32 bit unsigned integer from the buffer.
   /// Assumes that there is sufficient data in the buffer.
-  int readUint32() {
-    return ByteData.view(readBytes(4)).getUint32(0, Endian.little);
+  int readUint32([Endian endian = Endian.little]) {
+    return ByteData.view(readBytes(4)).getUint32(0, endian);
   }
 
   /// Reads a 64 bit signed integer from the buffer.
   /// Assumes that there is sufficient data in the buffer.
-  int readInt64() {
-    return ByteData.view(readBytes(8)).getInt64(0, Endian.little);
+  int readInt64([Endian endian = Endian.little]) {
+    return ByteData.view(readBytes(8)).getInt64(0, endian);
   }
 
   /// Reads a 64 bit unsigned integer from the buffer.
   /// Assumes that there is sufficient data in the buffer.
-  int readUint64() {
-    return ByteData.view(readBytes(8)).getUint64(0, Endian.little);
+  int readUint64([Endian endian = Endian.little]) {
+    return ByteData.view(readBytes(8)).getUint64(0, endian);
   }
 
   /// Reads a 64 bit floating point number from the buffer.
   /// Assumes that there is sufficient data in the buffer.
-  double readFloat64() {
-    return ByteData.view(readBytes(8)).getFloat64(0, Endian.little);
+  double readFloat64([Endian endian = Endian.little]) {
+    return ByteData.view(readBytes(8)).getFloat64(0, endian);
   }
 
   /// Reads a [DBusByte] from the buffer or returns null if not enough data.
@@ -206,72 +209,72 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusBoolean] from the buffer or returns null if not enough data.
-  DBusBoolean? readDBusBoolean() {
+  DBusBoolean? readDBusBoolean([Endian endian = Endian.little]) {
     if (!align(BOOLEAN_ALIGNMENT) || remaining < 4) {
       return null;
     }
-    return DBusBoolean(readUint32() != 0);
+    return DBusBoolean(readUint32(endian) != 0);
   }
 
   /// Reads a [DBusInt16] from the buffer or returns null if not enough data.
-  DBusInt16? readDBusInt16() {
+  DBusInt16? readDBusInt16([Endian endian = Endian.little]) {
     if (!align(INT16_ALIGNMENT) || remaining < 2) {
       return null;
     }
-    return DBusInt16(readInt16());
+    return DBusInt16(readInt16(endian));
   }
 
   /// Reads a [DBusUint16] from the buffer or returns null if not enough data.
-  DBusUint16? readDBusUint16() {
+  DBusUint16? readDBusUint16([Endian endian = Endian.little]) {
     if (!align(UINT16_ALIGNMENT) || remaining < 2) {
       return null;
     }
-    return DBusUint16(readUint16());
+    return DBusUint16(readUint16(endian));
   }
 
   /// Reads a [DBusInt32] from the buffer or returns null if not enough data.
-  DBusInt32? readDBusInt32() {
+  DBusInt32? readDBusInt32([Endian endian = Endian.little]) {
     if (!align(INT32_ALIGNMENT) || remaining < 4) {
       return null;
     }
-    return DBusInt32(readInt32());
+    return DBusInt32(readInt32(endian));
   }
 
   /// Reads a [DBusUint32] from the buffer or returns null if not enough data.
-  DBusUint32? readDBusUint32() {
+  DBusUint32? readDBusUint32([Endian endian = Endian.little]) {
     if (!align(UINT32_ALIGNMENT) || remaining < 4) {
       return null;
     }
-    return DBusUint32(readUint32());
+    return DBusUint32(readUint32(endian));
   }
 
   /// Reads a [DBusInt64] from the buffer or returns null if not enough data.
-  DBusInt64? readDBusInt64() {
+  DBusInt64? readDBusInt64([Endian endian = Endian.little]) {
     if (!align(INT64_ALIGNMENT) || remaining < 8) {
       return null;
     }
-    return DBusInt64(readInt64());
+    return DBusInt64(readInt64(endian));
   }
 
   /// Reads a [DBusUint64] from the buffer or returns null if not enough data.
-  DBusUint64? readDBusUint64() {
+  DBusUint64? readDBusUint64([Endian endian = Endian.little]) {
     if (!align(UINT64_ALIGNMENT) || remaining < 8) {
       return null;
     }
-    return DBusUint64(readUint64());
+    return DBusUint64(readUint64(endian));
   }
 
   /// Reads a [DBusDouble] from the buffer or returns null if not enough data.
-  DBusDouble? readDBusDouble() {
+  DBusDouble? readDBusDouble([Endian endian = Endian.little]) {
     if (!align(DOUBLE_ALIGNMENT) || remaining < 8) {
       return null;
     }
-    return DBusDouble(readFloat64());
+    return DBusDouble(readFloat64(endian));
   }
 
   /// Reads a [DBusString] from the buffer or returns null if not enough data.
-  DBusString? readDBusString() {
-    var length = readDBusUint32();
+  DBusString? readDBusString([Endian endian = Endian.little]) {
+    var length = readDBusUint32(endian);
     if (length == null || remaining < (length.value + 1)) {
       return null;
     }
@@ -286,8 +289,8 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusObjectPath] from the buffer or returns null if not enough data.
-  DBusObjectPath? readDBusObjectPath() {
-    var value = readDBusString();
+  DBusObjectPath? readDBusObjectPath([Endian endian = Endian.little]) {
+    var value = readDBusString(endian);
     if (value == null) {
       return null;
     }
@@ -314,13 +317,13 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusVariant] from the buffer or returns null if not enough data.
-  DBusVariant? readDBusVariant() {
+  DBusVariant? readDBusVariant([Endian endian = Endian.little]) {
     var signature = readDBusSignature();
     if (signature == null) {
       return null;
     }
 
-    var childValue = readDBusValue(signature);
+    var childValue = readDBusValue(signature, endian);
     if (childValue == null) {
       return null;
     }
@@ -329,14 +332,15 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusStruct] from the buffer or returns null if not enough data.
-  DBusStruct? readDBusStruct(List<DBusSignature> childSignatures) {
+  DBusStruct? readDBusStruct(List<DBusSignature> childSignatures,
+      [Endian endian = Endian.little]) {
     if (!align(STRUCT_ALIGNMENT)) {
       return null;
     }
 
     var children = <DBusValue>[];
     for (var signature in childSignatures) {
-      var child = readDBusValue(signature);
+      var child = readDBusValue(signature, endian);
       if (child == null) {
         return null;
       }
@@ -347,8 +351,9 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusArray] from the buffer or returns null if not enough data.
-  DBusArray? readDBusArray(DBusSignature childSignature) {
-    var length = readDBusUint32();
+  DBusArray? readDBusArray(DBusSignature childSignature,
+      [Endian endian = Endian.little]) {
+    var length = readDBusUint32(endian);
     if (length == null || !align(getAlignment(childSignature))) {
       return null;
     }
@@ -356,7 +361,7 @@ class DBusReadBuffer extends DBusBuffer {
     var end = readOffset + length.value;
     var children = <DBusValue>[];
     while (readOffset < end) {
-      var child = readDBusValue(childSignature);
+      var child = readDBusValue(childSignature, endian);
       if (child == null) {
         return null;
       }
@@ -367,8 +372,9 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   DBusDict? readDBusDict(
-      DBusSignature keySignature, DBusSignature valueSignature) {
-    var length = readDBusUint32();
+      DBusSignature keySignature, DBusSignature valueSignature,
+      [Endian endian = Endian.little]) {
+    var length = readDBusUint32(endian);
     if (length == null || !align(DICT_ENTRY_ALIGNMENT)) {
       return null;
     }
@@ -390,43 +396,44 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusValue] with [signature].
-  DBusValue? readDBusValue(DBusSignature signature) {
+  DBusValue? readDBusValue(DBusSignature signature,
+      [Endian endian = Endian.little]) {
     var s = signature.value;
     if (s == 'y') {
       return readDBusByte();
     } else if (s == 'b') {
-      return readDBusBoolean();
+      return readDBusBoolean(endian);
     } else if (s == 'n') {
-      return readDBusInt16();
+      return readDBusInt16(endian);
     } else if (s == 'q') {
-      return readDBusUint16();
+      return readDBusUint16(endian);
     } else if (s == 'i') {
-      return readDBusInt32();
+      return readDBusInt32(endian);
     } else if (s == 'u') {
-      return readDBusUint32();
+      return readDBusUint32(endian);
     } else if (s == 'x') {
-      return readDBusInt64();
+      return readDBusInt64(endian);
     } else if (s == 't') {
-      return readDBusUint64();
+      return readDBusUint64(endian);
     } else if (s == 'd') {
-      return readDBusDouble();
+      return readDBusDouble(endian);
     } else if (s == 's') {
-      return readDBusString();
+      return readDBusString(endian);
     } else if (s == 'o') {
-      return readDBusObjectPath();
+      return readDBusObjectPath(endian);
     } else if (s == 'g') {
       return readDBusSignature();
     } else if (s == 'v') {
-      return readDBusVariant();
+      return readDBusVariant(endian);
     } else if (s.startsWith('a{') && s.endsWith('}')) {
       var childSignature = DBusSignature(s.substring(2, s.length - 1));
       var signatures = childSignature.split(); // FIXME: Check two signatures
-      return readDBusDict(signatures[0], signatures[1]);
+      return readDBusDict(signatures[0], signatures[1], endian);
     } else if (s.startsWith('a')) {
-      return readDBusArray(DBusSignature(s.substring(1, s.length)));
+      return readDBusArray(DBusSignature(s.substring(1, s.length)), endian);
     } else if (s.startsWith('(') && s.endsWith(')')) {
       return readDBusStruct(
-          DBusSignature(s.substring(1, s.length - 1)).split());
+          DBusSignature(s.substring(1, s.length - 1)).split(), endian);
     } else {
       throw "Unknown DBus data type '$s'";
     }
