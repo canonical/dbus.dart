@@ -34,6 +34,54 @@ enum DBusReleaseNameReply { released, nonExistant, notOwner }
 /// Reply received when calling [DBusClient.startServiceByName].
 enum DBusStartServiceByNameReply { success, alreadyRunning }
 
+/// Credentials returned in [DBusClient.getConnectionCredentials].
+class DBusProcessCredentials {
+  /// Unix user ID, if known.
+  final int? unixUserId;
+
+  /// Unix group IDs, if known.
+  final List<int>? unixGroupIds;
+
+  /// Process ID, if known.
+  final int? processId;
+
+  /// Windows security identifier, if known.
+  final String? windowsSid;
+
+  /// Security label, if known and format dependant on the security system in use.
+  final List<int>? linuxSecurityLabel;
+
+  /// Non-standard credentials.
+  final Map<String, DBusValue> otherCredentials;
+
+  const DBusProcessCredentials(
+      {this.unixUserId,
+      this.unixGroupIds,
+      this.processId,
+      this.windowsSid,
+      this.linuxSecurityLabel,
+      this.otherCredentials = const {}});
+
+  @override
+  String toString() {
+    var parameters = <String, String?>{
+      'unixUserId': unixUserId?.toString(),
+      'unixGroupIds': unixGroupIds?.toString(),
+      'processId': processId?.toString(),
+      'windowsSid': windowsSid?.toString(),
+      'linuxSecurityLabel': linuxSecurityLabel?.toString(),
+      'otherCredentials':
+          otherCredentials.isNotEmpty ? otherCredentials.toString() : null
+    };
+    return 'DBusProcessCredentials(' +
+        parameters.keys
+            .where((key) => parameters[key] != null)
+            .map((key) => '$key=${parameters[key]}')
+            .join(', ') +
+        ')';
+  }
+}
+
 class _DBusSignalSubscription {
   final DBusClient client;
   final DBusMatchRule rule;
@@ -316,6 +364,107 @@ class DBusClient {
       throw 'org.freedesktop.DBus.GetNameOwner returned invalid result: ${result.returnValues}';
     }
     return (result.returnValues[0] as DBusString).value;
+  }
+
+  /// Returns the Unix user ID of the process running the client that owns [name].
+  Future<int> getConnectionUnixUser(String name) async {
+    var result = await callMethod(
+        destination: 'org.freedesktop.DBus',
+        path: DBusObjectPath('/org/freedesktop/DBus'),
+        interface: 'org.freedesktop.DBus',
+        member: 'GetConnectionUnixUser',
+        values: [DBusString(name)]);
+    if (result.signature != DBusSignature('u')) {
+      throw 'org.freedesktop.DBus.GetConnectionUnixUser returned invalid result: ${result.returnValues}';
+    }
+    return (result.returnValues[0] as DBusUint32).value;
+  }
+
+  /// Returns the Unix process ID of the process running the client that owns [name].
+  Future<int> getConnectionUnixProcessId(String name) async {
+    var result = await callMethod(
+        destination: 'org.freedesktop.DBus',
+        path: DBusObjectPath('/org/freedesktop/DBus'),
+        interface: 'org.freedesktop.DBus',
+        member: 'GetConnectionUnixProcessID',
+        values: [DBusString(name)]);
+    if (result.signature != DBusSignature('u')) {
+      throw 'org.freedesktop.DBus.GetConnectionUnixProcessID returned invalid result: ${result.returnValues}';
+    }
+    return (result.returnValues[0] as DBusUint32).value;
+  }
+
+  /// Returns credentials for the process running the client that owns [name].
+  Future<DBusProcessCredentials> getConnectionCredentials(String name) async {
+    var result = await callMethod(
+        destination: 'org.freedesktop.DBus',
+        path: DBusObjectPath('/org/freedesktop/DBus'),
+        interface: 'org.freedesktop.DBus',
+        member: 'GetConnectionCredentials',
+        values: [DBusString(name)]);
+    if (result.signature != DBusSignature('a{sv}')) {
+      throw 'org.freedesktop.DBus.GetConnectionCredentials returned invalid result: ${result.returnValues}';
+    }
+    var credentials = (result.returnValues[0] as DBusDict)
+        .children
+        .map((key, value) => MapEntry((key as DBusString).value, value));
+    int? unixUserId;
+    List<int>? unixGroupIds;
+    int? processId;
+    String? windowsSid;
+    List<int>? linuxSecurityLabel;
+    var otherCredentials = <String, DBusValue>{};
+    credentials.forEach((key, v) {
+      var value = (v as DBusVariant).value;
+      switch (key) {
+        case 'UnixUserID':
+          if (value.signature != DBusSignature('u')) {
+            throw 'org.freedesktop.DBus.GetConnectionCredentials returned invalid signature on UnixUserID: ${value.signature.value}';
+          }
+          unixUserId = (value as DBusUint32).value;
+          break;
+        case 'UnixGroupIDs':
+          if (value.signature != DBusSignature('au')) {
+            throw 'org.freedesktop.DBus.GetConnectionCredentials returned invalid signature on UnixGroupIDs: ${value.signature.value}';
+          }
+          unixGroupIds = (value as DBusArray)
+              .children
+              .map((v) => (v as DBusUint32).value)
+              .toList();
+          break;
+        case 'ProcessID':
+          if (value.signature != DBusSignature('u')) {
+            throw 'org.freedesktop.DBus.GetConnectionCredentials returned invalid signature on ProcessID: ${value.signature.value}';
+          }
+          processId = (value as DBusUint32).value;
+          break;
+        case 'WindowsSID':
+          if (value.signature != DBusSignature('s')) {
+            throw 'org.freedesktop.DBus.GetConnectionCredentials returned invalid signature on WindowsSID: ${value.signature.value}';
+          }
+          windowsSid = (value as DBusString).value;
+          break;
+        case 'LinuxSecurityLabel':
+          if (value.signature != DBusSignature('ay')) {
+            throw 'org.freedesktop.DBus.GetConnectionCredentials returned invalid signature on LinuxSecurityLabel: ${value.signature.value}';
+          }
+          linuxSecurityLabel = (value as DBusArray)
+              .children
+              .map((v) => (v as DBusByte).value)
+              .toList();
+          break;
+        default:
+          otherCredentials[key] = value;
+          break;
+      }
+    });
+    return DBusProcessCredentials(
+        unixUserId: unixUserId,
+        unixGroupIds: unixGroupIds,
+        processId: processId,
+        windowsSid: windowsSid,
+        linuxSecurityLabel: linuxSecurityLabel,
+        otherCredentials: otherCredentials);
   }
 
   /// Gets the unique ID of the bus.

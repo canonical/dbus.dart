@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dbus/dbus.dart';
+import 'package:dbus/src/getuid.dart';
 import 'package:test/test.dart';
 
 const isMethodResponseException = TypeMatcher<DBusMethodResponseException>();
@@ -495,6 +496,38 @@ void main() {
 
     expect(client.startServiceByName('com.example.DoesNotExist'),
         throwsA(isMethodResponseException));
+  });
+
+  test('get unix user', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+
+    var uid = await client.getConnectionUnixUser('org.freedesktop.DBus');
+    expect(uid, equals(getuid()));
+  });
+
+  test('get process id', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+
+    var pid_ = await client.getConnectionUnixProcessId('org.freedesktop.DBus');
+    expect(pid_, equals(pid));
+  });
+
+  test('get credentials', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+
+    var credentials =
+        await client.getConnectionCredentials('org.freedesktop.DBus');
+    expect(credentials.unixUserId, equals(getuid()));
+    expect(credentials.processId, equals(pid));
   });
 
   test('call method', () async {
