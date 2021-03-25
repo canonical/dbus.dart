@@ -103,29 +103,59 @@ class DBusReadBuffer extends DBusBuffer {
     int? replySerial;
     DBusBusName? destination;
     DBusBusName? sender;
+    var fdCount = 0;
     for (var child in headers.children) {
       var header = child as DBusStruct;
       var code = (header.children.elementAt(0) as DBusByte).value;
       var value = (header.children.elementAt(1) as DBusVariant).value;
       if (code == 1) {
+        if (value.signature != DBusSignature('o')) {
+          throw 'Invalid message path header of type ${value.signature}';
+        }
         path = value as DBusObjectPath;
       } else if (code == 2) {
+        if (value.signature != DBusSignature('s')) {
+          throw 'Invalid message interface header of type ${value.signature}';
+        }
         interface = DBusInterfaceName((value as DBusString).value);
       } else if (code == 3) {
+        if (value.signature != DBusSignature('s')) {
+          throw 'Invalid message member name header of type ${value.signature}';
+        }
         member = DBusMemberName((value as DBusString).value);
       } else if (code == 4) {
+        if (value.signature != DBusSignature('s')) {
+          throw 'Invalid message error name header of type ${value.signature}';
+        }
         errorName = (value as DBusString).value;
       } else if (code == 5) {
+        if (value.signature != DBusSignature('u')) {
+          throw 'Invalid message reply serial header of type ${value.signature}';
+        }
         replySerial = (value as DBusUint32).value;
       } else if (code == 6) {
+        if (value.signature != DBusSignature('s')) {
+          throw 'Invalid message destination header of type ${value.signature}';
+        }
         destination = DBusBusName((value as DBusString).value);
       } else if (code == 7) {
+        if (value.signature != DBusSignature('s')) {
+          throw 'Invalid message sender header of type ${value.signature}';
+        }
         sender = DBusBusName((value as DBusString).value);
         if (!(sender.value == 'org.freedesktop.DBus' || sender.isUnique)) {
           throw 'Sender contains non-unique bus name';
         }
       } else if (code == 8) {
+        if (value.signature != DBusSignature('g')) {
+          throw 'Invalid message signature of type ${value.signature}';
+        }
         signature = value as DBusSignature;
+      } else if (code == 9) {
+        fdCount = (value as DBusUint32).value;
+        if (fdCount != 0) {
+          throw 'Message contains file descriptors, which are not supported';
+        }
       }
     }
     if (!align(8)) {
