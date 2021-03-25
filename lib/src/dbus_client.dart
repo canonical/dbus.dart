@@ -22,9 +22,6 @@ import 'dbus_value.dart';
 import 'dbus_write_buffer.dart';
 import 'getuid.dart';
 
-// FIXME: Use more efficient data store than List<int>?
-// FIXME: Use ByteData more efficiently - don't copy when reading/writing
-
 /// Reply received when calling [DBusClient.requestName].
 enum DBusRequestNameReply { primaryOwner, inQueue, exists, alreadyOwner }
 
