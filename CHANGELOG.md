@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1
+
+* server: Fix messages not being forwarded to clients with owned names.
+* Convert some inputs from List to Iterable
+
 ## 0.3.0
 
 * DBusClient.registerObject now connects to the bus if it was disconnected.
