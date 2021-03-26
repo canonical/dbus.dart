@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.3.0
+
+* DBusClient.registerObject now connects to the bus if it was disconnected.
+* Add DBusMethodCall object to use when processing incoming method calls.
+* Add signature checking on incoming method calls.
+* Improve validation of D-Bus messages.
+* Support messages received in big endian format
+* Make DBusServer able to launch services by name.
+* Support getting credentials of connections.
+* Add flags (no reply, no autostart, allow interactive authorization) to method calls.
+* Don't reply to requests if no reply was requested.
+* Use DBusAddress class for addresses.
+* Support connecting over TCP/IP.
+* Fix invalid unique bus names assigned by DBusServer.
+* Implement name queuing in DBusServer.
+* Make ping() and getMachineId() contact the server by default.
+* Add regression tests.
+
 ## 0.2.5
 
 * Fixed namespace matching not working for the root namespace, could cause signals to be incorrectly subscribed.
