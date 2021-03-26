@@ -74,6 +74,7 @@ class DBusAuthServer {
         _reject('Received error');
         break;
       case 'NEGOTIATE_UNIX_FD':
+        _error('Unix fd not supported');
         break;
       default:
         _error("Unknown command '$command'");
