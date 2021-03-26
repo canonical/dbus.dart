@@ -577,6 +577,27 @@ void main() {
     expect((response as DBusMethodSuccessResponse).values, equals([]));
   });
 
+  test('call method - registered name', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes a method.
+    await client1.requestName('com.example.Test');
+    await client1.registerObject(MethodCallObject());
+
+    // Call the method from another client.
+    var response = await client2.callMethod(
+        destination: 'com.example.Test',
+        path: DBusObjectPath('/'),
+        member: 'Test',
+        values: [DBusString('Hello'), DBusUint32(42)]);
+    expect(response, TypeMatcher<DBusMethodSuccessResponse>());
+    expect((response as DBusMethodSuccessResponse).values, equals([]));
+  });
+
   test('call method - no autostart', () async {
     var server = DBusServer();
     var address =
