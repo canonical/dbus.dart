@@ -44,7 +44,7 @@ class DBusObject {
 
   /// Emits a signal on this object.
   void emitSignal(String interface, String member,
-      [List<DBusValue> values = const []]) {
+      [Iterable<DBusValue> values = const []]) {
     client?.emitSignal(
         path: path, interface: interface, member: member, values: values);
   }

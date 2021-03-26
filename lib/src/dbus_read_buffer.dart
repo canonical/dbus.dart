@@ -381,7 +381,7 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusStruct] from the buffer or returns null if not enough data.
-  DBusStruct? readDBusStruct(List<DBusSignature> childSignatures,
+  DBusStruct? readDBusStruct(Iterable<DBusSignature> childSignatures,
       [Endian endian = Endian.little]) {
     if (!align(STRUCT_ALIGNMENT)) {
       return null;
