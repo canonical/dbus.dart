@@ -82,11 +82,8 @@ class _DBusRemoteClient {
     _socket.listen(_processData);
   }
 
-  /// True if this client wants to receive [message].
+  /// True if this client has a rule that matches [message].
   bool matchMessage(DBusMessage message) {
-    if (message.destination == uniqueName) {
-      return true;
-    }
     for (var rule in matchRules) {
       // FIXME(robert-ancell): Check if sender matches unique name like in client
       if (rule.match(
@@ -160,6 +157,9 @@ class _DBusRemoteClient {
 
     return false;
   }
+
+  @override
+  String toString() => '_DBusRemoteClient($uniqueName)';
 }
 
 /// A socket for incoming D-Bus server connections.
@@ -458,8 +458,11 @@ class DBusServer {
   /// Process an incoming message.
   Future<void> _processMessage(DBusMessage message) async {
     // Forward to any clients that are listening to this message.
+    var targetClient = message.destination != null
+        ? _getClientByName(message.destination!)
+        : null;
     for (var client in _clients) {
-      if (client.matchMessage(message)) {
+      if (client == targetClient || client.matchMessage(message)) {
         client.sendMessage(message);
       }
     }
