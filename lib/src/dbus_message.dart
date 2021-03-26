@@ -68,40 +68,23 @@ class DBusMessage {
 
   @override
   String toString() {
-    var text = 'DBusMessage(type=$type';
-    if (flags.isNotEmpty) {
-      text += ' flags=$flags';
-    }
-    text += ' serial=$serial';
-    if (path != null) {
-      text += ", path='$path'";
-    }
-    if (interface != null) {
-      text += ", interface='$interface'";
-    }
-    if (member != null) {
-      text += ", member='$member'";
-    }
-    if (errorName != null) {
-      text += ", errorName='$errorName'";
-    }
-    if (replySerial != null) {
-      text += ', replySerial=$replySerial';
-    }
-    if (destination != null) {
-      text += ", destination='$destination'";
-    }
-    if (sender != null) {
-      text += ", sender='$sender'";
-    }
-    if (values.isNotEmpty) {
-      var valueText = <String>[];
-      for (var value in values) {
-        valueText.add(value.toString());
-      }
-      text += ", values=[${valueText.join(', ')}]";
-    }
-    text += ')';
-    return text;
+    var parameters = <String, String?>{
+      'flags': flags.isNotEmpty ? flags.toString() : null,
+      'serial': serial.toString(),
+      'path': path?.toString(),
+      'interface': interface?.toString(),
+      'member': member?.toString(),
+      'errorName': errorName?.toString(),
+      'replySerial': replySerial?.toString(),
+      'destination': destination?.toString(),
+      'sender': sender?.toString(),
+      'values': values.isNotEmpty ? values.toString() : null
+    };
+    return 'DBusMessage(' +
+        parameters.keys
+            .where((key) => parameters[key] != null)
+            .map((key) => '$key=${parameters[key]}')
+            .join(', ') +
+        ')';
   }
 }
