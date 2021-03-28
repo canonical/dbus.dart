@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2
+
+* Support building in Flutter web applications by conditionally importing dart:ffi.
+
 ## 0.3.1
 
 * server: Fix messages not being forwarded to clients with owned names.
