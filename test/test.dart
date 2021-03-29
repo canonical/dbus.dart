@@ -666,20 +666,83 @@ void main() {
     expect(response.values, equals([DBusString('Count'), DBusUint32(42)]));
   });
 
-  test('emit signal', () async {
+  test('subscribe signal', () async {
     var server = DBusServer();
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
 
-    // Create a client that exposes a method.
+    // Create a client to emit a signal.
     var object = DBusObject();
     await client1.registerObject(object);
 
     // Subscribe to the signal from another client.
     var signals =
         client2.subscribeSignals(interface: 'com.example.Test', member: 'Ping');
+    signals.listen(expectAsync1((signal) {
+      expect(signal.sender, equals(client1.uniqueName));
+      expect(signal.path, equals(DBusObjectPath('/')));
+      expect(signal.interface, equals('com.example.Test'));
+      expect(signal.name, equals('Ping'));
+      expect(signal.values, equals([DBusString('Hello'), DBusUint32(42)]));
+    }));
+
+    // Do a round-trip to the server to ensure the signal has been subscribed to.
+    await client2.ping();
+
+    // Emit the signal.
+    object.emitSignal(
+        'com.example.Test', 'Ping', [DBusString('Hello'), DBusUint32(42)]);
+  });
+
+  test('subscribe signal - remote object', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client to emit a signal.
+    var object = DBusObject();
+    await client1.registerObject(object);
+
+    // Subscribe to the signal from another client.
+    var remoteObject =
+        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var signals = remoteObject.subscribeSignal('com.example.Test', 'Ping');
+    signals.listen(expectAsync1((signal) {
+      expect(signal.sender, equals(client1.uniqueName));
+      expect(signal.path, equals(DBusObjectPath('/')));
+      expect(signal.interface, equals('com.example.Test'));
+      expect(signal.name, equals('Ping'));
+      expect(signal.values, equals([DBusString('Hello'), DBusUint32(42)]));
+    }));
+
+    // Do a round-trip to the server to ensure the signal has been subscribed to.
+    await client2.ping();
+
+    // Emit the signal.
+    object.emitSignal(
+        'com.example.Test', 'Ping', [DBusString('Hello'), DBusUint32(42)]);
+  });
+
+  test('subscribe signal - remote named object', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client to emit a signal.
+    var object = DBusObject();
+    await client1.requestName('com.example.Test');
+    await client1.registerObject(object);
+
+    // Subscribe to the signal from another client.
+    var remoteObject =
+        DBusRemoteObject(client2, 'com.example.Test', DBusObjectPath('/'));
+    var signals = remoteObject.subscribeSignal('com.example.Test', 'Ping');
     signals.listen(expectAsync1((signal) {
       expect(signal.sender, equals(client1.uniqueName));
       expect(signal.path, equals(DBusObjectPath('/')));
