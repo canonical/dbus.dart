@@ -950,7 +950,6 @@ class DBusServer {
           "Can't determine client credentials");
     }
 
-    // FIXME
     return DBusMethodSuccessResponse([
       DBusDict(
           DBusSignature('s'),
