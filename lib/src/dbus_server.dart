@@ -58,6 +58,9 @@ class _DBusRemoteClient {
   /// The socket this client connected on.
   final _DBusServerSocket serverSocket;
 
+  /// The server this client is connected to.
+  DBusServer get server => serverSocket.server;
+
   /// The socket this client is communicating on.
   final Socket _socket;
 
@@ -85,10 +88,16 @@ class _DBusRemoteClient {
   /// True if this client has a rule that matches [message].
   bool matchMessage(DBusMessage message) {
     for (var rule in matchRules) {
-      // FIXME(robert-ancell): Check if sender matches unique name like in client
+      // If the subscription is for an owned name, check if that matches the unique name in the message.
+      var sender = message.sender;
+      if (rule.sender != null &&
+          server._getClientByName(rule.sender!)?.uniqueName == sender) {
+        sender = rule.sender;
+      }
+
       if (rule.match(
           type: message.type,
-          sender: message.sender,
+          sender: sender,
           interface: message.interface,
           member: message.member,
           path: message.path)) return true;
@@ -153,7 +162,7 @@ class _DBusRemoteClient {
         destination: message.destination,
         sender: uniqueName,
         values: message.values);
-    serverSocket.server._processMessage(m);
+    server._processMessage(m);
 
     return false;
   }
