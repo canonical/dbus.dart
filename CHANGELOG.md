@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.3
+
+* Fix DBusServer matching signals subscriptions with owned names
+
 ## 0.3.2
 
 * Support building in Flutter web applications by conditionally importing dart:ffi.
