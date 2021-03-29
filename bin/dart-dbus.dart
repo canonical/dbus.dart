@@ -83,7 +83,6 @@ void generateModule(
   var node = parseDBusIntrospectXml(xml);
 
   if (className == null) {
-    // FIXME(robert-ancell) add --org-name to strip off prefixes?
     className = nodeToClassName(node);
     if (className == null) {
       return;
