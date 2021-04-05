@@ -68,6 +68,65 @@ class IntrospectObject extends DBusObject {
   }
 }
 
+class PropertiesObject extends DBusObject {
+  String readWriteValue;
+  String readOnlyValue;
+  String writeOnlyValue;
+
+  PropertiesObject(
+      {this.readWriteValue = '',
+      this.readOnlyValue = '',
+      this.writeOnlyValue = ''});
+
+  @override
+  Future<DBusMethodResponse> getProperty(
+      String interface, String member) async {
+    if (interface != 'com.example.Test') {
+      return DBusMethodErrorResponse.unknownInterface();
+    }
+
+    if (member == 'ReadWrite') {
+      return DBusGetPropertyResponse(DBusString(readWriteValue));
+    } else if (member == 'ReadOnly') {
+      return DBusGetPropertyResponse(DBusString(readOnlyValue));
+    } else if (member == 'WriteOnly') {
+      return DBusMethodErrorResponse.propertyWriteOnly();
+    } else {
+      return DBusMethodErrorResponse.unknownProperty();
+    }
+  }
+
+  @override
+  Future<DBusMethodResponse> setProperty(
+      String interface, String member, DBusValue value) async {
+    if (interface != 'com.example.Test') {
+      return DBusMethodErrorResponse.unknownInterface();
+    }
+
+    if (member == 'ReadWrite') {
+      readWriteValue = (value as DBusString).value;
+      return DBusMethodSuccessResponse();
+    } else if (member == 'ReadOnly') {
+      return DBusMethodErrorResponse.propertyReadOnly();
+    } else if (member == 'WriteOnly') {
+      writeOnlyValue = (value as DBusString).value;
+      return DBusMethodSuccessResponse();
+    } else {
+      return DBusMethodErrorResponse.unknownProperty();
+    }
+  }
+
+  @override
+  Future<DBusMethodResponse> getAllProperties(String interface) async {
+    var properties = <String, DBusValue>{};
+    if (interface == 'com.example.Test') {
+      properties['ReadWrite'] = DBusString(readWriteValue);
+      properties['ReadOnly'] = DBusString(readOnlyValue);
+    }
+    return DBusGetAllPropertiesResponse(properties);
+  }
+}
+
 void main() {
   test('ping', () async {
     var server = DBusServer();
@@ -802,10 +861,128 @@ void main() {
             '<arg name="interface_name" type="s" direction="in"/>'
             '<arg name="props" type="a{sv}" direction="out"/>'
             '</method>'
+            '<signal name="PropertiesChanged">'
+            '<arg name="interface_name" type="s"/>'
+            '<arg name="changed_properties" type="a{sv}"/>'
+            '<arg name="invalidated_properties" type="as"/>'
+            '</signal>'
             '</interface>'
             '<interface name="com.example.Test">'
             '<method name="Foo"/>'
             '</interface>'
             '</node>'));
+  });
+
+  test('get property', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes an object with properties.
+    var object = PropertiesObject(readWriteValue: 'RW', readOnlyValue: 'RO');
+    await client1.registerObject(object);
+
+    var remoteObject =
+        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+
+    // Get properties from another client.
+
+    var readWriteValue =
+        await remoteObject.getProperty('com.example.Test', 'ReadWrite');
+    expect(readWriteValue, equals(DBusString('RW')));
+
+    var readOnlyValue =
+        await remoteObject.getProperty('com.example.Test', 'ReadOnly');
+    expect(readOnlyValue, equals(DBusString('RO')));
+
+    expect(remoteObject.getProperty('com.example.Test', 'WriteOnly'),
+        throwsException);
+  });
+
+  test('set property', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes an object with properties.
+    var object = PropertiesObject(readWriteValue: '', writeOnlyValue: '');
+    await client1.registerObject(object);
+
+    var remoteObject =
+        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+
+    // Set properties from another client.
+
+    await remoteObject.setProperty(
+        'com.example.Test', 'ReadWrite', DBusString('RW'));
+    expect(object.readWriteValue, equals('RW'));
+
+    expect(
+        remoteObject.setProperty(
+            'com.example.Test', 'ReadOnly', DBusString('RO')),
+        throwsException);
+
+    await remoteObject.setProperty(
+        'com.example.Test', 'WriteOnly', DBusString('WO'));
+    expect(object.writeOnlyValue, equals('WO'));
+  });
+
+  test('get all properties', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes an object with properties.
+    var object = PropertiesObject(readWriteValue: 'RW', readOnlyValue: 'RO');
+    await client1.registerObject(object);
+
+    var remoteObject =
+        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+
+    var properties = await remoteObject.getAllProperties('com.example.Test');
+    expect(properties,
+        equals({'ReadWrite': DBusString('RW'), 'ReadOnly': DBusString('RO')}));
+  });
+
+  test('properties changed', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes an object with properties.
+    var object = PropertiesObject(readWriteValue: 'RW', readOnlyValue: 'RO');
+    await client1.registerObject(object);
+
+    /// Subscribe to properties changed signals.
+    var remoteObject =
+        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var signals = remoteObject.subscribePropertiesChanged();
+    signals.listen(expectAsync1((signal) {
+      expect(signal.propertiesInterface, equals('com.example.Test'));
+      expect(
+          signal.changedProperties,
+          equals(
+              {'ReadWrite': DBusString('RW'), 'ReadOnly': DBusString('RO')}));
+      expect(signal.invalidatedProperties, equals(['Invalid1', 'Invalid2']));
+    }));
+
+    // Do a round-trip to the server to ensure the signal has been subscribed to.
+    await client2.ping();
+
+    object.emitPropertiesChanged('com.example.Test', changedProperties: {
+      'ReadWrite': DBusString('RW'),
+      'ReadOnly': DBusString('RO')
+    }, invalidatedProperties: [
+      'Invalid1',
+      'Invalid2'
+    ]);
   });
 }

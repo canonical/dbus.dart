@@ -47,4 +47,20 @@ class DBusObject {
     client?.emitSignal(
         path: path, interface: interface, member: member, values: values);
   }
+
+  /// Emits org.freedesktop.DBus.Properties.PropertiesChanged on this object.
+  void emitPropertiesChanged(String interface,
+      {Map<String, DBusValue> changedProperties = const {},
+      List<String> invalidatedProperties = const []}) {
+    emitSignal('org.freedesktop.DBus.Properties', 'PropertiesChanged', [
+      DBusString(interface),
+      DBusDict(
+          DBusSignature('s'),
+          DBusSignature('v'),
+          changedProperties.map(
+              (name, value) => MapEntry(DBusString(name), DBusVariant(value)))),
+      DBusArray(DBusSignature('s'),
+          invalidatedProperties.map((name) => DBusString(name)))
+    ]);
+  }
 }
