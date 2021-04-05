@@ -27,9 +27,19 @@ DBusIntrospectInterface introspectProperties() {
     DBusIntrospectArgument(
         'props', DBusSignature('a{sv}'), DBusArgumentDirection.out),
   ]);
+  final propertiesChangedSignal =
+      DBusIntrospectSignal('PropertiesChanged', args: [
+    DBusIntrospectArgument(
+        'interface_name', DBusSignature('s'), DBusArgumentDirection.out),
+    DBusIntrospectArgument('changed_properties', DBusSignature('a{sv}'),
+        DBusArgumentDirection.out),
+    DBusIntrospectArgument('invalidated_properties', DBusSignature('as'),
+        DBusArgumentDirection.out)
+  ]);
   final introspectable = DBusIntrospectInterface(
       'org.freedesktop.DBus.Properties',
-      methods: [getMethod, setMethod, getAllMethod]);
+      methods: [getMethod, setMethod, getAllMethod],
+      signals: [propertiesChangedSignal]);
   return introspectable;
 }
 
