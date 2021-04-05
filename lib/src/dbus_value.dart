@@ -613,10 +613,10 @@ class DBusDict extends DBusValue {
   DBusDict(this.keySignature, this.valueSignature, [this.children = const {}]) {
     children.forEach((key, value) {
       if (key.signature.value != keySignature.value) {
-        throw "Provided key don't match signature";
+        throw "Provided key doesn't match signature";
       }
       if (value.signature.value != valueSignature.value) {
-        throw "Provided value don't match signature";
+        throw "Provided value doesn't match signature";
       }
     });
   }
