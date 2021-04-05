@@ -127,7 +127,7 @@ class DBusRemoteObject {
     var signals =
         subscribeSignal('org.freedesktop.DBus.Properties', 'PropertiesChanged');
     return signals.map((signal) {
-      if (signal.signature != DBusSignature('sa{sv}as')) {
+      if (signal.signature == DBusSignature('sa{sv}as')) {
         return DBusPropertiesChangedSignal(signal);
       } else {
         throw 'org.freedesktop.DBus.Properties.PropertiesChanged contains invalid values ${signal.values}';
