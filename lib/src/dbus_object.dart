@@ -30,7 +30,7 @@ class DBusObject {
     return DBusMethodErrorResponse.unknownProperty();
   }
 
-  /// Called when a property is set on this object.
+  /// Called when a property is set on this object. On success, return [DBusMethodSuccessResponse].
   Future<DBusMethodResponse> setProperty(
       String interface, String member, DBusValue value) async {
     return DBusMethodErrorResponse.unknownProperty();
@@ -38,8 +38,7 @@ class DBusObject {
 
   /// Called when all properties are requested on this object. On success, return [DBusGetAllPropertiesResponse].
   Future<DBusMethodResponse> getAllProperties(String interface) async {
-    return DBusMethodSuccessResponse(
-        [DBusDict(DBusSignature('s'), DBusSignature('v'), {})]);
+    return DBusGetAllPropertiesResponse({});
   }
 
   /// Emits a signal on this object.
