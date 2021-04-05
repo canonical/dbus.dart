@@ -1,0 +1,92 @@
+import 'dbus_introspect.dart';
+import 'dbus_method_call.dart';
+import 'dbus_method_response.dart';
+import 'dbus_object.dart';
+import 'dbus_object_tree.dart';
+import 'dbus_value.dart';
+
+Map<String, Map<String, DBusValue>> expandObjectInterfaceAndProperties(
+    DBusObject object,
+    {bool introspectable = true}) {
+  var interfacesAndProperties = <String, Map<String, DBusValue>>{};
+
+  // Start with the standard interfaces.
+  if (introspectable) {
+    interfacesAndProperties['org.freedesktop.DBus.Introspectable'] = {};
+  }
+  interfacesAndProperties['org.freedesktop.DBus.Properties'] = {};
+
+  // Add the interfaces the user has defined (overwriting the above if necessary).
+  interfacesAndProperties.addAll(object.interfacesAndProperties);
+
+  return interfacesAndProperties;
+}
+
+/// Returns introspection data for the org.freedesktop.DBus.ObjectManager interface.
+DBusIntrospectInterface introspectObjectManager() {
+  final introspectMethod = DBusIntrospectMethod('GetManagedObjects', args: [
+    DBusIntrospectArgument('objpath_interfaces_and_properties',
+        DBusSignature('a{oa{sa{sv}}}'), DBusArgumentDirection.out)
+  ]);
+  final interfacesAddedSignal = DBusIntrospectSignal('InterfacesAdded', args: [
+    DBusIntrospectArgument(
+        'object_path', DBusSignature('o'), DBusArgumentDirection.out),
+    DBusIntrospectArgument('interfaces_and_properties',
+        DBusSignature('a{sa{sv}}'), DBusArgumentDirection.out)
+  ]);
+  final interfacesRemovedSignal =
+      DBusIntrospectSignal('InterfacesRemoved', args: [
+    DBusIntrospectArgument(
+        'object_path', DBusSignature('o'), DBusArgumentDirection.out),
+    DBusIntrospectArgument(
+        'interfaces', DBusSignature('as'), DBusArgumentDirection.out)
+  ]);
+  final introspectable = DBusIntrospectInterface(
+      'org.freedesktop.DBus.Introspectable',
+      methods: [introspectMethod],
+      signals: [interfacesAddedSignal, interfacesRemovedSignal]);
+  return introspectable;
+}
+
+/// Handles method calls on the org.freedesktop.DBus.ObjectManager interface.
+DBusMethodResponse handleObjectManagerMethodCall(
+    DBusObjectTree objectTree, DBusMethodCall methodCall,
+    {bool introspectable = true}) {
+  if (methodCall.name == 'GetManagedObjects') {
+    var objpathInterfacesAndProperties = <DBusObjectPath, DBusValue>{};
+    void addObjects(DBusObjectTreeNode node) {
+      var object = node.object;
+      if (object != null && !object.isObjectManager) {
+        DBusValue encodeProperties(Map<String, DBusValue> properties) =>
+            DBusDict(
+                DBusSignature('s'),
+                DBusSignature('v'),
+                properties.map((name, value) =>
+                    MapEntry(DBusString(name), DBusVariant(value))));
+        DBusValue encodeInterfacesAndProperties(
+                Map<String, Map<String, DBusValue>> interfacesAndProperties) =>
+            DBusDict(
+                DBusSignature('s'),
+                DBusSignature('a{sv}'),
+                interfacesAndProperties.map<DBusValue, DBusValue>((name,
+                        properties) =>
+                    MapEntry(DBusString(name), encodeProperties(properties))));
+
+        objpathInterfacesAndProperties[object.path] =
+            encodeInterfacesAndProperties(expandObjectInterfaceAndProperties(
+                object,
+                introspectable: introspectable));
+      }
+      node.children.values.forEach((n) => addObjects(n));
+    }
+
+    addObjects(objectTree.root);
+
+    return DBusMethodSuccessResponse([
+      DBusDict(DBusSignature('o'), DBusSignature('a{sa{sv}}'),
+          objpathInterfacesAndProperties)
+    ]);
+  } else {
+    return DBusMethodErrorResponse.unknownMethod();
+  }
+}

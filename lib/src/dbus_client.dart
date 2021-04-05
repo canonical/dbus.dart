@@ -14,6 +14,7 @@ import 'dbus_message.dart';
 import 'dbus_method_call.dart';
 import 'dbus_method_response.dart';
 import 'dbus_object.dart';
+import 'dbus_object_manager.dart';
 import 'dbus_object_tree.dart';
 import 'dbus_peer.dart';
 import 'dbus_properties.dart';
@@ -570,14 +571,66 @@ class DBusClient {
         path, DBusInterfaceName(interface), DBusMemberName(name), values);
   }
 
+  /// Searches for an object manager in [node] or any of its parents.
+  DBusObject? _findObjectManager(DBusObjectTreeNode? node) {
+    if (node == null) {
+      return null;
+    }
+
+    var object = node.object;
+    if (object != null) {
+      if (object.isObjectManager) {
+        return object;
+      }
+    }
+
+    return _findObjectManager(node.parent);
+  }
+
   /// Registers an [object] on the bus.
   Future<void> registerObject(DBusObject object) async {
     if (object.client != null) {
-      throw 'Client already registered';
+      if (object.client == this) {
+        throw 'Object already registered';
+      } else {
+        throw 'Object already registered on other client';
+      }
     }
     object.client = this;
-    _objectTree.add(object.path, object);
+    var node = _objectTree.add(object.path, object);
     await _connect();
+
+    // If has an object manager as a parent, emit a signal to indicate this was added.
+    var objectManager = _findObjectManager(node.parent);
+    if (objectManager != null) {
+      var interfacesAndProperties = expandObjectInterfaceAndProperties(object,
+          introspectable: introspectable);
+      objectManager.emitInterfacesAdded(object.path, interfacesAndProperties);
+    }
+  }
+
+  /// Unregisters an [object] on the bus.
+  Future<void> unregisterObject(DBusObject object) async {
+    if (object.client == null) {
+      throw 'Object not registered';
+    }
+    if (object.client != this) {
+      throw 'Object registered on other client';
+    }
+
+    var node = _objectTree.lookup(object.path);
+    if (node == null) {
+      return;
+    }
+
+    // If has an object manager as a parent, emit a signal to indicate this was removed.
+    var objectManager = _findObjectManager(node.parent);
+    if (objectManager != null) {
+      var interfacesAndProperties = expandObjectInterfaceAndProperties(object,
+          introspectable: introspectable);
+      objectManager.emitInterfacesRemoved(
+          object.path, interfacesAndProperties.keys);
+    }
   }
 
   /// Open a socket connection to the D-Bus server.
@@ -862,6 +915,10 @@ class DBusClient {
       response = DBusMethodErrorResponse.unknownObject();
     } else if (message.interface?.value == 'org.freedesktop.DBus.Properties') {
       response = await handlePropertiesMethodCall(object, methodCall);
+    } else if (object.isObjectManager &&
+        message.interface?.value == 'org.freedesktop.DBus.ObjectManager') {
+      response = handleObjectManagerMethodCall(_objectTree, methodCall,
+          introspectable: introspectable);
     } else {
       response = await object.handleMethodCall(methodCall);
     }

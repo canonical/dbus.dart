@@ -1,6 +1,7 @@
 import 'dbus_introspect.dart';
 import 'dbus_method_call.dart';
 import 'dbus_method_response.dart';
+import 'dbus_object_manager.dart';
 import 'dbus_object_tree.dart';
 import 'dbus_peer.dart';
 import 'dbus_properties.dart';
@@ -32,6 +33,9 @@ DBusMethodResponse handleIntrospectableMethodCall(
       interfaces.add(introspectIntrospectable());
       interfaces.add(introspectPeer());
       interfaces.add(introspectProperties());
+      if (object.isObjectManager) {
+        interfaces.add(introspectObjectManager());
+      }
       interfaces.addAll(object.introspect());
     }
     var children = <DBusIntrospectNode>[];
