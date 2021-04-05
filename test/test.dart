@@ -49,16 +49,29 @@ class TestObject extends DBusObject {
   // Error responses to give when setting a property.
   final Map<String, DBusMethodErrorResponse> propertySetErrors;
 
+  // Interfaces reported by an object manager.
+  final Map<String, Map<String, DBusValue>> interfacesAndProperties_;
+
   TestObject(
-      {this.expectedMethodName,
+      {DBusObjectPath path = const DBusObjectPath.unchecked('/'),
+      this.expectedMethodName,
       this.expectedMethodValues,
       this.expectedMethodFlags,
       this.methodResponses = const {},
       this.introspectData = const [],
       this.propertyValues = const {},
       this.propertyGetErrors = const {},
-      this.propertySetErrors = const {}})
-      : super(DBusObjectPath('/'));
+      this.propertySetErrors = const {},
+      this.interfacesAndProperties_ = const {}})
+      : super(path);
+
+  void updateInterface(String name, Map<String, DBusValue> properties) {
+    interfacesAndProperties_[name] = properties;
+  }
+
+  void removeInterface(String name) {
+    interfacesAndProperties_.remove(name);
+  }
 
   @override
   Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
@@ -121,6 +134,10 @@ class TestObject extends DBusObject {
     });
     return DBusGetAllPropertiesResponse(properties);
   }
+
+  @override
+  Map<String, Map<String, DBusValue>> get interfacesAndProperties =>
+      interfacesAndProperties_;
 }
 
 void main() {
@@ -1036,5 +1053,321 @@ void main() {
       'Invalid1',
       'Invalid2'
     ]);
+  });
+
+  test('object manager', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Register an object manager and a few objects with properties.
+    await client1
+        .registerObject(DBusObject(DBusObjectPath('/'), isObjectManager: true));
+    await client1.registerObject(TestObject(
+        path: DBusObjectPath('/com/example/Object1'),
+        interfacesAndProperties_: {
+          'com.example.Interface1': {'number': DBusUint32(1)}
+        }));
+    await client1.registerObject(TestObject(
+        path: DBusObjectPath('/com/example/Object2'),
+        interfacesAndProperties_: {
+          'com.example.Interface1': {'number': DBusUint32(2)},
+          'com.example.Interface2': {'value': DBusString('FOO')}
+        }));
+
+    var remoteManagerObject = DBusRemoteObjectManager(
+        client2, client1.uniqueName, DBusObjectPath('/'));
+    var objects = await remoteManagerObject.getManagedObjects();
+    expect(
+        objects,
+        equals({
+          DBusObjectPath('/com/example/Object1'): {
+            'org.freedesktop.DBus.Introspectable': {},
+            'org.freedesktop.DBus.Properties': {},
+            'com.example.Interface1': {'number': DBusUint32(1)}
+          },
+          DBusObjectPath('/com/example/Object2'): {
+            'org.freedesktop.DBus.Introspectable': {},
+            'org.freedesktop.DBus.Properties': {},
+            'com.example.Interface1': {'number': DBusUint32(2)},
+            'com.example.Interface2': {'value': DBusString('FOO')}
+          }
+        }));
+  });
+
+  test('object manager - no interfaces', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Register an object manager and an object without any interfaces other than the standard ones.
+    await client1
+        .registerObject(DBusObject(DBusObjectPath('/'), isObjectManager: true));
+    await client1.registerObject(
+        TestObject(path: DBusObjectPath('/com/example/Object')));
+
+    var remoteManagerObject = DBusRemoteObjectManager(
+        client2, client1.uniqueName, DBusObjectPath('/'));
+    var objects = await remoteManagerObject.getManagedObjects();
+    expect(
+        objects,
+        equals({
+          DBusObjectPath('/com/example/Object'): {
+            'org.freedesktop.DBus.Introspectable': {},
+            'org.freedesktop.DBus.Properties': {}
+          }
+        }));
+  });
+
+  test('object manager - not introspectable', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address, introspectable: false);
+    var client2 = DBusClient(address);
+
+    // Register an object manager and one object. The client doesn't support introspection.
+    await client1
+        .registerObject(DBusObject(DBusObjectPath('/'), isObjectManager: true));
+    await client1.registerObject(
+        TestObject(path: DBusObjectPath('/com/example/Object')));
+
+    var remoteManagerObject = DBusRemoteObjectManager(
+        client2, client1.uniqueName, DBusObjectPath('/'));
+    var objects = await remoteManagerObject.getManagedObjects();
+    expect(
+        objects,
+        equals({
+          DBusObjectPath('/com/example/Object'): {
+            'org.freedesktop.DBus.Properties': {}
+          }
+        }));
+  });
+
+  test('object manager - object added', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Register an object manager with one object.
+    var objectManager = DBusObject(DBusObjectPath('/'), isObjectManager: true);
+    await client1.registerObject(objectManager);
+    await client1.registerObject(
+        TestObject(path: DBusObjectPath('/com/example/Object1')));
+
+    // Subscribe to object manager signals.
+    var remoteManagerObject = DBusRemoteObjectManager(
+        client2, client1.uniqueName, DBusObjectPath('/'));
+    remoteManagerObject.signals.listen(expectAsync1((signal) {
+      expect(signal, TypeMatcher<DBusObjectManagerInterfacesAddedSignal>());
+      var interfacesAdded = signal as DBusObjectManagerInterfacesAddedSignal;
+      expect(interfacesAdded.changedPath,
+          equals(DBusObjectPath('/com/example/Object2')));
+      expect(
+          interfacesAdded.interfacesAndProperties,
+          equals({
+            'org.freedesktop.DBus.Introspectable': {},
+            'org.freedesktop.DBus.Properties': {},
+            'com.example.Interface': {
+              'Property1': DBusString('VALUE1'),
+              'Property2': DBusString('VALUE2')
+            }
+          }));
+    }));
+
+    // Do a round-trip to the server to ensure the signal has been subscribed to.
+    await client2.ping();
+
+    // Add a second object.
+    await client1.registerObject(TestObject(
+        path: DBusObjectPath('/com/example/Object2'),
+        interfacesAndProperties_: {
+          'com.example.Interface': {
+            'Property1': DBusString('VALUE1'),
+            'Property2': DBusString('VALUE2')
+          }
+        }));
+  });
+
+  test('object manager - object removed', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Register an object manager with two objects.
+    var objectManager = DBusObject(DBusObjectPath('/'), isObjectManager: true);
+    await client1.registerObject(objectManager);
+    await client1.registerObject(
+        TestObject(path: DBusObjectPath('/com/example/Object1')));
+    var object2 = TestObject(
+        path: DBusObjectPath('/com/example/Object2'),
+        interfacesAndProperties_: {
+          'org.freedesktop.DBus.Introspectable': {},
+          'org.freedesktop.DBus.Properties': {},
+          'com.example.Interface1': {'number': DBusUint32(2)},
+          'com.example.Interface2': {'value': DBusString('FOO')}
+        });
+    await client1.registerObject(object2);
+
+    // Subscribe to object manager signals.
+    var remoteManagerObject = DBusRemoteObjectManager(
+        client2, client1.uniqueName, DBusObjectPath('/'));
+    remoteManagerObject.signals.listen(expectAsync1((signal) {
+      expect(signal, TypeMatcher<DBusObjectManagerInterfacesRemovedSignal>());
+      var interfacesRemoved =
+          signal as DBusObjectManagerInterfacesRemovedSignal;
+      expect(interfacesRemoved.changedPath,
+          equals(DBusObjectPath('/com/example/Object2')));
+      expect(
+          interfacesRemoved.interfaces,
+          equals([
+            'org.freedesktop.DBus.Introspectable',
+            'org.freedesktop.DBus.Properties',
+            'com.example.Interface1',
+            'com.example.Interface2'
+          ]));
+    }));
+
+    // Do a round-trip to the server to ensure the signal has been subscribed to.
+    await client2.ping();
+
+    // Remove an object.
+    await client1.unregisterObject(object2);
+  });
+
+  test('object manager - interface added', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Register an object manager with one object.
+    var objectManager = DBusObject(DBusObjectPath('/'), isObjectManager: true);
+    await client1.registerObject(objectManager);
+    var object = TestObject(
+        path: DBusObjectPath('/com/example/Object'),
+        interfacesAndProperties_: {'com.example.Interface1': {}});
+    await client1.registerObject(object);
+
+    // Subscribe to object manager signals.
+    var remoteManagerObject = DBusRemoteObjectManager(
+        client2, client1.uniqueName, DBusObjectPath('/'));
+    remoteManagerObject.signals.listen(expectAsync1((signal) {
+      expect(signal, TypeMatcher<DBusObjectManagerInterfacesAddedSignal>());
+      var interfacesAdded = signal as DBusObjectManagerInterfacesAddedSignal;
+      expect(interfacesAdded.changedPath,
+          equals(DBusObjectPath('/com/example/Object')));
+      expect(
+          interfacesAdded.interfacesAndProperties,
+          equals({
+            'com.example.Interface2': {
+              'Property1': DBusString('VALUE1'),
+              'Property2': DBusString('VALUE2')
+            }
+          }));
+    }));
+
+    // Do a round-trip to the server to ensure the signal has been subscribed to.
+    await client2.ping();
+
+    // Add an interface to the object.
+    object.updateInterface('com.example.Interface2', {});
+    objectManager.emitInterfacesAdded(object.path, {
+      'com.example.Interface2': {
+        'Property1': DBusString('VALUE1'),
+        'Property2': DBusString('VALUE2')
+      }
+    });
+  });
+
+  test('object manager - interface removed', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Register an object manager with one object.
+    var objectManager = DBusObject(DBusObjectPath('/'), isObjectManager: true);
+    await client1.registerObject(objectManager);
+    var object = TestObject(
+        path: DBusObjectPath('/com/example/Object'),
+        interfacesAndProperties_: {
+          'com.example.Interface1': {},
+          'com.example.Interface2': {}
+        });
+    await client1.registerObject(object);
+
+    // Subscribe to object manager signals.
+    var remoteManagerObject = DBusRemoteObjectManager(
+        client2, client1.uniqueName, DBusObjectPath('/'));
+    remoteManagerObject.signals.listen(expectAsync1((signal) {
+      expect(signal, TypeMatcher<DBusObjectManagerInterfacesRemovedSignal>());
+      var interfacesRemoved =
+          signal as DBusObjectManagerInterfacesRemovedSignal;
+      expect(interfacesRemoved.changedPath,
+          equals(DBusObjectPath('/com/example/Object')));
+      expect(interfacesRemoved.interfaces, equals(['com.example.Interface2']));
+    }));
+
+    // Do a round-trip to the server to ensure the signal has been subscribed to.
+    await client2.ping();
+
+    // Remove an interface from the object.
+    object.removeInterface('com.example.Interface2');
+    objectManager
+        .emitInterfacesRemoved(object.path, ['com.example.Interface2']);
+  });
+
+  test('object manager - properties changed', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Register an object manager with one object.
+    var objectManager = DBusObject(DBusObjectPath('/'), isObjectManager: true);
+    await client1.registerObject(objectManager);
+    var object = TestObject(
+        path: DBusObjectPath('/com/example/Object'),
+        interfacesAndProperties_: {
+          'com.example.Interface1': {},
+          'com.example.Interface2': {}
+        });
+    await client1.registerObject(object);
+
+    // Subscribe to object manager signals.
+    var remoteManagerObject = DBusRemoteObjectManager(
+        client2, client1.uniqueName, DBusObjectPath('/'));
+    remoteManagerObject.signals.listen(expectAsync1((signal) {
+      expect(signal, TypeMatcher<DBusPropertiesChangedSignal>());
+      var propertiesChanged = signal as DBusPropertiesChangedSignal;
+      expect(
+          propertiesChanged.changedProperties,
+          equals({
+            'Property1': DBusString('VALUE1'),
+            'Property2': DBusString('VALUE2')
+          }));
+      expect(propertiesChanged.invalidatedProperties, equals([]));
+    }));
+
+    // Do a round-trip to the server to ensure the signal has been subscribed to.
+    await client2.ping();
+
+    // Change a property on the object.
+    object.emitPropertiesChanged('com.example.Test', changedProperties: {
+      'Property1': DBusString('VALUE1'),
+      'Property2': DBusString('VALUE2')
+    });
   });
 }

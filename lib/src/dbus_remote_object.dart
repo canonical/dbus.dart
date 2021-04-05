@@ -38,36 +38,6 @@ class DBusPropertiesChangedSignal extends DBusSignal {
             signal.values);
 }
 
-/// Signal received when interfaces are added.
-class DBusObjectManagerInterfacesAddedSignal extends DBusSignal {
-  /// Path of the object that has interfaces added to.
-  DBusObjectPath get changedPath => values[0] as DBusObjectPath;
-
-  /// The properties and interfaces that were added.
-  Map<String, Map<String, DBusValue>> get interfacesAndProperties =>
-      _decodeInterfacesAndProperties(values[1]);
-
-  DBusObjectManagerInterfacesAddedSignal(DBusSignal signal)
-      : super(signal.sender, signal.path, signal.interface, signal.name,
-            signal.values);
-}
-
-/// Signal received when interfaces are removed.
-class DBusObjectManagerInterfacesRemovedSignal extends DBusSignal {
-  /// Path of the object that has interfaces removed from.
-  DBusObjectPath get changedPath => values[0] as DBusObjectPath;
-
-  /// The interfaces that were removed.
-  List<String> get interfaces => (values[1] as DBusArray)
-      .children
-      .map((value) => (value as DBusString).value)
-      .toList();
-
-  DBusObjectManagerInterfacesRemovedSignal(DBusSignal signal)
-      : super(signal.sender, signal.path, signal.interface, signal.name,
-            signal.values);
-}
-
 /// An object to simplify access to a D-Bus object.
 class DBusRemoteObject {
   /// The client this object is accessed from.
@@ -82,11 +52,6 @@ class DBusRemoteObject {
   /// Stream of signals when the remote object indicates a property has changed.
   late final Stream<DBusPropertiesChangedSignal> propertiesChanged;
 
-  /// Stream of signals used by an object manager.
-  /// The stream will contain [DBusPropertiesChangedSignal], [DBusObjectManagerInterfacesAddedSignal], [DBusObjectManagerInterfacesRemovedSignal] and [DBusSignal] for all other signals on these objects.
-  /// Requires the remote object to implement the org.freedesktop.DBus.ObjectManager interface.
-  late final Stream<DBusSignal> objectManagerSignals;
-
   /// Creates an object that access accesses a remote D-Bus object at [destination], [path].
   DBusRemoteObject(this.client, this.destination, this.path) {
     var rawPropertiesChanged = DBusRemoteObjectSignalStream(
@@ -96,26 +61,6 @@ class DBusRemoteObject {
         return DBusPropertiesChangedSignal(signal);
       } else {
         throw 'org.freedesktop.DBus.Properties.PropertiesChanged contains invalid values ${signal.values}';
-      }
-    });
-
-    var rawObjectManagerSignals =
-        DBusSignalStream(client, sender: destination, pathNamespace: path);
-    objectManagerSignals = rawObjectManagerSignals.map((signal) {
-      if (signal.interface == 'org.freedesktop.DBus.ObjectManager' &&
-          signal.name == 'InterfacesAdded' &&
-          signal.signature == DBusSignature('oa{sa{sv}}')) {
-        return DBusObjectManagerInterfacesAddedSignal(signal);
-      } else if (signal.interface == 'org.freedesktop.DBus.ObjectManager' &&
-          signal.name == 'InterfacesRemoved' &&
-          signal.signature == DBusSignature('oas')) {
-        return DBusObjectManagerInterfacesRemovedSignal(signal);
-      } else if (signal.interface == 'org.freedesktop.DBus.Properties' &&
-          signal.name == 'PropertiesChanged' &&
-          signal.signature == DBusSignature('sa{sv}as')) {
-        return DBusPropertiesChangedSignal(signal);
-      } else {
-        return signal;
       }
     });
   }
@@ -190,43 +135,8 @@ class DBusRemoteObject {
         flags: flags);
   }
 
-  /// Gets all the sub-tree of objects, interfaces and properties of this object.
-  /// Requires the remote object to implement the org.freedesktop.DBus.ObjectManager interface.
-  Future<Map<DBusObjectPath, Map<String, Map<String, DBusValue>>>>
-      getManagedObjects() async {
-    var result = await client.callMethod(
-        destination: destination,
-        path: path,
-        interface: 'org.freedesktop.DBus.ObjectManager',
-        name: 'GetManagedObjects');
-    if (result.signature != DBusSignature('a{oa{sa{sv}}}')) {
-      throw 'GetManagedObjects returned invalid result: ${result.returnValues}';
-    }
-
-    Map<DBusObjectPath, Map<String, Map<String, DBusValue>>> decodeObjects(
-        DBusValue objects) {
-      return (objects as DBusDict).children.map((key, value) => MapEntry(
-          key as DBusObjectPath, _decodeInterfacesAndProperties(value)));
-    }
-
-    return decodeObjects(result.returnValues[0]);
-  }
-
   @override
   String toString() {
     return "DBusRemoteObject(destination: '$destination', path: '${path.value}')";
   }
-}
-
-/// Decodes a value with signature 'a{sa{sv}}'.
-Map<String, Map<String, DBusValue>> _decodeInterfacesAndProperties(
-    DBusValue object) {
-  return (object as DBusDict).children.map((key, value) =>
-      MapEntry((key as DBusString).value, _decodeProperties(value)));
-}
-
-/// Decodes a value with signature 'a{sv}'.
-Map<String, DBusValue> _decodeProperties(DBusValue object) {
-  return (object as DBusDict).children.map((key, value) =>
-      MapEntry((key as DBusString).value, (value as DBusVariant).value));
 }

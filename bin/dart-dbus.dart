@@ -124,6 +124,8 @@ String? generateObjectClass(DBusIntrospectNode node, String className) {
   // Method names provided in this class, initially populated with DBusObject methods.
   // Needs to be kept in sync with the DBusObject class.
   var memberNames = [
+    'emitInterfacesAdded',
+    'emitInterfacesRemoved',
     'emitPropertiesChangedSignal',
     'emitSignal',
     'getAllProperties',

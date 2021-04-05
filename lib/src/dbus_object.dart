@@ -12,8 +12,15 @@ class DBusObject {
   /// The client this object is being exported by.
   DBusClient? client;
 
+  /// True if this object exposes the org.freedesktop.DBus.ObjectManager interface.
+  final bool isObjectManager;
+
   /// Creates a new object to export on the bus at [path].
-  DBusObject(this.path);
+  DBusObject(this.path, {this.isObjectManager = false});
+
+  /// Interfaces and properties of this object.
+  /// This only requires overriding if using this object with the org.freedesktop.DBus.ObjectManager interface.
+  Map<String, Map<String, DBusValue>> get interfacesAndProperties => {};
 
   /// Called to get introspection information about this object.
   List<DBusIntrospectInterface> introspect() {
@@ -61,6 +68,39 @@ class DBusObject {
               (name, value) => MapEntry(DBusString(name), DBusVariant(value)))),
       DBusArray(DBusSignature('s'),
           invalidatedProperties.map((name) => DBusString(name)))
+    ]);
+  }
+
+  /// Emits org.freedesktop.DBus.ObjectManager.InterfacesAdded on this object.
+  /// [path] is the path to the object that has been added or changed.
+  /// [interfacesAndProperties] is the interfaces added to the object at [path] and the properties this object has.
+  void emitInterfacesAdded(DBusObjectPath path,
+      Map<String, Map<String, DBusValue>> interfacesAndProperties) {
+    DBusValue encodeProperties(Map<String, DBusValue> properties) => DBusDict(
+        DBusSignature('s'),
+        DBusSignature('v'),
+        properties.map(
+            (name, value) => MapEntry(DBusString(name), DBusVariant(value))));
+    DBusValue encodeInterfacesAndProperties(
+            Map<String, Map<String, DBusValue>> interfacesAndProperties) =>
+        DBusDict(
+            DBusSignature('s'),
+            DBusSignature('a{sv}'),
+            interfacesAndProperties.map<DBusValue, DBusValue>(
+                (name, properties) =>
+                    MapEntry(DBusString(name), encodeProperties(properties))));
+    emitSignal('org.freedesktop.DBus.ObjectManager', 'InterfacesAdded',
+        [path, encodeInterfacesAndProperties(interfacesAndProperties)]);
+  }
+
+  /// Emits org.freedesktop.DBus.ObjectManager.InterfacesRemoved on this object.
+  /// [path] is the path to the object is being removed or changed.
+  /// [interfaces] is the names of the interfaces being removed from the object at [path].
+  void emitInterfacesRemoved(DBusObjectPath path, Iterable<String> interfaces) {
+    emitSignal('org.freedesktop.DBus.ObjectManager', 'InterfacesRemoved', [
+      path,
+      DBusArray(DBusSignature('s'),
+          interfaces.map((interface) => DBusString(interface)))
     ]);
   }
 }
