@@ -3,10 +3,7 @@ import 'dart:async';
 import 'package:dbus/dbus.dart';
 
 class TestObject extends DBusObject {
-  @override
-  DBusObjectPath get path {
-    return DBusObjectPath('/com/canonical/DBusDart');
-  }
+  TestObject() : super(DBusObjectPath('/com/canonical/DBusDart'));
 
   @override
   List<DBusIntrospectInterface> introspect() {

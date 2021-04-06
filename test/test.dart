@@ -37,7 +37,8 @@ class MethodCallObject extends DBusObject {
       this.values,
       this.flags = const {},
       this.responseValues = const [],
-      this.errorName});
+      this.errorName})
+      : super(DBusObjectPath('/'));
 
   @override
   Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
@@ -59,6 +60,8 @@ class MethodCallObject extends DBusObject {
 
 // Test object which has introspection data.
 class IntrospectObject extends DBusObject {
+  IntrospectObject() : super(DBusObjectPath('/'));
+
   @override
   List<DBusIntrospectInterface> introspect() {
     return [
@@ -76,7 +79,8 @@ class PropertiesObject extends DBusObject {
   PropertiesObject(
       {this.readWriteValue = '',
       this.readOnlyValue = '',
-      this.writeOnlyValue = ''});
+      this.writeOnlyValue = ''})
+      : super(DBusObjectPath('/'));
 
   @override
   Future<DBusMethodResponse> getProperty(
@@ -733,7 +737,7 @@ void main() {
     var client2 = DBusClient(address);
 
     // Create a client to emit a signal.
-    var object = DBusObject();
+    var object = DBusObject(DBusObjectPath('/'));
     await client1.registerObject(object);
 
     // Subscribe to the signal from another client.
@@ -763,7 +767,7 @@ void main() {
     var client2 = DBusClient(address);
 
     // Create a client to emit a signal.
-    var object = DBusObject();
+    var object = DBusObject(DBusObjectPath('/'));
     await client1.registerObject(object);
 
     // Subscribe to the signal from another client.
@@ -794,7 +798,7 @@ void main() {
     var client2 = DBusClient(address);
 
     // Create a client to emit a signal.
-    var object = DBusObject();
+    var object = DBusObject(DBusObjectPath('/'));
     await client1.requestName('com.example.Test');
     await client1.registerObject(object);
 
