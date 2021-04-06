@@ -145,18 +145,23 @@ class DBusClient {
   final _nameAcquiredController = StreamController<String>();
   final _nameLostController = StreamController<String>();
 
+  /// True if this client allows other clients to introspect it.
+  final bool introspectable;
+
   /// Creates a new DBus client to connect on [address].
-  DBusClient(DBusAddress address) : _address = address;
+  DBusClient(DBusAddress address, {this.introspectable = true})
+      : _address = address;
 
   /// Creates a new DBus client to communicate with the system bus.
-  factory DBusClient.system() {
+  factory DBusClient.system({bool introspectable = true}) {
     var address = Platform.environment['DBUS_SYSTEM_BUS_ADDRESS'];
     return DBusClient(
-        DBusAddress(address ??= 'unix:path=/run/dbus/system_bus_socket'));
+        DBusAddress(address ??= 'unix:path=/run/dbus/system_bus_socket'),
+        introspectable: introspectable);
   }
 
   /// Creates a new DBus client to communicate with the session bus.
-  factory DBusClient.session() {
+  factory DBusClient.session({bool introspectable = true}) {
     var address = Platform.environment['DBUS_SESSION_BUS_ADDRESS'];
     if (address == null) {
       var runtimeDir = Platform.environment['XDG_USER_DIR'];
@@ -166,7 +171,7 @@ class DBusClient {
       }
       address = 'unix:path=$runtimeDir/bus';
     }
-    return DBusClient(DBusAddress(address));
+    return DBusClient(DBusAddress(address), introspectable: introspectable);
   }
 
   /// Terminates all active connections. If a client remains unclosed, the Dart process may not terminate.
@@ -863,12 +868,13 @@ class DBusClient {
       response = DBusMethodErrorResponse.unknownMethod();
     } else if (message.interface?.value == 'org.freedesktop.DBus.Peer') {
       response = await handlePeerMethodCall(methodCall);
-    } else if (message.interface?.value ==
-        'org.freedesktop.DBus.Introspectable') {
+    } else if (introspectable &&
+        message.interface?.value == 'org.freedesktop.DBus.Introspectable') {
       response = handleIntrospectableMethodCall(node, methodCall);
     } else if (object == null) {
       response = DBusMethodErrorResponse.unknownObject();
-    } else if (message.interface?.value == 'org.freedesktop.DBus.Properties') {
+    } else if (object.hasProperties &&
+        message.interface?.value == 'org.freedesktop.DBus.Properties') {
       response = await handlePropertiesMethodCall(object, methodCall);
     } else {
       response = await object.handleMethodCall(methodCall);

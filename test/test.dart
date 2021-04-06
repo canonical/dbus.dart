@@ -60,7 +60,8 @@ class MethodCallObject extends DBusObject {
 
 // Test object which has introspection data.
 class IntrospectObject extends DBusObject {
-  IntrospectObject() : super(DBusObjectPath('/'));
+  IntrospectObject({bool hasProperties = true})
+      : super(DBusObjectPath('/'), hasProperties: hasProperties);
 
   @override
   List<DBusIntrospectInterface> introspect() {
@@ -77,10 +78,11 @@ class PropertiesObject extends DBusObject {
   String writeOnlyValue;
 
   PropertiesObject(
-      {this.readWriteValue = '',
+      {bool hasProperties = true,
+      this.readWriteValue = '',
       this.readOnlyValue = '',
       this.writeOnlyValue = ''})
-      : super(DBusObjectPath('/'));
+      : super(DBusObjectPath('/'), hasProperties: hasProperties);
 
   @override
   Future<DBusMethodResponse> getProperty(
@@ -877,6 +879,56 @@ void main() {
             '</node>'));
   });
 
+  test('introspect - no properties', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes introspection data.
+    await client1.registerObject(IntrospectObject(hasProperties: false));
+
+    // Read introspection data from the first client.
+    var remoteObject =
+        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var node = await remoteObject.introspect();
+    expect(
+        node.toXml().toXmlString(),
+        equals('<node>'
+            '<interface name="org.freedesktop.DBus.Introspectable">'
+            '<method name="Introspect">'
+            '<arg name="xml_data" type="s" direction="out"/>'
+            '</method>'
+            '</interface>'
+            '<interface name="org.freedesktop.DBus.Peer">'
+            '<method name="GetMachineId">'
+            '<arg name="machine_uuid" type="s" direction="out"/>'
+            '</method>'
+            '<method name="Ping"/>'
+            '</interface>'
+            '<interface name="com.example.Test">'
+            '<method name="Foo"/>'
+            '</interface>'
+            '</node>'));
+  });
+
+  test('introspect - not introspectable', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address, introspectable: false);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes introspection data.
+    await client1.registerObject(IntrospectObject());
+
+    // Unable to read introspection data from the first client.
+    var remoteObject =
+        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    expect(remoteObject.introspect(), throwsA(isMethodResponseException));
+  });
+
   test('get property', () async {
     var server = DBusServer();
     var address =
@@ -988,5 +1040,31 @@ void main() {
       'Invalid1',
       'Invalid2'
     ]);
+  });
+
+  test('properties disabled', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes an object without properties.
+    var object = PropertiesObject(hasProperties: false);
+    await client1.registerObject(object);
+
+    var remoteObject =
+        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+
+    // All properties calls should fail.
+
+    expect(remoteObject.getProperty('com.example.Test', 'ReadWrite'),
+        throwsA(isMethodResponseException));
+    expect(
+        remoteObject.setProperty(
+            'com.example.Test', 'ReadWrite', DBusString('RW')),
+        throwsA(isMethodResponseException));
+    expect(remoteObject.getAllProperties('com.example.Test'),
+        throwsA(isMethodResponseException));
   });
 }

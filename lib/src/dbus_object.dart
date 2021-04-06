@@ -12,8 +12,11 @@ class DBusObject {
   /// The client this object is being exported by.
   DBusClient? client;
 
+  /// True if this object exposes the org.freedesktop.DBus.Properties interface.
+  final bool hasProperties;
+
   /// Creates a new object to export on the bus at [path].
-  DBusObject(this.path);
+  DBusObject(this.path, {this.hasProperties = true});
 
   /// Called to get introspection information about this object.
   List<DBusIntrospectInterface> introspect() {
