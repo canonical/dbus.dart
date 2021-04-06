@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'dbus_introspect.dart';
+import 'dbus_method_call.dart';
 import 'dbus_method_response.dart';
 import 'dbus_value.dart';
 
@@ -18,14 +19,14 @@ DBusIntrospectInterface introspectPeer() {
 
 /// Handles method calls on the org.freedesktop.DBus.Peer interface.
 Future<DBusMethodResponse> handlePeerMethodCall(
-    String member, List<DBusValue> values) async {
-  if (member == 'GetMachineId') {
-    if (values.isNotEmpty) {
+    DBusMethodCall methodCall) async {
+  if (methodCall.name == 'GetMachineId') {
+    if (methodCall.signature != DBusSignature('')) {
       return DBusMethodErrorResponse.invalidArgs();
     }
     return DBusMethodSuccessResponse([DBusString(await getMachineId())]);
-  } else if (member == 'Ping') {
-    if (values.isNotEmpty) {
+  } else if (methodCall.name == 'Ping') {
+    if (methodCall.signature != DBusSignature('')) {
       return DBusMethodErrorResponse.invalidArgs();
     }
     return DBusMethodSuccessResponse();
