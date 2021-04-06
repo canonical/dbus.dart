@@ -6,10 +6,7 @@ import 'package:dbus/dbus.dart';
 class TestObject extends DBusObject {
   var callCount = 0;
 
-  @override
-  DBusObjectPath get path {
-    return DBusObjectPath('/com/canonical/DBusDart');
-  }
+  TestObject() : super(DBusObjectPath('/com/canonical/DBusDart'));
 
   @override
   List<DBusIntrospectInterface> introspect() {

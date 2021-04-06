@@ -133,6 +133,9 @@ String? generateObjectClass(DBusIntrospectNode node, String className) {
   var getMethodNames = <String, String>{};
   var setMethodNames = <String, String>{};
 
+  /// Make a constructor.
+  methods.add(generateConstructor(node, className));
+
   // Generate all the methods for this object.
   for (var interface in node.interfaces) {
     for (var property in interface.properties) {
@@ -156,6 +159,16 @@ String? generateObjectClass(DBusIntrospectNode node, String className) {
   source += 'class $className extends DBusObject {\n';
   source += methods.join('\n');
   source += '}\n';
+
+  return source;
+}
+
+/// Generates a constructor for a DBusObject.
+String generateConstructor(DBusIntrospectNode node, String className) {
+  var source = '';
+  source += '  /// Creates a new object to expose on [path].\n';
+  source +=
+      "  $className({DBusObjectPath path = const DBusObjectPath.unchecked('${node.name ?? '/'}')}) : super(path);\n";
 
   return source;
 }

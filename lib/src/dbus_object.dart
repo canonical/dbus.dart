@@ -6,13 +6,14 @@ import 'dbus_value.dart';
 
 /// An object that is exported on the bus.
 class DBusObject {
+  /// The path this object is registered on.
+  final DBusObjectPath path;
+
   /// The client this object is being exported by.
   DBusClient? client;
 
-  /// The path this object is registered on.
-  DBusObjectPath get path {
-    return DBusObjectPath('/');
-  }
+  /// Creates a new object to export on the bus at [path].
+  DBusObject(this.path);
 
   /// Called to get introspection information about this object.
   List<DBusIntrospectInterface> introspect() {
