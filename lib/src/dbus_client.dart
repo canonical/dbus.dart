@@ -837,43 +837,41 @@ class DBusClient {
 
   /// Processes a method call from the D-Bus server.
   Future<void> _processMethodCall(DBusMessage message) async {
+    DBusObjectTreeNode? node;
+    if (message.path != null) {
+      node = _objectTree.lookup(message.path!);
+    }
+    var object = node?.object;
+
+    var methodCall = DBusMethodCall(
+        message.sender?.value ?? '',
+        message.interface?.value,
+        message.member?.value ?? '',
+        message.values,
+        message.flags
+            .map((flag) => {
+                  DBusMessageFlag.noReplyExpected:
+                      DBusMethodCallFlag.noReplyExpected,
+                  DBusMessageFlag.noAutoStart: DBusMethodCallFlag.noAutoStart,
+                  DBusMessageFlag.allowInteractiveAuthorization:
+                      DBusMethodCallFlag.allowInteractiveAuthorization
+                }[flag]!)
+            .toSet());
+
     DBusMethodResponse response;
     if (message.member == null) {
       response = DBusMethodErrorResponse.unknownMethod();
-    } else if (message.path == null) {
-      response = DBusMethodErrorResponse.unknownObject();
+    } else if (message.interface?.value == 'org.freedesktop.DBus.Peer') {
+      response = await handlePeerMethodCall(methodCall);
     } else if (message.interface?.value ==
         'org.freedesktop.DBus.Introspectable') {
-      response = handleIntrospectableMethodCall(
-          _objectTree, message.path!, message.member!.value, message.values);
-    } else if (message.interface?.value == 'org.freedesktop.DBus.Peer') {
-      response =
-          await handlePeerMethodCall(message.member!.value, message.values);
+      response = handleIntrospectableMethodCall(node, methodCall);
+    } else if (object == null) {
+      response = DBusMethodErrorResponse.unknownObject();
     } else if (message.interface?.value == 'org.freedesktop.DBus.Properties') {
-      response = await handlePropertiesMethodCall(
-          _objectTree, message.path!, message.member!.value, message.values);
+      response = await handlePropertiesMethodCall(object, methodCall);
     } else {
-      var object = _objectTree.lookupObject(message.path!);
-      if (object != null) {
-        var methodCall = DBusMethodCall(
-            message.sender?.value ?? '',
-            message.interface?.value,
-            message.member?.value ?? '',
-            message.values,
-            message.flags
-                .map((flag) => {
-                      DBusMessageFlag.noReplyExpected:
-                          DBusMethodCallFlag.noReplyExpected,
-                      DBusMessageFlag.noAutoStart:
-                          DBusMethodCallFlag.noAutoStart,
-                      DBusMessageFlag.allowInteractiveAuthorization:
-                          DBusMethodCallFlag.allowInteractiveAuthorization
-                    }[flag]!)
-                .toSet());
-        response = await object.handleMethodCall(methodCall);
-      } else {
-        response = DBusMethodErrorResponse.unknownInterface();
-      }
+      response = await object.handleMethodCall(methodCall);
     }
 
     if (message.flags.contains(DBusMessageFlag.noReplyExpected)) {

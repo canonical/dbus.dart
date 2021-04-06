@@ -1,4 +1,5 @@
 import 'dbus_introspect.dart';
+import 'dbus_method_call.dart';
 import 'dbus_method_response.dart';
 import 'dbus_object_tree.dart';
 import 'dbus_peer.dart';
@@ -18,20 +19,20 @@ DBusIntrospectInterface introspectIntrospectable() {
 }
 
 /// Handles method calls on the org.freedesktop.DBus.Introspectable interface.
-DBusMethodResponse handleIntrospectableMethodCall(DBusObjectTree objectTree,
-    DBusObjectPath path, String member, List<DBusValue> values) {
-  if (member == 'Introspect') {
-    if (values.isNotEmpty) {
+DBusMethodResponse handleIntrospectableMethodCall(
+    DBusObjectTreeNode? node, DBusMethodCall methodCall) {
+  if (methodCall.name == 'Introspect') {
+    if (methodCall.signature != DBusSignature('')) {
       return DBusMethodErrorResponse.invalidArgs();
     }
 
-    var node = objectTree.lookup(path);
     var interfaces = <DBusIntrospectInterface>[];
-    if (node != null && node.object != null) {
+    var object = node?.object;
+    if (object != null) {
       interfaces.add(introspectIntrospectable());
       interfaces.add(introspectPeer());
       interfaces.add(introspectProperties());
-      interfaces.addAll(node.object!.introspect());
+      interfaces.addAll(object.introspect());
     }
     var children = <DBusIntrospectNode>[];
     if (node != null) {

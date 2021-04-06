@@ -32,15 +32,6 @@ class DBusObjectTree {
 
     return node;
   }
-
-  /// Find the object for the given [path], or return null if not in the tree.
-  DBusObject? lookupObject(DBusObjectPath path) {
-    var node = lookup(path);
-    if (node == null) {
-      return null;
-    }
-    return node.object;
-  }
 }
 
 /// A node in a [DBusObjectTree].
