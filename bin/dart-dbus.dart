@@ -732,7 +732,7 @@ String generateRemoteSignalClass(String classPrefix,
   var argNames = [
     // Members of the DBusSignal class. Needs to be kept up to date.
     'interface',
-    'member',
+    'name',
     'path',
     'sender',
     'values',
