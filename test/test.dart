@@ -740,7 +740,7 @@ void main() {
 
     // Subscribe to the signal from another client.
     var signals =
-        client2.subscribeSignals(interface: 'com.example.Test', name: 'Ping');
+        DBusSignalStream(client2, interface: 'com.example.Test', name: 'Ping');
     signals.listen(expectAsync1((signal) {
       expect(signal.sender, equals(client1.uniqueName));
       expect(signal.path, equals(DBusObjectPath('/')));
@@ -771,7 +771,8 @@ void main() {
     // Subscribe to the signal from another client.
     var remoteObject =
         DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
-    var signals = remoteObject.subscribeSignal('com.example.Test', 'Ping');
+    var signals =
+        DBusRemoteObjectSignalStream(remoteObject, 'com.example.Test', 'Ping');
     signals.listen(expectAsync1((signal) {
       expect(signal.sender, equals(client1.uniqueName));
       expect(signal.path, equals(DBusObjectPath('/')));
@@ -803,7 +804,8 @@ void main() {
     // Subscribe to the signal from another client.
     var remoteObject =
         DBusRemoteObject(client2, 'com.example.Test', DBusObjectPath('/'));
-    var signals = remoteObject.subscribeSignal('com.example.Test', 'Ping');
+    var signals =
+        DBusRemoteObjectSignalStream(remoteObject, 'com.example.Test', 'Ping');
     signals.listen(expectAsync1((signal) {
       expect(signal.sender, equals(client1.uniqueName));
       expect(signal.path, equals(DBusObjectPath('/')));
@@ -1013,8 +1015,7 @@ void main() {
     /// Subscribe to properties changed signals.
     var remoteObject =
         DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
-    var signals = remoteObject.subscribePropertiesChanged();
-    signals.listen(expectAsync1((signal) {
+    remoteObject.propertiesChanged.listen(expectAsync1((signal) {
       expect(signal.propertiesInterface, equals('com.example.Test'));
       expect(
           signal.changedProperties,

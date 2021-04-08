@@ -83,38 +83,52 @@ class DBusProcessCredentials {
   }
 }
 
-class _DBusSignalSubscription {
-  final DBusClient client;
-  final DBusMatchRule rule;
-  final controller = StreamController<DBusSignal>();
+/// A stream of signals.
+class DBusSignalStream extends Stream<DBusSignal> {
+  final DBusClient _client;
+  final DBusMatchRule _rule;
+  final _controller = StreamController<DBusSignal>();
 
-  Stream<DBusSignal> get stream => controller.stream;
-
-  _DBusSignalSubscription(
-      this.client,
-      DBusBusName? sender,
-      DBusInterfaceName? interface,
-      DBusMemberName? name,
+  /// Creates a stream of signals that match [sender], [interface], [name], [path] and/or [pathNamespace].
+  DBusSignalStream(DBusClient client,
+      {String? sender,
+      String? interface,
+      String? name,
       DBusObjectPath? path,
-      DBusObjectPath? pathNamespace)
-      : rule = DBusMatchRule(
+      DBusObjectPath? pathNamespace})
+      : _client = client,
+        _rule = DBusMatchRule(
             type: DBusMessageType.signal,
-            sender: sender,
-            interface: interface,
-            member: name,
+            sender: sender != null ? DBusBusName(sender) : null,
+            interface: interface != null ? DBusInterfaceName(interface) : null,
+            member: name != null ? DBusMemberName(name) : null,
             path: path,
             pathNamespace: pathNamespace) {
-    controller.onListen = onListen;
-    controller.onCancel = onCancel;
+    _controller.onListen = _onListen;
+    _controller.onCancel = _onCancel;
   }
 
-  void onListen() {
-    client._addMatch(rule.toDBusString());
+  @override
+  StreamSubscription<DBusSignal> listen(
+      void Function(DBusSignal signal)? onData,
+      {Function? onError,
+      void Function()? onDone,
+      bool? cancelOnError}) {
+    _client._signalStreams.add(this);
+    return _controller.stream.listen(onData,
+        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
-  Future<void> onCancel() async {
-    await client._removeMatch(rule.toDBusString());
-    client._signalSubscriptions.remove(this);
+  void _onListen() {
+    if (_rule.sender != null) {
+      _client._findUniqueName(_rule.sender!);
+    }
+    _client._addMatch(_rule.toDBusString());
+  }
+
+  Future<void> _onCancel() async {
+    await _client._removeMatch(_rule.toDBusString());
+    _client._signalStreams.remove(this);
   }
 }
 
@@ -127,7 +141,7 @@ class DBusClient {
   Completer? _connectCompleter;
   var _lastSerial = 0;
   final _methodCalls = <int, Completer<DBusMethodResponse>>{};
-  final _signalSubscriptions = <_DBusSignalSubscription>[];
+  final _signalStreams = <DBusSignalStream>[];
   StreamSubscription<DBusSignal>? _nameAcquiredSubscription;
   StreamSubscription<DBusSignal>? _nameLostSubscription;
   StreamSubscription<DBusSignal>? _nameOwnerSubscription;
@@ -531,33 +545,6 @@ class DBusClient {
         flags: flags);
   }
 
-  /// Subscribe to signals that match [sender], [interface], [name], [path] and/or [pathNamespace].
-  Stream<DBusSignal> subscribeSignals({
-    String? sender,
-    String? interface,
-    String? name,
-    DBusObjectPath? path,
-    DBusObjectPath? pathNamespace,
-  }) {
-    var sender_ = sender != null ? DBusBusName(sender) : null;
-    var subscription = _DBusSignalSubscription(
-        this,
-        sender_,
-        interface != null ? DBusInterfaceName(interface) : null,
-        name != null ? DBusMemberName(name) : null,
-        path,
-        pathNamespace);
-
-    // Get the unique name of the sender (as this is the name the messages will use).
-    if (sender_ != null) {
-      _findUniqueName(sender_);
-    }
-
-    _signalSubscriptions.add(subscription);
-
-    return subscription.stream;
-  }
-
   /// Find the unique name for a D-Bus client.
   Future<DBusBusName?> _findUniqueName(DBusBusName name) async {
     if (_nameOwners.containsValue(name)) return _nameOwners[name];
@@ -689,17 +676,17 @@ class DBusClient {
     _connectCompleter?.complete();
 
     // Monitor name ownership so we know what names we have, and can match incoming signals from other clients.
-    var nameAcquiredSignals = subscribeSignals(
+    var nameAcquiredSignals = DBusSignalStream(this,
         sender: 'org.freedesktop.DBus',
         interface: 'org.freedesktop.DBus',
         name: 'NameAcquired');
     _nameAcquiredSubscription = nameAcquiredSignals.listen(_handleNameAcquired);
-    var nameLostSignals = subscribeSignals(
+    var nameLostSignals = DBusSignalStream(this,
         sender: 'org.freedesktop.DBus',
         interface: 'org.freedesktop.DBus',
         name: 'NameLost');
     _nameLostSubscription = nameLostSignals.listen(_handleNameLost);
-    var nameOwnerChangedSignals = subscribeSignals(
+    var nameOwnerChangedSignals = DBusSignalStream(this,
         sender: 'org.freedesktop.DBus',
         interface: 'org.freedesktop.DBus',
         name: 'NameOwnerChanged');
@@ -923,14 +910,14 @@ class DBusClient {
       return;
     }
 
-    for (var subscription in _signalSubscriptions) {
-      // If the subscription is for an owned name, check if that matches the unique name in the message.
+    for (var stream in _signalStreams) {
+      // If the stream is for an owned name, check if that matches the unique name in the message.
       var sender = message.sender;
-      if (_nameOwners[subscription.rule.sender] == sender) {
-        sender = subscription.rule.sender;
+      if (_nameOwners[stream._rule.sender] == sender) {
+        sender = stream._rule.sender;
       }
 
-      if (!subscription.rule.match(
+      if (!stream._rule.match(
           type: DBusMessageType.signal,
           sender: sender,
           interface: message.interface,
@@ -939,7 +926,7 @@ class DBusClient {
         continue;
       }
 
-      subscription.controller.add(DBusSignal(
+      stream._controller.add(DBusSignal(
           message.sender?.value ?? '',
           message.path ?? DBusObjectPath('/'),
           message.interface?.value ?? '',
