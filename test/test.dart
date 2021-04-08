@@ -57,9 +57,8 @@ class TestObject extends DBusObject {
       this.introspectData = const [],
       this.propertyValues = const {},
       this.propertyGetErrors = const {},
-      this.propertySetErrors = const {},
-      bool hasProperties = true})
-      : super(DBusObjectPath('/'), hasProperties: hasProperties);
+      this.propertySetErrors = const {}})
+      : super(DBusObjectPath('/'));
 
   @override
   Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
@@ -879,43 +878,6 @@ void main() {
             '</node>'));
   });
 
-  test('introspect - no properties', () async {
-    var server = DBusServer();
-    var address =
-        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
-    var client1 = DBusClient(address);
-    var client2 = DBusClient(address);
-
-    // Create a client that exposes introspection data.
-    await client1.registerObject(TestObject(introspectData: [
-      DBusIntrospectInterface('com.example.Test',
-          methods: [DBusIntrospectMethod('Foo')])
-    ], hasProperties: false));
-
-    // Read introspection data from the first client.
-    var remoteObject =
-        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
-    var node = await remoteObject.introspect();
-    expect(
-        node.toXml().toXmlString(),
-        equals('<node>'
-            '<interface name="org.freedesktop.DBus.Introspectable">'
-            '<method name="Introspect">'
-            '<arg name="xml_data" type="s" direction="out"/>'
-            '</method>'
-            '</interface>'
-            '<interface name="org.freedesktop.DBus.Peer">'
-            '<method name="GetMachineId">'
-            '<arg name="machine_uuid" type="s" direction="out"/>'
-            '</method>'
-            '<method name="Ping"/>'
-            '</interface>'
-            '<interface name="com.example.Test">'
-            '<method name="Foo"/>'
-            '</interface>'
-            '</node>'));
-  });
-
   test('introspect - not introspectable', () async {
     var server = DBusServer();
     var address =
@@ -1073,31 +1035,5 @@ void main() {
       'Invalid1',
       'Invalid2'
     ]);
-  });
-
-  test('properties disabled', () async {
-    var server = DBusServer();
-    var address =
-        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
-    var client1 = DBusClient(address);
-    var client2 = DBusClient(address);
-
-    // Create a client that exposes an object without properties.
-    var object = TestObject(hasProperties: false);
-    await client1.registerObject(object);
-
-    var remoteObject =
-        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
-
-    // All properties calls should fail.
-
-    expect(remoteObject.getProperty('com.example.Test', 'ReadWrite'),
-        throwsA(isMethodResponseException));
-    expect(
-        remoteObject.setProperty(
-            'com.example.Test', 'ReadWrite', DBusString('RW')),
-        throwsA(isMethodResponseException));
-    expect(remoteObject.getAllProperties('com.example.Test'),
-        throwsA(isMethodResponseException));
   });
 }

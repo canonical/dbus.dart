@@ -31,9 +31,7 @@ DBusMethodResponse handleIntrospectableMethodCall(
     if (object != null) {
       interfaces.add(introspectIntrospectable());
       interfaces.add(introspectPeer());
-      if (object.hasProperties) {
-        interfaces.add(introspectProperties());
-      }
+      interfaces.add(introspectProperties());
       interfaces.addAll(object.introspect());
     }
     var children = <DBusIntrospectNode>[];
