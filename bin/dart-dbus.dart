@@ -109,12 +109,12 @@ void generateModule(
   }
 }
 
-/// Ensure [name] isn't in [methodNames], and return a modified version that is unique.
-String getUniqueMethodName(List<String> methodNames, String name) {
-  while (methodNames.contains(name)) {
+/// Ensure [name] isn't in [memberNames], and return a modified version that is unique.
+String getUniqueMethodName(List<String> memberNames, String name) {
+  while (memberNames.contains(name)) {
     name += '_';
   }
-  methodNames.add(name);
+  memberNames.add(name);
   return name;
 }
 
@@ -123,7 +123,7 @@ String? generateObjectClass(DBusIntrospectNode node, String className) {
   var methods = <String>[];
   // Method names provided in this class, initially populated with DBusObject methods.
   // Needs to be kept in sync with the DBusObject class.
-  var methodNames = [
+  var memberNames = [
     'emitPropertiesChangedSignal',
     'emitSignal',
     'getAllProperties',
@@ -140,13 +140,13 @@ String? generateObjectClass(DBusIntrospectNode node, String className) {
   for (var interface in node.interfaces) {
     for (var property in interface.properties) {
       methods.addAll(generatePropertyImplementationMethods(
-          methodNames, getMethodNames, setMethodNames, interface, property));
+          memberNames, getMethodNames, setMethodNames, interface, property));
     }
     for (var method in interface.methods) {
-      methods.add(generateMethodImplementation(methodNames, interface, method));
+      methods.add(generateMethodImplementation(memberNames, interface, method));
     }
     for (var signal in interface.signals) {
-      methods.add(generateSignalEmitMethod(methodNames, interface, signal));
+      methods.add(generateSignalEmitMethod(memberNames, interface, signal));
     }
   }
   methods.add(generateIntrospectMethod(node));
@@ -175,7 +175,7 @@ String generateConstructor(DBusIntrospectNode node, String className) {
 
 /// Generates a stub implementation of [property].
 List<String> generatePropertyImplementationMethods(
-    List<String> methodNames,
+    List<String> memberNames,
     Map<String, String> getMethodNames,
     Map<String, String> setMethodNames,
     DBusIntrospectInterface interface,
@@ -186,7 +186,7 @@ List<String> generatePropertyImplementationMethods(
 
   if (property.access == DBusPropertyAccess.readwrite ||
       property.access == DBusPropertyAccess.read) {
-    var methodName = getUniqueMethodName(methodNames, 'get${property.name}');
+    var methodName = getUniqueMethodName(memberNames, 'get${property.name}');
     getMethodNames['${interface.name}.${property.name}'] = methodName;
 
     var source = '';
@@ -200,7 +200,7 @@ List<String> generatePropertyImplementationMethods(
   }
   if (property.access == DBusPropertyAccess.readwrite ||
       property.access == DBusPropertyAccess.write) {
-    var methodName = getUniqueMethodName(methodNames, 'set${property.name}');
+    var methodName = getUniqueMethodName(memberNames, 'set${property.name}');
     setMethodNames['${interface.name}.${property.name}'] = methodName;
 
     var source = '';
@@ -217,7 +217,7 @@ List<String> generatePropertyImplementationMethods(
 }
 
 /// Generates a stub implementation of [method].
-String generateMethodImplementation(List<String> methodNames,
+String generateMethodImplementation(List<String> memberNames,
     DBusIntrospectInterface interface, DBusIntrospectMethod method) {
   var argValues = <String>[];
   var argsList = <String>[];
@@ -247,7 +247,7 @@ String generateMethodImplementation(List<String> methodNames,
     index++;
   }
 
-  var methodName = getUniqueMethodName(methodNames, 'do${method.name}');
+  var methodName = getUniqueMethodName(memberNames, 'do${method.name}');
 
   var source = '';
   source += '  /// Implementation of ${interface.name}.${method.name}()\n';
@@ -261,7 +261,7 @@ String generateMethodImplementation(List<String> methodNames,
 }
 
 /// Generates a method to emit a signal.
-String generateSignalEmitMethod(List<String> methodNames,
+String generateSignalEmitMethod(List<String> memberNames,
     DBusIntrospectInterface interface, DBusIntrospectSignal signal) {
   var argNames = [
     // Dart keywords that aren't allowed.
@@ -317,7 +317,7 @@ String generateSignalEmitMethod(List<String> methodNames,
     index++;
   }
 
-  var methodName = getUniqueMethodName(methodNames, 'emit${signal.name}');
+  var methodName = getUniqueMethodName(memberNames, 'emit${signal.name}');
 
   var source = '';
   source += '  /// Emits signal ${interface.name}.${signal.name}\n';
@@ -574,33 +574,37 @@ String generateGetAllProperties(DBusIntrospectNode node) {
 /// Generates a DBusRemoteObject class for the given introspection node.
 String? generateRemoteObjectClass(DBusIntrospectNode node, String className) {
   var classes = <String>[];
+  var variables = <String>[];
   var methods = <String>[];
+  var variableConstructors = <String>[];
   // Method names provided in this class, initially populated with DBusRemoteObject methods.
   // Needs to be kept in sync with the DBusRemoteObject class.
-  var methodNames = [
+  var memberNames = [
     'callMethod',
     'getAllProperties',
     'getProperty',
-    'setProperty',
-    'subscribeObjectManagerSignals',
-    'subscribePropertiesChanged',
-    'subscribeSignal'
+    'setProperty'
   ];
 
   for (var interface in node.interfaces) {
+    for (var signal in interface.signals) {
+      classes.add(generateRemoteSignalClass(className, interface, signal));
+      var lowerCaseName =
+          signal.name[0].toLowerCase() + signal.name.substring(1);
+      var variableName = getUniqueMethodName(memberNames, lowerCaseName);
+      variables.add(generateRemoteSignalVariable(
+          variableName, className, interface, signal));
+      variableConstructors.add(generateRemoteSignalConstructor(
+          variableName, className, interface, signal));
+    }
+
     for (var property in interface.properties) {
       methods.addAll(
-          generateRemotePropertyMethods(methodNames, interface, property));
+          generateRemotePropertyMethods(memberNames, interface, property));
     }
 
     for (var method in interface.methods) {
-      methods.add(generateRemoteMethodCall(methodNames, interface, method));
-    }
-
-    for (var signal in interface.signals) {
-      classes.add(generateRemoteSignalClass(className, interface, signal));
-      methods.add(generateRemoteSignalSubscription(
-          methodNames, className, interface, signal));
+      methods.add(generateRemoteMethodCall(memberNames, interface, method));
     }
   }
 
@@ -612,12 +616,24 @@ String? generateRemoteObjectClass(DBusIntrospectNode node, String className) {
     pathArg = 'DBusObjectPath path';
   }
 
+  var constructor =
+      '  $className(DBusClient client, String destination, $pathArg) : super(client, destination, path)';
+  if (variableConstructors.isEmpty) {
+    constructor += ';\n';
+  } else {
+    constructor += ' {\n';
+    constructor += variableConstructors.join('\n');
+    constructor += '}\n';
+  }
+
+  var members = <String>[];
+  members.addAll(variables);
+  members.add(constructor);
+  members.addAll(methods);
+
   var source = '';
   source += 'class $className extends DBusRemoteObject {\n';
-  source +=
-      '''  $className(DBusClient client, String destination, $pathArg) : super(client, destination, path);\n''';
-  source += '\n';
-  source += methods.join('\n');
+  source += members.join('\n');
   source += '}\n';
   classes.add(source);
 
@@ -625,7 +641,7 @@ String? generateRemoteObjectClass(DBusIntrospectNode node, String className) {
 }
 
 /// Generate methods for the remote [property].
-List<String> generateRemotePropertyMethods(List<String> methodNames,
+List<String> generateRemotePropertyMethods(List<String> memberNames,
     DBusIntrospectInterface interface, DBusIntrospectProperty property) {
   var methods = <String>[];
 
@@ -633,7 +649,7 @@ List<String> generateRemotePropertyMethods(List<String> methodNames,
 
   if (property.access == DBusPropertyAccess.readwrite ||
       property.access == DBusPropertyAccess.read) {
-    var methodName = getUniqueMethodName(methodNames, 'get${property.name}');
+    var methodName = getUniqueMethodName(memberNames, 'get${property.name}');
 
     var convertedValue = type.dbusToNative('value');
     var source = '';
@@ -648,7 +664,7 @@ List<String> generateRemotePropertyMethods(List<String> methodNames,
 
   if (property.access == DBusPropertyAccess.readwrite ||
       property.access == DBusPropertyAccess.write) {
-    var methodName = getUniqueMethodName(methodNames, 'set${property.name}');
+    var methodName = getUniqueMethodName(memberNames, 'set${property.name}');
 
     var convertedValue = type.nativeToDBus('value');
     var source = '';
@@ -664,7 +680,7 @@ List<String> generateRemotePropertyMethods(List<String> methodNames,
 }
 
 /// Generates a method for a remote D-Bus method call.
-String generateRemoteMethodCall(List<String> methodNames,
+String generateRemoteMethodCall(List<String> memberNames,
     DBusIntrospectInterface interface, DBusIntrospectMethod method) {
   var inputArgs =
       method.args.where((arg) => arg.direction == DBusArgumentDirection.in_);
@@ -705,7 +721,7 @@ String generateRemoteMethodCall(List<String> methodNames,
   var methodCall =
       "await callMethod('${interface.name}', '${method.name}', [${argValues.join(', ')}]);";
 
-  var methodName = getUniqueMethodName(methodNames, 'call${method.name}');
+  var methodName = getUniqueMethodName(memberNames, 'call${method.name}');
 
   var source = '';
   source += '  /// Invokes ${interface.name}.${method.name}()\n';
@@ -793,24 +809,35 @@ String generateRemoteSignalClass(String classPrefix,
     index++;
   }
 
+  var signalClassName = '$classPrefix${signal.name}';
+
   var source = '';
   source += '/// Signal data for ${interface.name}.${signal.name}.\n';
   source += 'class $classPrefix${signal.name} extends DBusSignal{\n';
   source += properties.join();
   source += '\n';
   source +=
-      '  $classPrefix${signal.name}(DBusSignal signal) : super(signal.sender, signal.path, signal.interface, signal.name, signal.values);\n';
+      '  $signalClassName(DBusSignal signal) : super(signal.sender, signal.path, signal.interface, signal.name, signal.values);\n';
   source += '}\n';
 
   return source;
 }
 
-/// Generates a method to subscribe to a signal.
-String generateRemoteSignalSubscription(
-    List<String> methodNames,
-    String classPrefix,
-    DBusIntrospectInterface interface,
-    DBusIntrospectSignal signal) {
+/// Generates a variable for a signal stream.
+String generateRemoteSignalVariable(String variableName, String classPrefix,
+    DBusIntrospectInterface interface, DBusIntrospectSignal signal) {
+  var signalClassName = '$classPrefix${signal.name}';
+
+  var source = '';
+  source += '  /// Stream of ${interface.name}.${signal.name} signals.\n';
+  source += '  late final Stream<$signalClassName> $variableName;\n';
+
+  return source;
+}
+
+/// Generates a constructor for a signal stream.
+String generateRemoteSignalConstructor(String variableName, String classPrefix,
+    DBusIntrospectInterface interface, DBusIntrospectSignal signal) {
   String valueCheck;
   if (signal.args.isEmpty) {
     valueCheck = 'signal.values.isEmpty';
@@ -819,22 +846,18 @@ String generateRemoteSignalSubscription(
         "signal.signature == DBusSignature('${signal.signature.value}')";
   }
 
-  var methodName = getUniqueMethodName(methodNames, 'subscribe${signal.name}');
+  var signalClassName = '$classPrefix${signal.name}';
 
   var source = '';
-  source += '  /// Subscribes to ${interface.name}.${signal.name}.\n';
-  source += '  Stream<$classPrefix${signal.name}> $methodName() {\n';
   source +=
-      "    var signals = subscribeSignal('${interface.name}', '${signal.name}');\n";
-  source += '    return signals.map((signal) {\n';
+      "    $variableName = DBusRemoteObjectSignalStream(this, '${interface.name}', '${signal.name}').map((signal) {\n";
   source += '      if ($valueCheck) {\n';
-  source += '        return $classPrefix${signal.name}(signal);\n';
+  source += '        return $signalClassName(signal);\n';
   source += '      } else {\n';
   source +=
       "        throw '${interface.name}.${signal.name} contains invalid values \${signal.values}';\n";
   source += '      }\n';
   source += '    });\n';
-  source += '  }\n';
 
   return source;
 }

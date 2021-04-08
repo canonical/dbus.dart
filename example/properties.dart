@@ -24,7 +24,7 @@ void main() async {
     print('${address.toNative()}');
   }
 
-  object.subscribePropertiesChanged().listen((signal) {
+  object.propertiesChanged.listen((signal) {
     signal.changedProperties.forEach((name, value) {
       print('$name: ${value.toNative()}');
     });

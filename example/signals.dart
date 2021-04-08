@@ -29,7 +29,8 @@ void main(List<String> args) async {
       'com.canonical.DBusDart',
       DBusObjectPath('/com/canonical/DBusDart'),
     );
-    var signals = object.subscribeSignal('com.canonical.DBusDart', 'Ping');
+    var signals =
+        DBusRemoteObjectSignalStream(object, 'com.canonical.DBusDart', 'Ping');
     await for (var signal in signals) {
       var count = (signal.values[0] as DBusUint64).value;
       print('Ping $count!');

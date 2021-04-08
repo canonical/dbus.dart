@@ -5,6 +5,18 @@ import 'dbus_method_response.dart';
 import 'dbus_signal.dart';
 import 'dbus_value.dart';
 
+/// A stream of signals from a remote object.
+class DBusRemoteObjectSignalStream extends DBusSignalStream {
+  /// Creates a stream of signals [interface.name] from [object].
+  DBusRemoteObjectSignalStream(
+      DBusRemoteObject object, String interface, String name)
+      : super(object.client,
+            sender: object.destination,
+            path: object.path,
+            interface: interface,
+            name: name);
+}
+
 /// Signal received when properties are changed.
 class DBusPropertiesChangedSignal extends DBusSignal {
   /// The interface the properties are on.
@@ -58,12 +70,55 @@ class DBusObjectManagerInterfacesRemovedSignal extends DBusSignal {
 
 /// An object to simplify access to a D-Bus object.
 class DBusRemoteObject {
+  /// The client this object is accessed from.
   final DBusClient client;
+
+  /// The address of the client providing this object.
   final String destination;
+
+  /// The path to the object.
   final DBusObjectPath path;
 
+  /// Stream of signals when the remote object indicates a property has changed.
+  late final Stream<DBusPropertiesChangedSignal> propertiesChanged;
+
+  /// Stream of signals used by an object manager.
+  /// The stream will contain [DBusPropertiesChangedSignal], [DBusObjectManagerInterfacesAddedSignal], [DBusObjectManagerInterfacesRemovedSignal] and [DBusSignal] for all other signals on these objects.
+  /// Requires the remote object to implement the org.freedesktop.DBus.ObjectManager interface.
+  late final Stream<DBusSignal> objectManagerSignals;
+
   /// Creates an object that access accesses a remote D-Bus object at [destination], [path].
-  DBusRemoteObject(this.client, this.destination, this.path);
+  DBusRemoteObject(this.client, this.destination, this.path) {
+    var rawPropertiesChanged = DBusRemoteObjectSignalStream(
+        this, 'org.freedesktop.DBus.Properties', 'PropertiesChanged');
+    propertiesChanged = rawPropertiesChanged.map((signal) {
+      if (signal.signature == DBusSignature('sa{sv}as')) {
+        return DBusPropertiesChangedSignal(signal);
+      } else {
+        throw 'org.freedesktop.DBus.Properties.PropertiesChanged contains invalid values ${signal.values}';
+      }
+    });
+
+    var rawObjectManagerSignals =
+        DBusSignalStream(client, sender: destination, pathNamespace: path);
+    objectManagerSignals = rawObjectManagerSignals.map((signal) {
+      if (signal.interface == 'org.freedesktop.DBus.ObjectManager' &&
+          signal.name == 'InterfacesAdded' &&
+          signal.signature == DBusSignature('oa{sa{sv}}')) {
+        return DBusObjectManagerInterfacesAddedSignal(signal);
+      } else if (signal.interface == 'org.freedesktop.DBus.ObjectManager' &&
+          signal.name == 'InterfacesRemoved' &&
+          signal.signature == DBusSignature('oas')) {
+        return DBusObjectManagerInterfacesRemovedSignal(signal);
+      } else if (signal.interface == 'org.freedesktop.DBus.Properties' &&
+          signal.name == 'PropertiesChanged' &&
+          signal.signature == DBusSignature('aa{sv}as')) {
+        return DBusPropertiesChangedSignal(signal);
+      } else {
+        return signal;
+      }
+    });
+  }
 
   /// Gets the introspection data for this object.
   Future<DBusIntrospectNode> introspect() async {
@@ -122,19 +177,6 @@ class DBusRemoteObject {
     }
   }
 
-  /// Subscribes to property changes.
-  Stream<DBusPropertiesChangedSignal> subscribePropertiesChanged() {
-    var signals =
-        subscribeSignal('org.freedesktop.DBus.Properties', 'PropertiesChanged');
-    return signals.map((signal) {
-      if (signal.signature == DBusSignature('sa{sv}as')) {
-        return DBusPropertiesChangedSignal(signal);
-      } else {
-        throw 'org.freedesktop.DBus.Properties.PropertiesChanged contains invalid values ${signal.values}';
-      }
-    });
-  }
-
   /// Invokes a method on this object.
   Future<DBusMethodResponse> callMethod(
       String? interface, String name, Iterable<DBusValue> values,
@@ -146,12 +188,6 @@ class DBusRemoteObject {
         name: name,
         values: values,
         flags: flags);
-  }
-
-  /// Subscribes to signals [interface].[name] from this object.
-  Stream<DBusSignal> subscribeSignal(String interface, String name) {
-    return client.subscribeSignals(
-        sender: destination, path: path, interface: interface, name: name);
   }
 
   /// Gets all the sub-tree of objects, interfaces and properties of this object.
@@ -174,31 +210,6 @@ class DBusRemoteObject {
     }
 
     return decodeObjects(result.returnValues[0]);
-  }
-
-  /// Subscribes to signals using object manager.
-  /// The stream will contain [DBusPropertiesChangedSignal], [DBusObjectManagerInterfacesAddedSignal], [DBusObjectManagerInterfacesRemovedSignal] and [DBusSignal] for all other signals on these objects.
-  /// Requires the remote object to implement the org.freedesktop.DBus.ObjectManager interface.
-  Stream<DBusSignal> subscribeObjectManagerSignals() {
-    var signals =
-        client.subscribeSignals(sender: destination, pathNamespace: path);
-    return signals.map((signal) {
-      if (signal.interface == 'org.freedesktop.DBus.ObjectManager' &&
-          signal.name == 'InterfacesAdded' &&
-          signal.signature == DBusSignature('oa{sa{sv}}')) {
-        return DBusObjectManagerInterfacesAddedSignal(signal);
-      } else if (signal.interface == 'org.freedesktop.DBus.ObjectManager' &&
-          signal.name == 'InterfacesRemoved' &&
-          signal.signature == DBusSignature('oas')) {
-        return DBusObjectManagerInterfacesRemovedSignal(signal);
-      } else if (signal.interface == 'org.freedesktop.DBus.Properties' &&
-          signal.name == 'PropertiesChanged' &&
-          signal.signature == DBusSignature('aa{sv}as')) {
-        return DBusPropertiesChangedSignal(signal);
-      } else {
-        return signal;
-      }
-    });
   }
 
   @override

@@ -5,7 +5,7 @@ void main() async {
   var object = DBusRemoteObject(client, 'org.freedesktop.NetworkManager',
       DBusObjectPath('/org/freedesktop'));
 
-  object.subscribeObjectManagerSignals().listen((signal) {
+  object.objectManagerSignals.listen((signal) {
     if (signal is DBusObjectManagerInterfacesAddedSignal) {
       print('${signal.changedPath.value}');
       printInterfacesAndProperties(signal.interfacesAndProperties);
