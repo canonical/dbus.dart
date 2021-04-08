@@ -873,8 +873,7 @@ class DBusClient {
       response = handleIntrospectableMethodCall(node, methodCall);
     } else if (object == null) {
       response = DBusMethodErrorResponse.unknownObject();
-    } else if (object.hasProperties &&
-        message.interface?.value == 'org.freedesktop.DBus.Properties') {
+    } else if (message.interface?.value == 'org.freedesktop.DBus.Properties') {
       response = await handlePropertiesMethodCall(object, methodCall);
     } else {
       response = await object.handleMethodCall(methodCall);
