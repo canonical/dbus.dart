@@ -24,111 +24,102 @@ class ServerWithActivatableService extends DBusServer {
   }
 }
 
-// Test object which has expects requests with given flags.
-class MethodCallObject extends DBusObject {
-  final String? name;
-  final List<DBusValue>? values;
-  final Set<DBusMethodCallFlag> flags;
-  final List<DBusValue> responseValues;
-  final String? errorName;
+class TestObject extends DBusObject {
+  // Method call to expect
+  final String? expectedMethodName;
 
-  MethodCallObject(
-      {this.name,
-      this.values,
-      this.flags = const {},
-      this.responseValues = const [],
-      this.errorName})
-      : super(DBusObjectPath('/'));
+  // Arguments to expect on method call.
+  final List<DBusValue>? expectedMethodValues;
+
+  // Flags to expect on method call.
+  final Set<DBusMethodCallFlag>? expectedMethodFlags;
+
+  // Responses to send to method calls.
+  final Map<String, DBusMethodResponse> methodResponses;
+
+  // Data to return when introspected.
+  final List<DBusIntrospectInterface> introspectData;
+
+  // Values for each property.
+  final Map<String, DBusValue> propertyValues;
+
+  // Error responses to give when getting a property.
+  final Map<String, DBusMethodErrorResponse> propertyGetErrors;
+
+  // Error responses to give when setting a property.
+  final Map<String, DBusMethodErrorResponse> propertySetErrors;
+
+  TestObject(
+      {this.expectedMethodName,
+      this.expectedMethodValues,
+      this.expectedMethodFlags,
+      this.methodResponses = const {},
+      this.introspectData = const [],
+      this.propertyValues = const {},
+      this.propertyGetErrors = const {},
+      this.propertySetErrors = const {},
+      bool hasProperties = true})
+      : super(DBusObjectPath('/'), hasProperties: hasProperties);
 
   @override
   Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
-    if (name != null) {
-      expect(methodCall.name, equals(name));
+    if (expectedMethodName != null) {
+      expect(methodCall.name, equals(expectedMethodName));
     }
-    if (values != null) {
-      expect(methodCall.values, equals(values));
+    if (expectedMethodValues != null) {
+      expect(methodCall.values, equals(expectedMethodValues));
     }
-    expect(methodCall.flags, equals(flags));
+    if (expectedMethodFlags != null) {
+      expect(methodCall.flags, equals(expectedMethodFlags));
+    }
 
-    if (errorName != null) {
-      return DBusMethodErrorResponse(errorName!, responseValues);
-    } else {
-      return DBusMethodSuccessResponse(responseValues);
-    }
+    var name = methodCall.interface != null
+        ? '${methodCall.interface}.${methodCall.name}'
+        : methodCall.name;
+    var response = methodResponses[name];
+    return response ?? DBusMethodErrorResponse.unknownMethod();
   }
-}
-
-// Test object which has introspection data.
-class IntrospectObject extends DBusObject {
-  IntrospectObject({bool hasProperties = true})
-      : super(DBusObjectPath('/'), hasProperties: hasProperties);
 
   @override
   List<DBusIntrospectInterface> introspect() {
-    return [
-      DBusIntrospectInterface('com.example.Test',
-          methods: [DBusIntrospectMethod('Foo')])
-    ];
+    return introspectData;
   }
-}
-
-class PropertiesObject extends DBusObject {
-  String readWriteValue;
-  String readOnlyValue;
-  String writeOnlyValue;
-
-  PropertiesObject(
-      {bool hasProperties = true,
-      this.readWriteValue = '',
-      this.readOnlyValue = '',
-      this.writeOnlyValue = ''})
-      : super(DBusObjectPath('/'), hasProperties: hasProperties);
 
   @override
-  Future<DBusMethodResponse> getProperty(
-      String interface, String member) async {
-    if (interface != 'com.example.Test') {
-      return DBusMethodErrorResponse.unknownInterface();
+  Future<DBusMethodResponse> getProperty(String interface, String name) async {
+    var propertyName = '$interface.$name';
+    var response = propertyGetErrors[propertyName];
+    if (response != null) {
+      return response;
     }
-
-    if (member == 'ReadWrite') {
-      return DBusGetPropertyResponse(DBusString(readWriteValue));
-    } else if (member == 'ReadOnly') {
-      return DBusGetPropertyResponse(DBusString(readOnlyValue));
-    } else if (member == 'WriteOnly') {
-      return DBusMethodErrorResponse.propertyWriteOnly();
-    } else {
+    var value = propertyValues[propertyName];
+    if (value == null) {
       return DBusMethodErrorResponse.unknownProperty();
     }
+    return DBusGetPropertyResponse(value);
   }
 
   @override
   Future<DBusMethodResponse> setProperty(
-      String interface, String member, DBusValue value) async {
-    if (interface != 'com.example.Test') {
-      return DBusMethodErrorResponse.unknownInterface();
+      String interface, String name, DBusValue value) async {
+    var propertyName = '$interface.$name';
+    var response = propertySetErrors[propertyName];
+    if (response != null) {
+      return response;
     }
-
-    if (member == 'ReadWrite') {
-      readWriteValue = (value as DBusString).value;
-      return DBusMethodSuccessResponse();
-    } else if (member == 'ReadOnly') {
-      return DBusMethodErrorResponse.propertyReadOnly();
-    } else if (member == 'WriteOnly') {
-      writeOnlyValue = (value as DBusString).value;
-      return DBusMethodSuccessResponse();
-    } else {
-      return DBusMethodErrorResponse.unknownProperty();
-    }
+    propertyValues[propertyName] = value;
+    return DBusMethodSuccessResponse();
   }
 
   @override
   Future<DBusMethodResponse> getAllProperties(String interface) async {
+    var prefix = '$interface.';
     var properties = <String, DBusValue>{};
-    if (interface == 'com.example.Test') {
-      properties['ReadWrite'] = DBusString(readWriteValue);
-      properties['ReadOnly'] = DBusString(readOnlyValue);
-    }
+    propertyValues.forEach((name, value) {
+      if (name.startsWith(prefix)) {
+        properties[name.substring(prefix.length)] = value;
+      }
+    });
     return DBusGetAllPropertiesResponse(properties);
   }
 }
@@ -603,11 +594,13 @@ void main() {
     var client2 = DBusClient(address);
 
     // Create a client that exposes a method.
-    await client1.registerObject(MethodCallObject(
-        name: 'Test',
-        values: [DBusString('Hello'), DBusUint32(42)],
-        flags: {},
-        responseValues: [DBusString('World'), DBusUint32(99)]));
+    await client1.registerObject(
+        TestObject(expectedMethodName: 'Test', expectedMethodValues: [
+      DBusString('Hello'),
+      DBusUint32(42)
+    ], expectedMethodFlags: {}, methodResponses: {
+      'Test': DBusMethodSuccessResponse([DBusString('World'), DBusUint32(99)])
+    }));
 
     // Call the method from another client.
     var response = await client2.callMethod(
@@ -629,7 +622,7 @@ void main() {
 
     // Create a client that exposes a method.
     await client1.registerObject(
-        MethodCallObject(flags: {DBusMethodCallFlag.noReplyExpected}));
+        TestObject(expectedMethodFlags: {DBusMethodCallFlag.noReplyExpected}));
 
     // Call the method from another client.
     var response = await client2.callMethod(
@@ -651,7 +644,8 @@ void main() {
 
     // Create a client that exposes a method.
     await client1.requestName('com.example.Test');
-    await client1.registerObject(MethodCallObject());
+    await client1.registerObject(
+        TestObject(methodResponses: {'Test': DBusMethodSuccessResponse()}));
 
     // Call the method from another client.
     var response = await client2.callMethod(
@@ -671,8 +665,9 @@ void main() {
     var client2 = DBusClient(address);
 
     // Create a client that exposes a method.
-    await client1.registerObject(
-        MethodCallObject(flags: {DBusMethodCallFlag.noAutoStart}));
+    await client1.registerObject(TestObject(
+        expectedMethodFlags: {DBusMethodCallFlag.noAutoStart},
+        methodResponses: {'Test': DBusMethodSuccessResponse()}));
 
     // Call the method from another client.
     var response = await client2.callMethod(
@@ -693,8 +688,9 @@ void main() {
     var client2 = DBusClient(address);
 
     // Create a client that exposes a method.
-    await client1.registerObject(MethodCallObject(
-        flags: {DBusMethodCallFlag.allowInteractiveAuthorization}));
+    await client1.registerObject(TestObject(
+        expectedMethodFlags: {DBusMethodCallFlag.allowInteractiveAuthorization},
+        methodResponses: {'Test': DBusMethodSuccessResponse()}));
 
     // Call the method from another client.
     var response = await client2.callMethod(
@@ -715,10 +711,11 @@ void main() {
     var client2 = DBusClient(address);
 
     // Create a client that exposes a method.
-    await client1.registerObject(MethodCallObject(
-        name: 'Test',
-        errorName: 'com.example.Error',
-        responseValues: [DBusString('Count'), DBusUint32(42)]));
+    await client1.registerObject(
+        TestObject(expectedMethodName: 'Test', methodResponses: {
+      'Test': DBusMethodErrorResponse(
+          'com.example.Error', [DBusString('Count'), DBusUint32(42)])
+    }));
 
     // Call the method from another client.
     var response = await client2.callMethod(
@@ -832,7 +829,10 @@ void main() {
     var client2 = DBusClient(address);
 
     // Create a client that exposes introspection data.
-    await client1.registerObject(IntrospectObject());
+    await client1.registerObject(TestObject(introspectData: [
+      DBusIntrospectInterface('com.example.Test',
+          methods: [DBusIntrospectMethod('Foo')])
+    ]));
 
     // Read introspection data from the first client.
     var remoteObject =
@@ -887,7 +887,10 @@ void main() {
     var client2 = DBusClient(address);
 
     // Create a client that exposes introspection data.
-    await client1.registerObject(IntrospectObject(hasProperties: false));
+    await client1.registerObject(TestObject(introspectData: [
+      DBusIntrospectInterface('com.example.Test',
+          methods: [DBusIntrospectMethod('Foo')])
+    ], hasProperties: false));
 
     // Read introspection data from the first client.
     var remoteObject =
@@ -921,7 +924,10 @@ void main() {
     var client2 = DBusClient(address);
 
     // Create a client that exposes introspection data.
-    await client1.registerObject(IntrospectObject());
+    await client1.registerObject(TestObject(introspectData: [
+      DBusIntrospectInterface('com.example.Test',
+          methods: [DBusIntrospectMethod('Foo')])
+    ]));
 
     // Unable to read introspection data from the first client.
     var remoteObject =
@@ -937,7 +943,15 @@ void main() {
     var client2 = DBusClient(address);
 
     // Create a client that exposes an object with properties.
-    var object = PropertiesObject(readWriteValue: 'RW', readOnlyValue: 'RO');
+    var object = TestObject(propertyValues: {
+      'com.example.Test.ReadWrite': DBusString('RW'),
+      'com.example.Test.ReadOnly': DBusString('RO'),
+      'com.example.Test.WriteOnly': DBusString('WO')
+    }, propertyGetErrors: {
+      'com.example.Test.WriteOnly': DBusMethodErrorResponse.propertyWriteOnly()
+    }, propertySetErrors: {
+      'com.example.Test.ReadOnly': DBusMethodErrorResponse.propertyReadOnly(),
+    });
     await client1.registerObject(object);
 
     var remoteObject =
@@ -965,7 +979,15 @@ void main() {
     var client2 = DBusClient(address);
 
     // Create a client that exposes an object with properties.
-    var object = PropertiesObject(readWriteValue: '', writeOnlyValue: '');
+    var object = TestObject(propertyValues: {
+      'com.example.Test.ReadWrite': DBusString(''),
+      'com.example.Test.ReadOnly': DBusString(''),
+      'com.example.Test.WriteOnly': DBusString('')
+    }, propertyGetErrors: {
+      'com.example.Test.WriteOnly': DBusMethodErrorResponse.propertyWriteOnly()
+    }, propertySetErrors: {
+      'com.example.Test.ReadOnly': DBusMethodErrorResponse.propertyReadOnly(),
+    });
     await client1.registerObject(object);
 
     var remoteObject =
@@ -975,7 +997,8 @@ void main() {
 
     await remoteObject.setProperty(
         'com.example.Test', 'ReadWrite', DBusString('RW'));
-    expect(object.readWriteValue, equals('RW'));
+    expect(object.propertyValues['com.example.Test.ReadWrite'],
+        equals(DBusString('RW')));
 
     expect(
         remoteObject.setProperty(
@@ -984,7 +1007,8 @@ void main() {
 
     await remoteObject.setProperty(
         'com.example.Test', 'WriteOnly', DBusString('WO'));
-    expect(object.writeOnlyValue, equals('WO'));
+    expect(object.propertyValues['com.example.Test.WriteOnly'],
+        equals(DBusString('WO')));
   });
 
   test('get all properties', () async {
@@ -995,15 +1019,22 @@ void main() {
     var client2 = DBusClient(address);
 
     // Create a client that exposes an object with properties.
-    var object = PropertiesObject(readWriteValue: 'RW', readOnlyValue: 'RO');
+    var object = TestObject(propertyValues: {
+      'com.example.Test.Property1': DBusString('VALUE1'),
+      'com.example.Test.Property2': DBusString('VALUE2')
+    });
     await client1.registerObject(object);
 
     var remoteObject =
         DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
 
     var properties = await remoteObject.getAllProperties('com.example.Test');
-    expect(properties,
-        equals({'ReadWrite': DBusString('RW'), 'ReadOnly': DBusString('RO')}));
+    expect(
+        properties,
+        equals({
+          'Property1': DBusString('VALUE1'),
+          'Property2': DBusString('VALUE2')
+        }));
   });
 
   test('properties changed', () async {
@@ -1014,7 +1045,7 @@ void main() {
     var client2 = DBusClient(address);
 
     // Create a client that exposes an object with properties.
-    var object = PropertiesObject(readWriteValue: 'RW', readOnlyValue: 'RO');
+    var object = TestObject();
     await client1.registerObject(object);
 
     /// Subscribe to properties changed signals.
@@ -1025,8 +1056,10 @@ void main() {
       expect(signal.propertiesInterface, equals('com.example.Test'));
       expect(
           signal.changedProperties,
-          equals(
-              {'ReadWrite': DBusString('RW'), 'ReadOnly': DBusString('RO')}));
+          equals({
+            'Property1': DBusString('VALUE1'),
+            'Property2': DBusString('VALUE2')
+          }));
       expect(signal.invalidatedProperties, equals(['Invalid1', 'Invalid2']));
     }));
 
@@ -1034,8 +1067,8 @@ void main() {
     await client2.ping();
 
     object.emitPropertiesChanged('com.example.Test', changedProperties: {
-      'ReadWrite': DBusString('RW'),
-      'ReadOnly': DBusString('RO')
+      'Property1': DBusString('VALUE1'),
+      'Property2': DBusString('VALUE2')
     }, invalidatedProperties: [
       'Invalid1',
       'Invalid2'
@@ -1050,7 +1083,7 @@ void main() {
     var client2 = DBusClient(address);
 
     // Create a client that exposes an object without properties.
-    var object = PropertiesObject(hasProperties: false);
+    var object = TestObject(hasProperties: false);
     await client1.registerObject(object);
 
     var remoteObject =
