@@ -29,14 +29,13 @@ class DBusObject {
   }
 
   /// Called when a property is requested on this object. On success, return [DBusGetPropertyResponse].
-  Future<DBusMethodResponse> getProperty(
-      String interface, String member) async {
+  Future<DBusMethodResponse> getProperty(String interface, String name) async {
     return DBusMethodErrorResponse.unknownProperty();
   }
 
   /// Called when a property is set on this object. On success, return [DBusMethodSuccessResponse].
   Future<DBusMethodResponse> setProperty(
-      String interface, String member, DBusValue value) async {
+      String interface, String name, DBusValue value) async {
     return DBusMethodErrorResponse.unknownProperty();
   }
 
@@ -46,10 +45,10 @@ class DBusObject {
   }
 
   /// Emits a signal on this object.
-  void emitSignal(String interface, String member,
+  void emitSignal(String interface, String name,
       [Iterable<DBusValue> values = const []]) {
     client?.emitSignal(
-        path: path, interface: interface, member: member, values: values);
+        path: path, interface: interface, name: name, values: values);
   }
 
   /// Emits org.freedesktop.DBus.Properties.PropertiesChanged on this object.

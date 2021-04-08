@@ -34,13 +34,12 @@ class TestObject extends DBusObject {
   }
 
   @override
-  Future<DBusMethodResponse> getProperty(
-      String interface, String member) async {
+  Future<DBusMethodResponse> getProperty(String interface, String name) async {
     if (interface != 'com.canonical.DBusDart') {
       return DBusMethodErrorResponse.unknownInterface();
     }
 
-    if (member == 'Count') {
+    if (name == 'Count') {
       return DBusGetPropertyResponse(DBusInt64(callCount));
     } else {
       return DBusMethodErrorResponse.unknownProperty();
@@ -49,12 +48,12 @@ class TestObject extends DBusObject {
 
   @override
   Future<DBusMethodResponse> setProperty(
-      String interface, String member, DBusValue value) async {
+      String interface, String name, DBusValue value) async {
     if (interface != 'com.canonical.DBusDart') {
       return DBusMethodErrorResponse.unknownInterface();
     }
 
-    if (member == 'Count') {
+    if (name == 'Count') {
       return DBusMethodErrorResponse.propertyReadOnly();
     } else {
       return DBusMethodErrorResponse.unknownProperty();

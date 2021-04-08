@@ -71,7 +71,7 @@ class DBusRemoteObject {
         destination: destination,
         path: path,
         interface: 'org.freedesktop.DBus.Introspectable',
-        member: 'Introspect');
+        name: 'Introspect');
     if (result.signature != DBusSignature('s')) {
       throw 'org.freedesktop.DBus.Introspectable.Introspect returned invalid result: ${result.returnValues}';
     }
@@ -85,7 +85,7 @@ class DBusRemoteObject {
         destination: destination,
         path: path,
         interface: 'org.freedesktop.DBus.Properties',
-        member: 'Get',
+        name: 'Get',
         values: [DBusString(interface), DBusString(name)]);
     if (result.signature != DBusSignature('v')) {
       throw 'org.freedesktop.DBus.Properties.Get returned invalid result: ${result.returnValues}';
@@ -99,7 +99,7 @@ class DBusRemoteObject {
         destination: destination,
         path: path,
         interface: 'org.freedesktop.DBus.Properties',
-        member: 'GetAll',
+        name: 'GetAll',
         values: [DBusString(interface)]);
     if (result.signature != DBusSignature('a{sv}')) {
       throw 'org.freedesktop.DBus.Properties.GetAll returned invalid result: ${result.returnValues}';
@@ -115,7 +115,7 @@ class DBusRemoteObject {
         destination: destination,
         path: path,
         interface: 'org.freedesktop.DBus.Properties',
-        member: 'Set',
+        name: 'Set',
         values: [DBusString(interface), DBusString(name), DBusVariant(value)]);
     if (result.returnValues.isNotEmpty) {
       throw 'org.freedesktop.DBus.Properties.set returned invalid result: ${result.returnValues}';
@@ -137,21 +137,21 @@ class DBusRemoteObject {
 
   /// Invokes a method on this object.
   Future<DBusMethodResponse> callMethod(
-      String? interface, String member, Iterable<DBusValue> values,
+      String? interface, String name, Iterable<DBusValue> values,
       {Set<DBusMethodCallFlag> flags = const {}}) async {
     return client.callMethod(
         destination: destination,
         path: path,
         interface: interface,
-        member: member,
+        name: name,
         values: values,
         flags: flags);
   }
 
-  /// Subscribes to signals [interface].[member] from this object.
-  Stream<DBusSignal> subscribeSignal(String interface, String member) {
+  /// Subscribes to signals [interface].[name] from this object.
+  Stream<DBusSignal> subscribeSignal(String interface, String name) {
     return client.subscribeSignals(
-        sender: destination, path: path, interface: interface, member: member);
+        sender: destination, path: path, interface: interface, name: name);
   }
 
   /// Gets all the sub-tree of objects, interfaces and properties of this object.
@@ -162,7 +162,7 @@ class DBusRemoteObject {
         destination: destination,
         path: path,
         interface: 'org.freedesktop.DBus.ObjectManager',
-        member: 'GetManagedObjects');
+        name: 'GetManagedObjects');
     if (result.signature != DBusSignature('a{oa{sa{sv}}}')) {
       throw 'GetManagedObjects returned invalid result: ${result.returnValues}';
     }

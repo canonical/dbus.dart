@@ -606,7 +606,7 @@ void main() {
     var response = await client2.callMethod(
         destination: client1.uniqueName,
         path: DBusObjectPath('/'),
-        member: 'Test',
+        name: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)]);
     expect(response, TypeMatcher<DBusMethodSuccessResponse>());
     expect((response as DBusMethodSuccessResponse).values,
@@ -628,7 +628,7 @@ void main() {
     var response = await client2.callMethod(
         destination: client1.uniqueName,
         path: DBusObjectPath('/'),
-        member: 'Test',
+        name: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)],
         flags: {DBusMethodCallFlag.noReplyExpected});
     expect(response, TypeMatcher<DBusMethodSuccessResponse>());
@@ -651,7 +651,7 @@ void main() {
     var response = await client2.callMethod(
         destination: 'com.example.Test',
         path: DBusObjectPath('/'),
-        member: 'Test',
+        name: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)]);
     expect(response, TypeMatcher<DBusMethodSuccessResponse>());
     expect((response as DBusMethodSuccessResponse).values, equals([]));
@@ -673,7 +673,7 @@ void main() {
     var response = await client2.callMethod(
         destination: client1.uniqueName,
         path: DBusObjectPath('/'),
-        member: 'Test',
+        name: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)],
         flags: {DBusMethodCallFlag.noAutoStart});
     expect(response, TypeMatcher<DBusMethodSuccessResponse>());
@@ -696,7 +696,7 @@ void main() {
     var response = await client2.callMethod(
         destination: client1.uniqueName,
         path: DBusObjectPath('/'),
-        member: 'Test',
+        name: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)],
         flags: {DBusMethodCallFlag.allowInteractiveAuthorization});
     expect(response, TypeMatcher<DBusMethodSuccessResponse>());
@@ -721,7 +721,7 @@ void main() {
     var response = await client2.callMethod(
         destination: client1.uniqueName,
         path: DBusObjectPath('/'),
-        member: 'Test');
+        name: 'Test');
     expect(response, TypeMatcher<DBusMethodErrorResponse>());
     expect((response as DBusMethodErrorResponse).errorName,
         equals('com.example.Error'));
@@ -741,7 +741,7 @@ void main() {
 
     // Subscribe to the signal from another client.
     var signals =
-        client2.subscribeSignals(interface: 'com.example.Test', member: 'Ping');
+        client2.subscribeSignals(interface: 'com.example.Test', name: 'Ping');
     signals.listen(expectAsync1((signal) {
       expect(signal.sender, equals(client1.uniqueName));
       expect(signal.path, equals(DBusObjectPath('/')));

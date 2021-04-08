@@ -94,14 +94,14 @@ class _DBusSignalSubscription {
       this.client,
       DBusBusName? sender,
       DBusInterfaceName? interface,
-      DBusMemberName? member,
+      DBusMemberName? name,
       DBusObjectPath? path,
       DBusObjectPath? pathNamespace)
       : rule = DBusMatchRule(
             type: DBusMessageType.signal,
             sender: sender,
             interface: interface,
-            member: member,
+            member: name,
             path: path,
             pathNamespace: pathNamespace) {
     controller.onListen = onListen;
@@ -223,7 +223,7 @@ class DBusClient {
         destination: 'org.freedesktop.DBus',
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
-        member: 'RequestName',
+        name: 'RequestName',
         values: [DBusString(name), DBusUint32(flagsValue)]);
     if (result.signature != DBusSignature('u')) {
       throw 'org.freedesktop.DBus.RequestName returned invalid result: ${result.returnValues}';
@@ -250,7 +250,7 @@ class DBusClient {
         destination: 'org.freedesktop.DBus',
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
-        member: 'ReleaseName',
+        name: 'ReleaseName',
         values: [DBusString(name)]);
     if (result.signature != DBusSignature('u')) {
       throw 'org.freedesktop.DBus.ReleaseName returned invalid result: ${result.returnValues}';
@@ -275,7 +275,7 @@ class DBusClient {
         destination: 'org.freedesktop.DBus',
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
-        member: 'ListQueuedOwners',
+        name: 'ListQueuedOwners',
         values: [DBusString(name)]);
     if (result.signature != DBusSignature('as')) {
       throw 'org.freedesktop.DBus.ListQueuedOwners returned invalid result: ${result.returnValues}';
@@ -292,7 +292,7 @@ class DBusClient {
         destination: 'org.freedesktop.DBus',
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
-        member: 'ListNames');
+        name: 'ListNames');
     if (result.signature != DBusSignature('as')) {
       throw 'org.freedesktop.DBus.ListNames returned invalid result: ${result.returnValues}';
     }
@@ -308,7 +308,7 @@ class DBusClient {
         destination: 'org.freedesktop.DBus',
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
-        member: 'ListActivatableNames');
+        name: 'ListActivatableNames');
     if (result.signature != DBusSignature('as')) {
       throw 'org.freedesktop.DBus.ListActivatableNames returned invalid result: ${result.returnValues}';
     }
@@ -324,7 +324,7 @@ class DBusClient {
         destination: 'org.freedesktop.DBus',
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
-        member: 'StartServiceByName',
+        name: 'StartServiceByName',
         values: [DBusString(name), DBusUint32(0)]);
     if (result.signature != DBusSignature('u')) {
       throw 'org.freedesktop.DBus.StartServiceByName returned invalid result: ${result.returnValues}';
@@ -346,7 +346,7 @@ class DBusClient {
         destination: 'org.freedesktop.DBus',
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
-        member: 'NameHasOwner',
+        name: 'NameHasOwner',
         values: [DBusString(name)]);
     if (result.signature != DBusSignature('b')) {
       throw 'org.freedesktop.DBus.NameHasOwner returned invalid result: ${result.returnValues}';
@@ -360,7 +360,7 @@ class DBusClient {
         destination: 'org.freedesktop.DBus',
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
-        member: 'GetNameOwner',
+        name: 'GetNameOwner',
         values: [DBusString(name)]);
     if (result is DBusMethodErrorResponse &&
         result.errorName == 'org.freedesktop.DBus.Error.NameHasNoOwner') {
@@ -378,7 +378,7 @@ class DBusClient {
         destination: 'org.freedesktop.DBus',
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
-        member: 'GetConnectionUnixUser',
+        name: 'GetConnectionUnixUser',
         values: [DBusString(name)]);
     if (result.signature != DBusSignature('u')) {
       throw 'org.freedesktop.DBus.GetConnectionUnixUser returned invalid result: ${result.returnValues}';
@@ -392,7 +392,7 @@ class DBusClient {
         destination: 'org.freedesktop.DBus',
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
-        member: 'GetConnectionUnixProcessID',
+        name: 'GetConnectionUnixProcessID',
         values: [DBusString(name)]);
     if (result.signature != DBusSignature('u')) {
       throw 'org.freedesktop.DBus.GetConnectionUnixProcessID returned invalid result: ${result.returnValues}';
@@ -406,7 +406,7 @@ class DBusClient {
         destination: 'org.freedesktop.DBus',
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
-        member: 'GetConnectionCredentials',
+        name: 'GetConnectionCredentials',
         values: [DBusString(name)]);
     if (result.signature != DBusSignature('a{sv}')) {
       throw 'org.freedesktop.DBus.GetConnectionCredentials returned invalid result: ${result.returnValues}';
@@ -479,7 +479,7 @@ class DBusClient {
         destination: 'org.freedesktop.DBus',
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: 'org.freedesktop.DBus',
-        member: 'GetId');
+        name: 'GetId');
     if (result.signature != DBusSignature('s')) {
       throw 'org.freedesktop.DBus.GetId returned invalid result: ${result.returnValues}';
     }
@@ -493,7 +493,7 @@ class DBusClient {
         destination: destination,
         path: DBusObjectPath('/'),
         interface: 'org.freedesktop.DBus.Peer',
-        member: 'Ping');
+        name: 'Ping');
     if (result.returnValues.isNotEmpty) {
       throw 'org.freedesktop.DBus.Peer.Ping returned invalid result: ${result.returnValues}';
     }
@@ -507,7 +507,7 @@ class DBusClient {
         destination: destination,
         path: DBusObjectPath('/'),
         interface: 'org.freedesktop.DBus.Peer',
-        member: 'GetMachineId');
+        name: 'GetMachineId');
     if (result.signature != DBusSignature('s')) {
       throw 'org.freedesktop.DBus.Peer.GetMachineId returned invalid result: ${result.returnValues}';
     }
@@ -519,23 +519,23 @@ class DBusClient {
       {String? destination,
       required DBusObjectPath path,
       String? interface,
-      required String member,
+      required String name,
       Iterable<DBusValue> values = const [],
       Set<DBusMethodCallFlag> flags = const {}}) async {
     return await _callMethod(
         destination: destination != null ? DBusBusName(destination) : null,
         path: path,
         interface: interface != null ? DBusInterfaceName(interface) : null,
-        member: DBusMemberName(member),
+        name: DBusMemberName(name),
         values: values,
         flags: flags);
   }
 
-  /// Subscribe to signals that match [sender], [interface], [member], [path] and/or [pathNamespace].
+  /// Subscribe to signals that match [sender], [interface], [name], [path] and/or [pathNamespace].
   Stream<DBusSignal> subscribeSignals({
     String? sender,
     String? interface,
-    String? member,
+    String? name,
     DBusObjectPath? path,
     DBusObjectPath? pathNamespace,
   }) {
@@ -544,7 +544,7 @@ class DBusClient {
         this,
         sender_,
         interface != null ? DBusInterfaceName(interface) : null,
-        member != null ? DBusMemberName(member) : null,
+        name != null ? DBusMemberName(name) : null,
         path,
         pathNamespace);
 
@@ -577,10 +577,10 @@ class DBusClient {
       {String? destination,
       required DBusObjectPath path,
       required String interface,
-      required String member,
+      required String name,
       Iterable<DBusValue> values = const []}) async {
     await _sendSignal(destination != null ? DBusBusName(destination) : null,
-        path, DBusInterfaceName(interface), DBusMemberName(member), values);
+        path, DBusInterfaceName(interface), DBusMemberName(name), values);
   }
 
   /// Registers an [object] on the bus.
@@ -678,7 +678,7 @@ class DBusClient {
         destination: DBusBusName('org.freedesktop.DBus'),
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: DBusInterfaceName('org.freedesktop.DBus'),
-        member: DBusMemberName('Hello'),
+        name: DBusMemberName('Hello'),
         requireConnect: false);
     if (result.signature != DBusSignature('s')) {
       throw 'org.freedesktop.DBus.Hello returned invalid result: ${result.returnValues}';
@@ -692,17 +692,17 @@ class DBusClient {
     var nameAcquiredSignals = subscribeSignals(
         sender: 'org.freedesktop.DBus',
         interface: 'org.freedesktop.DBus',
-        member: 'NameAcquired');
+        name: 'NameAcquired');
     _nameAcquiredSubscription = nameAcquiredSignals.listen(_handleNameAcquired);
     var nameLostSignals = subscribeSignals(
         sender: 'org.freedesktop.DBus',
         interface: 'org.freedesktop.DBus',
-        member: 'NameLost');
+        name: 'NameLost');
     _nameLostSubscription = nameLostSignals.listen(_handleNameLost);
     var nameOwnerChangedSignals = subscribeSignals(
         sender: 'org.freedesktop.DBus',
         interface: 'org.freedesktop.DBus',
-        member: 'NameOwnerChanged');
+        name: 'NameOwnerChanged');
     _nameOwnerSubscription =
         nameOwnerChangedSignals.listen(_handleNameOwnerChanged);
   }
@@ -758,7 +758,7 @@ class DBusClient {
           destination: 'org.freedesktop.DBus',
           path: DBusObjectPath('/org/freedesktop/DBus'),
           interface: 'org.freedesktop.DBus',
-          member: 'AddMatch',
+          name: 'AddMatch',
           values: [DBusString(rule)]);
       if (result.returnValues.isNotEmpty) {
         throw 'org.freedesktop.DBus.AddMatch returned invalid result: ${result.returnValues}';
@@ -782,7 +782,7 @@ class DBusClient {
           destination: 'org.freedesktop.DBus',
           path: DBusObjectPath('/org/freedesktop/DBus'),
           interface: 'org.freedesktop.DBus',
-          member: 'RemoveMatch',
+          name: 'RemoveMatch',
           values: [DBusString(rule)]);
       if (result.returnValues.isNotEmpty) {
         throw 'org.freedesktop.DBus.RemoveMatch returned invalid result: ${result.returnValues}';
@@ -954,7 +954,7 @@ class DBusClient {
       {DBusBusName? destination,
       required DBusObjectPath path,
       DBusInterfaceName? interface,
-      required DBusMemberName member,
+      required DBusMemberName name,
       Iterable<DBusValue> values = const {},
       Set<DBusMethodCallFlag> flags = const {},
       bool requireConnect = true}) async {
@@ -974,7 +974,7 @@ class DBusClient {
         destination: destination,
         path: path,
         interface: interface,
-        member: member,
+        member: name,
         values: values.toList(),
         flags: flags
             .map((flag) => {
@@ -1020,7 +1020,7 @@ class DBusClient {
       DBusBusName? destination,
       DBusObjectPath path,
       DBusInterfaceName interface,
-      DBusMemberName member,
+      DBusMemberName name,
       Iterable<DBusValue> values) async {
     _lastSerial++;
     var message = DBusMessage(DBusMessageType.signal,
@@ -1028,7 +1028,7 @@ class DBusClient {
         destination: destination,
         path: path,
         interface: interface,
-        member: member,
+        member: name,
         values: values.toList());
     await _sendMessage(message);
   }

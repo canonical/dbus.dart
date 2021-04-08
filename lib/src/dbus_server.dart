@@ -1217,14 +1217,14 @@ class DBusServer {
 
   /// Emits a signal from the D-Bus server.
   void _emitSignal(
-      DBusObjectPath path, DBusInterfaceName interface, DBusMemberName member,
+      DBusObjectPath path, DBusInterfaceName interface, DBusMemberName name,
       {DBusBusName? destination, Iterable<DBusValue> values = const []}) {
     var message = DBusMessage(DBusMessageType.signal,
         flags: {DBusMessageFlag.noReplyExpected},
         serial: _nextSerial,
         path: path,
         interface: interface,
-        member: member,
+        member: name,
         destination: destination,
         sender: DBusBusName('org.freedesktop.DBus'),
         values: values.toList());
