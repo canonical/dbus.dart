@@ -714,7 +714,7 @@ String generateRemoteMethodCall(List<String> methodNames,
   source +=
       "    if (result.signature != DBusSignature('${method.outputSignature.value}')) {\n";
   source +=
-      "      throw '${interface.name}.${method.name} returned invalid values \${result.values}';\n";
+      "      throw '${interface.name}.${method.name} returned invalid values \${result.returnValues}';\n";
   source += '    }\n';
   if (returnTypes.length == 1) {
     source += '    return ${returnValues[0]};\n';
