@@ -112,7 +112,7 @@ class DBusRemoteObject {
         return DBusObjectManagerInterfacesRemovedSignal(signal);
       } else if (signal.interface == 'org.freedesktop.DBus.Properties' &&
           signal.name == 'PropertiesChanged' &&
-          signal.signature == DBusSignature('aa{sv}as')) {
+          signal.signature == DBusSignature('sa{sv}as')) {
         return DBusPropertiesChangedSignal(signal);
       } else {
         return signal;
