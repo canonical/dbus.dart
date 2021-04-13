@@ -714,7 +714,7 @@ String generateRemoteMethodCall(List<String> methodNames,
   source +=
       "    if (result.signature != DBusSignature('${method.outputSignature.value}')) {\n";
   source +=
-      "      throw '${interface.name}.${method.name} returned invalid values \\\${result.values}';\n";
+      "      throw '${interface.name}.${method.name} returned invalid values \${result.values}';\n";
   source += '    }\n';
   if (returnTypes.length == 1) {
     source += '    return ${returnValues[0]};\n';
@@ -831,7 +831,7 @@ String generateRemoteSignalSubscription(
   source += '        return $classPrefix${signal.name}(signal);\n';
   source += '      } else {\n';
   source +=
-      "        throw '${interface.name}.${signal.name} contains invalid values \\\${signal.values}';\n";
+      "        throw '${interface.name}.${signal.name} contains invalid values \${signal.values}';\n";
   source += '      }\n';
   source += '    });\n';
   source += '  }\n';
