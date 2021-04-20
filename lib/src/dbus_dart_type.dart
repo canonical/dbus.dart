@@ -319,9 +319,30 @@ class DBusArrayType extends DBusDartType {
 
   @override
   String nativeToDBus(String name) {
-    var childType = getDartType(childSignature);
-    var convertedValue = childType.nativeToDBus('child');
-    return "DBusArray(DBusSignature('${childSignature.value}'), $name.map((child) => $convertedValue))";
+    switch (childSignature.value) {
+      case 'y':
+        return 'DBusArray.byte($name)';
+      case 'n':
+        return 'DBusArray.int16($name)';
+      case 'q':
+        return 'DBusArray.uint16($name)';
+      case 'i':
+        return 'DBusArray.int32($name)';
+      case 'u':
+        return 'DBusArray.uint32($name)';
+      case 'x':
+        return 'DBusArray.int64($name)';
+      case 't':
+        return 'DBusArray.uint64($name)';
+      case 'd':
+        return 'DBusArray.double($name)';
+      case 's':
+        return 'DBusArray.string($name)';
+      default:
+        var childType = getDartType(childSignature);
+        var convertedValue = childType.nativeToDBus('child');
+        return "DBusArray(DBusSignature('${childSignature.value}'), $name.map((child) => $convertedValue))";
+    }
   }
 
   @override
