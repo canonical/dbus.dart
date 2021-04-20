@@ -570,6 +570,60 @@ class DBusArray extends DBusValue {
   /// parameter default value). In all other cases use the standard constructor.
   const DBusArray.unchecked(this.childSignature, [this.children = const []]);
 
+  /// Creates a new array of unsigned 8 bit values.
+  factory DBusArray.byte(Iterable<int> values) {
+    return DBusArray(
+        DBusSignature('y'), values.map((value) => DBusByte(value)));
+  }
+
+  /// Creates a new array of signed 16 bit values.
+  factory DBusArray.int16(Iterable<int> values) {
+    return DBusArray(
+        DBusSignature('n'), values.map((value) => DBusInt16(value)));
+  }
+
+  /// Creates a new array of unsigned 16 bit values.
+  factory DBusArray.uint16(Iterable<int> values) {
+    return DBusArray(
+        DBusSignature('q'), values.map((value) => DBusUint16(value)));
+  }
+
+  /// Creates a new array of signed 32 bit values.
+  factory DBusArray.int32(Iterable<int> values) {
+    return DBusArray(
+        DBusSignature('i'), values.map((value) => DBusInt32(value)));
+  }
+
+  /// Creates a new array of unsigned 32 bit values.
+  factory DBusArray.uint32(Iterable<int> values) {
+    return DBusArray(
+        DBusSignature('u'), values.map((value) => DBusUint32(value)));
+  }
+
+  /// Creates a new array of signed 64 bit values.
+  factory DBusArray.int64(Iterable<int> values) {
+    return DBusArray(
+        DBusSignature('x'), values.map((value) => DBusInt64(value)));
+  }
+
+  /// Creates a new array of unsigned 64 bit values.
+  factory DBusArray.uint64(Iterable<int> values) {
+    return DBusArray(
+        DBusSignature('t'), values.map((value) => DBusUint64(value)));
+  }
+
+  /// Creates a new array of 64 bit floating point values.
+  factory DBusArray.double(Iterable<double> values) {
+    return DBusArray(
+        DBusSignature('d'), values.map((value) => DBusDouble(value)));
+  }
+
+  /// Creates a new array of Unicode text strings.
+  factory DBusArray.string(Iterable<String> values) {
+    return DBusArray(
+        DBusSignature('s'), values.map((value) => DBusString(value)));
+  }
+
   @override
   DBusSignature get signature {
     return DBusSignature('a' + childSignature.value);
