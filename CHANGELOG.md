@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+
+* Add DBusArray factories to create common simple arrays.
+
 ## 0.4.0
 
 * Change DBusObject.path from a property to a constructor.
