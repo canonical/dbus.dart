@@ -378,11 +378,16 @@ class DBusDictType extends DBusDartType {
 
   @override
   String nativeToDBus(String name) {
-    var keyType = getDartType(keySignature);
-    var convertedKey = keyType.nativeToDBus('key');
-    var valueType = getDartType(valueSignature);
-    var convertedValue = valueType.nativeToDBus('value');
-    return "DBusDict(DBusSignature('${keySignature.value}'), DBusSignature('${valueSignature.value}'), $name.map((key, value) => MapEntry($convertedKey, $convertedValue)))";
+    if (keySignature == DBusSignature('s') &&
+        valueSignature == DBusSignature('v')) {
+      return 'DBusDict.stringVariant($name)';
+    } else {
+      var keyType = getDartType(keySignature);
+      var convertedKey = keyType.nativeToDBus('key');
+      var valueType = getDartType(valueSignature);
+      var convertedValue = valueType.nativeToDBus('value');
+      return "DBusDict(DBusSignature('${keySignature.value}'), DBusSignature('${valueSignature.value}'), $name.map((key, value) => MapEntry($convertedKey, $convertedValue)))";
+    }
   }
 
   @override
