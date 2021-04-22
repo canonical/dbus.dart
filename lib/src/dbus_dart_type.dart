@@ -340,6 +340,8 @@ class DBusArrayType extends DBusDartType {
         return 'DBusArray.string($name)';
       case 'o':
         return 'DBusArray.objectPath($name)';
+      case 'v':
+        return 'DBusArray.variant($name)';
       default:
         var childType = getDartType(childSignature);
         var convertedValue = childType.nativeToDBus('child');

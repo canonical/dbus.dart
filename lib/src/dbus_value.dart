@@ -629,6 +629,12 @@ class DBusArray extends DBusValue {
     return DBusArray(DBusSignature('o'), values);
   }
 
+  /// Creates a new array of D-Bus variants.
+  factory DBusArray.variant(Iterable<DBusValue> values) {
+    return DBusArray(
+        DBusSignature('v'), values.map((value) => DBusVariant(value)));
+  }
+
   @override
   DBusSignature get signature {
     return DBusSignature('a' + childSignature.value);
