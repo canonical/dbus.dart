@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.2
+
+* Add DBusArray factories for object paths and variants.
+* Add DBusDict factory for the common string→variant mapping.
+
 ## 0.4.1
 
 * Add DBusArray factories to create common simple arrays.
