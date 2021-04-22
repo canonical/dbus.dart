@@ -624,6 +624,11 @@ class DBusArray extends DBusValue {
         DBusSignature('s'), values.map((value) => DBusString(value)));
   }
 
+  /// Creates a new array of D-Bus object paths.
+  factory DBusArray.objectPath(Iterable<DBusObjectPath> values) {
+    return DBusArray(DBusSignature('o'), values);
+  }
+
   @override
   DBusSignature get signature {
     return DBusSignature('a' + childSignature.value);
