@@ -694,6 +694,15 @@ class DBusDict extends DBusValue {
   const DBusDict.unchecked(this.keySignature, this.valueSignature,
       [this.children = const {}]);
 
+  /// Creates a new dictionary of string keys mapping to variant values.
+  factory DBusDict.stringVariant(Map<String, DBusValue> children) {
+    return DBusDict(
+        DBusSignature('s'),
+        DBusSignature('v'),
+        children.map(
+            (key, value) => MapEntry(DBusString(key), DBusVariant(value))));
+  }
+
   @override
   DBusSignature get signature {
     return DBusSignature('a{${keySignature.value}${valueSignature.value}}');
