@@ -149,6 +149,7 @@ void main() {
 
     // Check can ping the server.
     await client.ping();
+    await client.close();
   });
 
   test('ping - ipv4 tcp', () async {
@@ -159,6 +160,7 @@ void main() {
 
     // Check can ping the server.
     await client.ping();
+    await client.close();
   });
 
   test('ping - ipv6 tcp', () async {
@@ -169,6 +171,7 @@ void main() {
 
     // Check can ping the server.
     await client.ping();
+    await client.close();
   }, tags: ['ipv6']);
 
   test('list names', () async {
@@ -180,6 +183,7 @@ void main() {
     // Check the server and this clients name is reported.
     var names = await client.listNames();
     expect(names, equals(['org.freedesktop.DBus', client.uniqueName]));
+    await client.close();
   });
 
   test('request name', () async {
@@ -216,6 +220,8 @@ void main() {
     expect(owner, equals(client.uniqueName));
     names = await client.listQueuedOwners('com.example.Test');
     expect(names, [client.uniqueName]);
+
+    await client.close();
   });
 
   test('request name - already owned', () async {
@@ -237,6 +243,8 @@ void main() {
     expect(owner, equals(client.uniqueName));
     var names = await client.listQueuedOwners('com.example.Test');
     expect(names, [client.uniqueName]);
+
+    await client.close();
   });
 
   test('request name - queue', () async {
@@ -261,6 +269,9 @@ void main() {
     expect(owner, equals(client1.uniqueName));
     var names = await client1.listQueuedOwners('com.example.Test');
     expect(names, equals([client1.uniqueName, client2.uniqueName]));
+
+    await client1.close();
+    await client2.close();
   });
 
   test('request name - do not queue', () async {
@@ -286,6 +297,9 @@ void main() {
     expect(owner, equals(client1.uniqueName));
     var names = await client1.listQueuedOwners('com.example.Test');
     expect(names, equals([client1.uniqueName]));
+
+    await client1.close();
+    await client2.close();
   });
 
   test('request name - replace', () async {
@@ -312,6 +326,9 @@ void main() {
     expect(owner, equals(client2.uniqueName));
     var names = await client1.listQueuedOwners('com.example.Test');
     expect(names, equals([client2.uniqueName, client1.uniqueName]));
+
+    await client1.close();
+    await client2.close();
   });
 
   test('request name - replace, do not queue', () async {
@@ -340,6 +357,9 @@ void main() {
     expect(owner, equals(client2.uniqueName));
     var names = await client1.listQueuedOwners('com.example.Test');
     expect(names, equals([client2.uniqueName]));
+
+    await client1.close();
+    await client2.close();
   });
 
   test('request name - replace not allowed', () async {
@@ -365,6 +385,9 @@ void main() {
     expect(owner, equals(client1.uniqueName));
     var names = await client1.listQueuedOwners('com.example.Test');
     expect(names, equals([client1.uniqueName, client2.uniqueName]));
+
+    await client1.close();
+    await client2.close();
   });
 
   test('request name - empty', () async {
@@ -375,6 +398,8 @@ void main() {
 
     // Attempt to request an empty bus name
     expect(client.requestName(''), throwsA(isMethodResponseException));
+
+    await client.close();
   });
 
   test('request name - unique', () async {
@@ -385,6 +410,8 @@ void main() {
 
     // Attempt to request a unique bus name
     expect(client.requestName(':unique'), throwsA(isMethodResponseException));
+
+    await client.close();
   });
 
   test('request name - not enough elements', () async {
@@ -395,6 +422,8 @@ void main() {
 
     // Attempt to request a unique bus name
     expect(client.requestName('foo'), throwsA(isMethodResponseException));
+
+    await client.close();
   });
 
   test('request name - leading period', () async {
@@ -405,6 +434,8 @@ void main() {
 
     // Attempt to request a unique bus name
     expect(client.requestName('.foo.bar'), throwsA(isMethodResponseException));
+
+    await client.close();
   });
 
   test('request name - trailing period', () async {
@@ -415,6 +446,8 @@ void main() {
 
     // Attempt to request a unique bus name
     expect(client.requestName('foo.bar.'), throwsA(isMethodResponseException));
+
+    await client.close();
   });
 
   test('request name - empty element', () async {
@@ -425,6 +458,8 @@ void main() {
 
     // Attempt to request a unique bus name
     expect(client.requestName('foo..bar'), throwsA(isMethodResponseException));
+
+    await client.close();
   });
 
   test('release name', () async {
@@ -454,6 +489,8 @@ void main() {
     expect(hasOwner, isFalse);
     var names = await client.listQueuedOwners('com.example.Test');
     expect(names, isEmpty);
+
+    await client.close();
   });
 
   test('release name - non existant', () async {
@@ -465,6 +502,8 @@ void main() {
     // Release a name that's not in use.
     var releaseReply = await client.releaseName('com.example.Test');
     expect(releaseReply, equals(DBusReleaseNameReply.nonExistant));
+
+    await client.close();
   });
 
   test('release name - not owner', () async {
@@ -482,6 +521,9 @@ void main() {
     // Attempt to release that name from another client.
     var releaseReply = await client2.releaseName('com.example.Test');
     expect(releaseReply, equals(DBusReleaseNameReply.notOwner));
+
+    await client1.close();
+    await client2.close();
   });
 
   test('release name - queue', () async {
@@ -511,6 +553,9 @@ void main() {
     expect(owner, equals(client2.uniqueName));
     var names = await client1.listQueuedOwners('com.example.Test');
     expect(names, equals([client2.uniqueName]));
+
+    await client1.close();
+    await client2.close();
   });
 
   test('release name - empty', () async {
@@ -521,6 +566,8 @@ void main() {
 
     // Attempt to release an empty bus name.
     expect(client.releaseName(''), throwsA(isMethodResponseException));
+
+    await client.close();
   });
 
   test('release name - unique name', () async {
@@ -532,6 +579,8 @@ void main() {
     // Attempt to release the unique name of this client.
     expect(client.releaseName(client.uniqueName),
         throwsA(isMethodResponseException));
+
+    await client.close();
   });
 
   test('list activatable names', () async {
@@ -543,6 +592,8 @@ void main() {
     // Only the bus service available by default.
     var names = await client.listActivatableNames();
     expect(names, equals(['org.freedesktop.DBus']));
+
+    await client.close();
   });
 
   test('start service by name', () async {
@@ -568,6 +619,8 @@ void main() {
 
     expect(client.startServiceByName('com.example.DoesNotExist'),
         throwsA(isMethodResponseException));
+
+    await client.close();
   });
 
   test('get unix user', () async {
@@ -578,6 +631,8 @@ void main() {
 
     var uid = await client.getConnectionUnixUser('org.freedesktop.DBus');
     expect(uid, equals(getuid()));
+
+    await client.close();
   });
 
   test('get process id', () async {
@@ -588,6 +643,8 @@ void main() {
 
     var pid_ = await client.getConnectionUnixProcessId('org.freedesktop.DBus');
     expect(pid_, equals(pid));
+
+    await client.close();
   });
 
   test('get credentials', () async {
@@ -600,6 +657,8 @@ void main() {
         await client.getConnectionCredentials('org.freedesktop.DBus');
     expect(credentials.unixUserId, equals(getuid()));
     expect(credentials.processId, equals(pid));
+
+    await client.close();
   });
 
   test('call method', () async {
@@ -627,6 +686,9 @@ void main() {
     expect(response, TypeMatcher<DBusMethodSuccessResponse>());
     expect((response as DBusMethodSuccessResponse).values,
         equals([DBusString('World'), DBusUint32(99)]));
+
+    await client1.close();
+    await client2.close();
   });
 
   test('call method - no response', () async {
@@ -649,6 +711,9 @@ void main() {
         flags: {DBusMethodCallFlag.noReplyExpected});
     expect(response, TypeMatcher<DBusMethodSuccessResponse>());
     expect((response as DBusMethodSuccessResponse).values, equals([]));
+
+    await client1.close();
+    await client2.close();
   });
 
   test('call method - registered name', () async {
@@ -671,6 +736,9 @@ void main() {
         values: [DBusString('Hello'), DBusUint32(42)]);
     expect(response, TypeMatcher<DBusMethodSuccessResponse>());
     expect((response as DBusMethodSuccessResponse).values, equals([]));
+
+    await client1.close();
+    await client2.close();
   });
 
   test('call method - no autostart', () async {
@@ -694,6 +762,9 @@ void main() {
         flags: {DBusMethodCallFlag.noAutoStart});
     expect(response, TypeMatcher<DBusMethodSuccessResponse>());
     expect((response as DBusMethodSuccessResponse).values, equals([]));
+
+    await client1.close();
+    await client2.close();
   });
 
   test('call method - allow interactive authorization', () async {
@@ -717,6 +788,9 @@ void main() {
         flags: {DBusMethodCallFlag.allowInteractiveAuthorization});
     expect(response, TypeMatcher<DBusMethodSuccessResponse>());
     expect((response as DBusMethodSuccessResponse).values, equals([]));
+
+    await client1.close();
+    await client2.close();
   });
 
   test('call method - error', () async {
@@ -742,6 +816,9 @@ void main() {
     expect((response as DBusMethodErrorResponse).errorName,
         equals('com.example.Error'));
     expect(response.values, equals([DBusString('Count'), DBusUint32(42)]));
+
+    await client1.close();
+    await client2.close();
   });
 
   test('subscribe signal', () async {
@@ -895,6 +972,9 @@ void main() {
             '<method name="Foo"/>'
             '</interface>'
             '</node>'));
+
+    await client1.close();
+    await client2.close();
   });
 
   test('introspect - not introspectable', () async {
@@ -950,6 +1030,9 @@ void main() {
 
     expect(remoteObject.getProperty('com.example.Test', 'WriteOnly'),
         throwsException);
+
+    await client1.close();
+    await client2.close();
   });
 
   test('set property', () async {
@@ -990,6 +1073,9 @@ void main() {
         'com.example.Test', 'WriteOnly', DBusString('WO'));
     expect(object.propertyValues['com.example.Test.WriteOnly'],
         equals(DBusString('WO')));
+
+    await client1.close();
+    await client2.close();
   });
 
   test('get all properties', () async {
@@ -1095,6 +1181,9 @@ void main() {
             'com.example.Interface2': {'value': DBusString('FOO')}
           }
         }));
+
+    await client1.close();
+    await client2.close();
   });
 
   test('object manager - no interfaces', () async {
@@ -1121,6 +1210,9 @@ void main() {
             'org.freedesktop.DBus.Properties': {}
           }
         }));
+
+    await client1.close();
+    await client2.close();
   });
 
   test('object manager - not introspectable', () async {
