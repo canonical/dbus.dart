@@ -794,6 +794,7 @@ class DBusClient {
   Future<void> _addMatch(String rule) async {
     var count = _matchRules[rule];
     if (count == null) {
+      _matchRules[rule] = 1;
       var result = await callMethod(
           destination: 'org.freedesktop.DBus',
           path: DBusObjectPath('/org/freedesktop/DBus'),
@@ -803,11 +804,9 @@ class DBusClient {
       if (result.returnValues.isNotEmpty) {
         throw 'org.freedesktop.DBus.AddMatch returned invalid result: ${result.returnValues}';
       }
-      count = 1;
     } else {
-      count = count + 1;
+      _matchRules[rule] = count + 1;
     }
-    _matchRules[rule] = count;
   }
 
   /// Removes an existing rule to match which messages to receive.
