@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.3
+
+* Fix a race unsubscribing from signals which could trigger an exception if a DBusClient was closed very soon after creation or signal subscription.
+
 ## 0.4.2
 
 * Add DBusArray factories for object paths and variants.
