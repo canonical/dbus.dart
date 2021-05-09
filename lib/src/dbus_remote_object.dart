@@ -71,10 +71,8 @@ class DBusRemoteObject {
         destination: destination,
         path: path,
         interface: 'org.freedesktop.DBus.Introspectable',
-        name: 'Introspect');
-    if (result.signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.Introspectable.Introspect returned invalid result: ${result.returnValues}';
-    }
+        name: 'Introspect',
+        replySignature: DBusSignature('s'));
     var xml = (result.returnValues[0] as DBusString).value;
     return parseDBusIntrospectXml(xml);
   }
@@ -86,10 +84,8 @@ class DBusRemoteObject {
         path: path,
         interface: 'org.freedesktop.DBus.Properties',
         name: 'Get',
-        values: [DBusString(interface), DBusString(name)]);
-    if (result.signature != DBusSignature('v')) {
-      throw 'org.freedesktop.DBus.Properties.Get returned invalid result: ${result.returnValues}';
-    }
+        values: [DBusString(interface), DBusString(name)],
+        replySignature: DBusSignature('v'));
     return (result.returnValues[0] as DBusVariant).value;
   }
 
@@ -100,10 +96,8 @@ class DBusRemoteObject {
         path: path,
         interface: 'org.freedesktop.DBus.Properties',
         name: 'GetAll',
-        values: [DBusString(interface)]);
-    if (result.signature != DBusSignature('a{sv}')) {
-      throw 'org.freedesktop.DBus.Properties.GetAll returned invalid result: ${result.returnValues}';
-    }
+        values: [DBusString(interface)],
+        replySignature: DBusSignature('a{sv}'));
     return (result.returnValues[0] as DBusDict).children.map((key, value) =>
         MapEntry((key as DBusString).value, (value as DBusVariant).value));
   }
@@ -111,28 +105,32 @@ class DBusRemoteObject {
   /// Sets a property on this object.
   Future<void> setProperty(
       String interface, String name, DBusValue value) async {
-    var result = await client.callMethod(
+    await client.callMethod(
         destination: destination,
         path: path,
         interface: 'org.freedesktop.DBus.Properties',
         name: 'Set',
-        values: [DBusString(interface), DBusString(name), DBusVariant(value)]);
-    if (result.returnValues.isNotEmpty) {
-      throw 'org.freedesktop.DBus.Properties.set returned invalid result: ${result.returnValues}';
-    }
+        values: [DBusString(interface), DBusString(name), DBusVariant(value)],
+        replySignature: DBusSignature(''));
   }
 
   /// Invokes a method on this object.
   /// Throws [DBusMethodResponseException] if the remote side returns an error.
+  ///
+  /// If [replySignature] is provided this causes this method to throw a
+  /// [DBusReplySignatureException] if the result is successful but the returned
+  /// values do not match the provided signature.
   Future<DBusMethodSuccessResponse> callMethod(
       String? interface, String name, Iterable<DBusValue> values,
-      {Set<DBusMethodCallFlag> flags = const {}}) async {
+      {DBusSignature? replySignature,
+      Set<DBusMethodCallFlag> flags = const {}}) async {
     return client.callMethod(
         destination: destination,
         path: path,
         interface: interface,
         name: name,
         values: values,
+        replySignature: replySignature,
         flags: flags);
   }
 

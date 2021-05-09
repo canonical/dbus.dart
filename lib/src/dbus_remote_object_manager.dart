@@ -76,10 +76,8 @@ class DBusRemoteObjectManager extends DBusRemoteObject {
         destination: destination,
         path: path,
         interface: 'org.freedesktop.DBus.ObjectManager',
-        name: 'GetManagedObjects');
-    if (result.signature != DBusSignature('a{oa{sa{sv}}}')) {
-      throw 'GetManagedObjects returned invalid result: ${result.returnValues}';
-    }
+        name: 'GetManagedObjects',
+        replySignature: DBusSignature('a{oa{sa{sv}}}'));
 
     Map<DBusObjectPath, Map<String, Map<String, DBusValue>>> decodeObjects(
         DBusValue objects) {

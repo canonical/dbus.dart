@@ -788,6 +788,58 @@ void main() {
     await client2.close();
   });
 
+  test('call method - expected signature', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes a method.
+    await client1.registerObject(TestObject(methodResponses: {
+      'Test': DBusMethodSuccessResponse([DBusString('Hello'), DBusUint32(42)])
+    }));
+
+    // Call the method from another client and check the signature.
+    var response = await client2.callMethod(
+        destination: client1.uniqueName,
+        path: DBusObjectPath('/'),
+        name: 'Test',
+        replySignature: DBusSignature('su'));
+    expect(response.values, equals([DBusString('Hello'), DBusUint32(42)]));
+
+    await client1.close();
+    await client2.close();
+  });
+
+  test('call method - expected signature mismatch', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes a method.
+    await client1.registerObject(TestObject(methodResponses: {
+      'Test': DBusMethodSuccessResponse([DBusString('Hello'), DBusUint32(42)])
+    }));
+
+    // Call the method from another client and check the signature.
+    try {
+      await client2.callMethod(
+          destination: client1.uniqueName,
+          path: DBusObjectPath('/'),
+          name: 'Test',
+          replySignature: DBusSignature('us'));
+      fail('Expected DBusReplySignatureException');
+    } on DBusReplySignatureException catch (e) {
+      expect(e.response.values, equals([DBusString('Hello'), DBusUint32(42)]));
+    }
+
+    await client1.close();
+    await client2.close();
+  });
+
   test('call method - no autostart', () async {
     var server = DBusServer();
     var address =
@@ -894,6 +946,64 @@ void main() {
     var response = await remoteObject.callMethod(
         'com.example.Test', 'Foo', [DBusString('Hello'), DBusUint32(42)]);
     expect(response.values, equals([DBusString('World'), DBusUint32(99)]));
+
+    await client1.close();
+    await client2.close();
+  });
+
+  test('call method - remote object - expected signature', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes a method.
+    await client1.registerObject(TestObject(
+        expectedMethodName: 'com.example.Test.Foo',
+        expectedMethodFlags: {},
+        methodResponses: {
+          'com.example.Test.Foo':
+              DBusMethodSuccessResponse([DBusString('World'), DBusUint32(99)])
+        }));
+
+    // Call the method from another client.
+    var remoteObject =
+        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var response = await remoteObject.callMethod('com.example.Test', 'Foo', [],
+        replySignature: DBusSignature('su'));
+    expect(response.values, equals([DBusString('World'), DBusUint32(99)]));
+
+    await client1.close();
+    await client2.close();
+  });
+
+  test('call method - remote object - expected signature mismatch', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes a method.
+    await client1.registerObject(TestObject(
+        expectedMethodName: 'com.example.Test.Foo',
+        expectedMethodFlags: {},
+        methodResponses: {
+          'com.example.Test.Foo':
+              DBusMethodSuccessResponse([DBusString('Hello'), DBusUint32(42)])
+        }));
+
+    // Call the method from another client.
+    var remoteObject =
+        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    try {
+      await remoteObject.callMethod('com.example.Test', 'Foo', [],
+          replySignature: DBusSignature('us'));
+      fail('Expected DBusReplySignatureException');
+    } on DBusReplySignatureException catch (e) {
+      expect(e.response.values, equals([DBusString('Hello'), DBusUint32(42)]));
+    }
 
     await client1.close();
     await client2.close();
