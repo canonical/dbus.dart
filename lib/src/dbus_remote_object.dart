@@ -123,7 +123,8 @@ class DBusRemoteObject {
   }
 
   /// Invokes a method on this object.
-  Future<DBusMethodResponse> callMethod(
+  /// Throws [DBusMethodResponseException] if the remote side returns an error.
+  Future<DBusMethodSuccessResponse> callMethod(
       String? interface, String name, Iterable<DBusValue> values,
       {Set<DBusMethodCallFlag> flags = const {}}) async {
     return client.callMethod(

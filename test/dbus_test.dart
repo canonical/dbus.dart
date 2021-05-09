@@ -683,9 +683,7 @@ void main() {
         path: DBusObjectPath('/'),
         name: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)]);
-    expect(response, TypeMatcher<DBusMethodSuccessResponse>());
-    expect((response as DBusMethodSuccessResponse).values,
-        equals([DBusString('World'), DBusUint32(99)]));
+    expect(response.values, equals([DBusString('World'), DBusUint32(99)]));
 
     await client1.close();
     await client2.close();
@@ -709,8 +707,7 @@ void main() {
         name: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)],
         flags: {DBusMethodCallFlag.noReplyExpected});
-    expect(response, TypeMatcher<DBusMethodSuccessResponse>());
-    expect((response as DBusMethodSuccessResponse).values, equals([]));
+    expect(response.values, equals([]));
 
     await client1.close();
     await client2.close();
@@ -734,8 +731,7 @@ void main() {
         path: DBusObjectPath('/'),
         name: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)]);
-    expect(response, TypeMatcher<DBusMethodSuccessResponse>());
-    expect((response as DBusMethodSuccessResponse).values, equals([]));
+    expect(response.values, equals([]));
 
     await client1.close();
     await client2.close();
@@ -760,8 +756,7 @@ void main() {
         name: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)],
         flags: {DBusMethodCallFlag.noAutoStart});
-    expect(response, TypeMatcher<DBusMethodSuccessResponse>());
-    expect((response as DBusMethodSuccessResponse).values, equals([]));
+    expect(response.values, equals([]));
 
     await client1.close();
     await client2.close();
@@ -786,8 +781,7 @@ void main() {
         name: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)],
         flags: {DBusMethodCallFlag.allowInteractiveAuthorization});
-    expect(response, TypeMatcher<DBusMethodSuccessResponse>());
-    expect((response as DBusMethodSuccessResponse).values, equals([]));
+    expect(response.values, equals([]));
 
     await client1.close();
     await client2.close();
@@ -808,14 +802,16 @@ void main() {
     }));
 
     // Call the method from another client.
-    var response = await client2.callMethod(
-        destination: client1.uniqueName,
-        path: DBusObjectPath('/'),
-        name: 'Test');
-    expect(response, TypeMatcher<DBusMethodErrorResponse>());
-    expect((response as DBusMethodErrorResponse).errorName,
-        equals('com.example.Error'));
-    expect(response.values, equals([DBusString('Count'), DBusUint32(42)]));
+    try {
+      await client2.callMethod(
+          destination: client1.uniqueName,
+          path: DBusObjectPath('/'),
+          name: 'Test');
+      fail('Expected DBusMethodResponseException');
+    } on DBusMethodResponseException catch (e) {
+      expect(e.response.errorName, equals('com.example.Error'));
+      expect(e.response.values, equals([DBusString('Count'), DBusUint32(42)]));
+    }
 
     await client1.close();
     await client2.close();
