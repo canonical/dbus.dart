@@ -1,0 +1,3 @@
+tags:
+  # Tests that require IPv6 support
+  ipv6:
