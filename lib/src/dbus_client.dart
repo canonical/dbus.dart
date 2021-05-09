@@ -371,15 +371,19 @@ class DBusClient {
 
   /// Returns the unique connection name of the client that owns [name].
   Future<String?> getNameOwner(String name) async {
-    var result = await callMethod(
-        destination: 'org.freedesktop.DBus',
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: 'org.freedesktop.DBus',
-        name: 'GetNameOwner',
-        values: [DBusString(name)]);
-    if (result is DBusMethodErrorResponse &&
-        result.errorName == 'org.freedesktop.DBus.Error.NameHasNoOwner') {
-      return null;
+    DBusMethodSuccessResponse result;
+    try {
+      result = await callMethod(
+          destination: 'org.freedesktop.DBus',
+          path: DBusObjectPath('/org/freedesktop/DBus'),
+          interface: 'org.freedesktop.DBus',
+          name: 'GetNameOwner',
+          values: [DBusString(name)]);
+    } on DBusMethodResponseException catch (e) {
+      if (e.response.errorName == 'org.freedesktop.DBus.Error.NameHasNoOwner') {
+        return null;
+      }
+      rethrow;
     }
     if (result.signature != DBusSignature('s')) {
       throw 'org.freedesktop.DBus.GetNameOwner returned invalid result: ${result.returnValues}';
@@ -530,7 +534,8 @@ class DBusClient {
   }
 
   /// Invokes a method on a D-Bus object.
-  Future<DBusMethodResponse> callMethod(
+  /// Throws [DBusMethodResponseException] if the remote side returns an error.
+  Future<DBusMethodSuccessResponse> callMethod(
       {String? destination,
       required DBusObjectPath path,
       String? interface,
@@ -992,7 +997,7 @@ class DBusClient {
   }
 
   /// Invokes a method on a D-Bus object.
-  Future<DBusMethodResponse> _callMethod(
+  Future<DBusMethodSuccessResponse> _callMethod(
       {DBusBusName? destination,
       required DBusObjectPath path,
       DBusInterfaceName? interface,
@@ -1029,7 +1034,14 @@ class DBusClient {
             .toSet());
     await _sendMessage(message, requireConnect: requireConnect);
 
-    return response;
+    var r = await response;
+    if (r is DBusMethodSuccessResponse) {
+      return r;
+    } else if (r is DBusMethodErrorResponse) {
+      throw DBusMethodResponseException(r);
+    } else {
+      throw 'Unknown response type';
+    }
   }
 
   /// Sends a method return to the D-Bus server.
