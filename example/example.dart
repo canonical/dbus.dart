@@ -15,7 +15,8 @@ void main() async {
     DBusInt32(-1), // Expire timeout
   ];
   var result = await object.callMethod(
-      'org.freedesktop.Notifications', 'Notify', values);
+      'org.freedesktop.Notifications', 'Notify', values,
+      replySignature: DBusSignature('u'));
   var id = result.returnValues[0];
   print('notify ${id.toNative()}');
   await client.close();

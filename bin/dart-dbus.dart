@@ -721,7 +721,7 @@ String generateRemoteMethodCall(List<String> memberNames,
   }
 
   var methodCall =
-      "await callMethod('${interface.name}', '${method.name}', [${argValues.join(', ')}]);";
+      "await callMethod('${interface.name}', '${method.name}', [${argValues.join(', ')}], replySignature: DBusSignature('method.outputSignature.value'));";
 
   var methodName = getUniqueMethodName(memberNames, 'call${method.name}');
 
@@ -729,11 +729,6 @@ String generateRemoteMethodCall(List<String> memberNames,
   source += '  /// Invokes ${interface.name}.${method.name}()\n';
   source += '  $returnType $methodName(${argsList.join(', ')}) async {\n';
   source += '    var result = $methodCall\n';
-  source +=
-      "    if (result.signature != DBusSignature('${method.outputSignature.value}')) {\n";
-  source +=
-      "      throw '${interface.name}.${method.name} returned invalid values \${result.returnValues}';\n";
-  source += '    }\n';
   if (returnTypes.length == 1) {
     source += '    return ${returnValues[0]};\n';
   } else if (returnTypes.length > 1) {
