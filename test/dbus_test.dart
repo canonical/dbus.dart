@@ -73,8 +73,12 @@ class TestObject extends DBusObject {
 
   @override
   Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
+    var name = methodCall.interface != null
+        ? '${methodCall.interface}.${methodCall.name}'
+        : methodCall.name;
+
     if (expectedMethodName != null) {
-      expect(methodCall.name, equals(expectedMethodName));
+      expect(name, equals(expectedMethodName));
     }
     if (expectedMethodValues != null) {
       expect(methodCall.values, equals(expectedMethodValues));
@@ -83,9 +87,6 @@ class TestObject extends DBusObject {
       expect(methodCall.flags, equals(expectedMethodFlags));
     }
 
-    var name = methodCall.interface != null
-        ? '${methodCall.interface}.${methodCall.name}'
-        : methodCall.name;
     var response = methodResponses[name];
     return response ?? DBusMethodErrorResponse.unknownMethod();
   }
@@ -862,6 +863,37 @@ void main() {
       expect(e.response.errorName, equals('com.example.Error'));
       expect(e.response.values, equals([DBusString('Count'), DBusUint32(42)]));
     }
+
+    await client1.close();
+    await client2.close();
+  });
+
+  test('call method - remote object', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes a method.
+    await client1.registerObject(TestObject(
+        expectedMethodName: 'com.example.Test.Foo',
+        expectedMethodValues: [
+          DBusString('Hello'),
+          DBusUint32(42)
+        ],
+        expectedMethodFlags: {},
+        methodResponses: {
+          'com.example.Test.Foo':
+              DBusMethodSuccessResponse([DBusString('World'), DBusUint32(99)])
+        }));
+
+    // Call the method from another client.
+    var remoteObject =
+        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var response = await remoteObject.callMethod(
+        'com.example.Test', 'Foo', [DBusString('Hello'), DBusUint32(42)]);
+    expect(response.values, equals([DBusString('World'), DBusUint32(99)]));
 
     await client1.close();
     await client2.close();
