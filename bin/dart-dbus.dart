@@ -712,7 +712,7 @@ String generateRemoteMethodCall(List<String> memberNames,
   }
 
   var methodCall =
-      "await callMethod('${interface.name}', '${method.name}', [${argValues.join(', ')}], replySignature: DBusSignature('method.outputSignature.value'));";
+      "await callMethod('${interface.name}', '${method.name}', [${argValues.join(', ')}], replySignature: DBusSignature('${method.outputSignature.value}'));";
 
   var methodName = getUniqueMethodName(memberNames, 'call${method.name}');
 
