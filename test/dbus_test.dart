@@ -4,8 +4,6 @@ import 'package:dbus/dbus.dart';
 import 'package:dbus/src/getuid.dart';
 import 'package:test/test.dart';
 
-const isMethodResponseException = TypeMatcher<DBusMethodResponseException>();
-
 // Test server that exposes an activatable service.
 class ServerWithActivatableService extends DBusServer {
   @override
@@ -397,7 +395,13 @@ void main() {
     var client = DBusClient(address);
 
     // Attempt to request an empty bus name
-    expect(client.requestName(''), throwsA(isMethodResponseException));
+    try {
+      await client.requestName('');
+      fail('Expected DBusMethodResponseException');
+    } on DBusMethodResponseException catch (e) {
+      expect(e.response.errorName,
+          equals('org.freedesktop.DBus.Error.InvalidArgs'));
+    }
 
     await client.close();
   });
@@ -409,7 +413,13 @@ void main() {
     var client = DBusClient(address);
 
     // Attempt to request a unique bus name
-    expect(client.requestName(':unique'), throwsA(isMethodResponseException));
+    try {
+      await client.requestName(':unique');
+      fail('Expected DBusMethodResponseException');
+    } on DBusMethodResponseException catch (e) {
+      expect(e.response.errorName,
+          equals('org.freedesktop.DBus.Error.InvalidArgs'));
+    }
 
     await client.close();
   });
@@ -421,7 +431,13 @@ void main() {
     var client = DBusClient(address);
 
     // Attempt to request a unique bus name
-    expect(client.requestName('foo'), throwsA(isMethodResponseException));
+    try {
+      await client.requestName('foo');
+      fail('Expected DBusMethodResponseException');
+    } on DBusMethodResponseException catch (e) {
+      expect(e.response.errorName,
+          equals('org.freedesktop.DBus.Error.InvalidArgs'));
+    }
 
     await client.close();
   });
@@ -433,7 +449,13 @@ void main() {
     var client = DBusClient(address);
 
     // Attempt to request a unique bus name
-    expect(client.requestName('.foo.bar'), throwsA(isMethodResponseException));
+    try {
+      await client.requestName('.foo.bar');
+      fail('Expected DBusMethodResponseException');
+    } on DBusMethodResponseException catch (e) {
+      expect(e.response.errorName,
+          equals('org.freedesktop.DBus.Error.InvalidArgs'));
+    }
 
     await client.close();
   });
@@ -445,7 +467,13 @@ void main() {
     var client = DBusClient(address);
 
     // Attempt to request a unique bus name
-    expect(client.requestName('foo.bar.'), throwsA(isMethodResponseException));
+    try {
+      await client.requestName('foo.bar.');
+      fail('Expected DBusMethodResponseException');
+    } on DBusMethodResponseException catch (e) {
+      expect(e.response.errorName,
+          equals('org.freedesktop.DBus.Error.InvalidArgs'));
+    }
 
     await client.close();
   });
@@ -457,7 +485,13 @@ void main() {
     var client = DBusClient(address);
 
     // Attempt to request a unique bus name
-    expect(client.requestName('foo..bar'), throwsA(isMethodResponseException));
+    try {
+      await client.requestName('foo..bar');
+      fail('Expected DBusMethodResponseException');
+    } on DBusMethodResponseException catch (e) {
+      expect(e.response.errorName,
+          equals('org.freedesktop.DBus.Error.InvalidArgs'));
+    }
 
     await client.close();
   });
@@ -565,7 +599,13 @@ void main() {
     var client = DBusClient(address);
 
     // Attempt to release an empty bus name.
-    expect(client.releaseName(''), throwsA(isMethodResponseException));
+    try {
+      await client.releaseName('');
+      fail('Expected DBusMethodResponseException');
+    } on DBusMethodResponseException catch (e) {
+      expect(e.response.errorName,
+          equals('org.freedesktop.DBus.Error.InvalidArgs'));
+    }
 
     await client.close();
   });
@@ -577,8 +617,13 @@ void main() {
     var client = DBusClient(address);
 
     // Attempt to release the unique name of this client.
-    expect(client.releaseName(client.uniqueName),
-        throwsA(isMethodResponseException));
+    try {
+      await client.releaseName(client.uniqueName);
+      fail('Expected DBusMethodResponseException');
+    } on DBusMethodResponseException catch (e) {
+      expect(e.response.errorName,
+          equals('org.freedesktop.DBus.Error.InvalidArgs'));
+    }
 
     await client.close();
   });
@@ -617,8 +662,13 @@ void main() {
     var result2 = await client.startServiceByName('com.example.AlreadyRunning');
     expect(result2, equals(DBusStartServiceByNameReply.alreadyRunning));
 
-    expect(client.startServiceByName('com.example.DoesNotExist'),
-        throwsA(isMethodResponseException));
+    try {
+      await client.startServiceByName('com.example.DoesNotExist');
+      fail('Expected DBusMethodResponseException');
+    } on DBusMethodResponseException catch (e) {
+      expect(e.response.errorName,
+          equals('org.freedesktop.DBus.Error.ServiceNotFound'));
+    }
 
     await client.close();
   });
@@ -989,7 +1039,16 @@ void main() {
     // Unable to read introspection data from the first client.
     var remoteObject =
         DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
-    expect(remoteObject.introspect(), throwsA(isMethodResponseException));
+    try {
+      await remoteObject.introspect();
+      fail('Expected DBusMethodResponseException');
+    } on DBusMethodResponseException catch (e) {
+      expect(e.response.errorName,
+          equals('org.freedesktop.DBus.Error.UnknownMethod'));
+    }
+
+    await client1.close();
+    await client2.close();
   });
 
   test('get property', () async {
