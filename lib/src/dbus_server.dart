@@ -440,7 +440,7 @@ class DBusServer {
 
   Future<_DBusServerSocket> _addServerSocket(
       InternetAddress address, int port) async {
-    var socket = await ServerSocket.bind(address, 0);
+    var socket = await ServerSocket.bind(address, port);
     var serverSocket = _DBusServerSocket(this, socket, _nextConnectionId);
     _sockets.add(serverSocket);
     _nextConnectionId++;
