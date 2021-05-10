@@ -701,21 +701,12 @@ String generateRemoteMethodCall(List<String> memberNames,
     index++;
   }
 
-  var returnTypes = <String>[];
-  var returnValues = <String>[];
-  for (var arg in outputArgs) {
-    var type = getDartType(arg.type);
-    var returnValue = 'result.returnValues[${returnTypes.length}]';
-    returnTypes.add(type.nativeType);
-    var convertedValue = type.dbusToNative(returnValue);
-    returnValues.add(convertedValue);
-  }
-
   String returnType;
-  if (returnTypes.isEmpty) {
+  if (outputArgs.isEmpty) {
     returnType = 'Future<void>';
-  } else if (returnTypes.length == 1) {
-    returnType = 'Future<${returnTypes[0]}>';
+  } else if (outputArgs.length == 1) {
+    var type = getDartType(outputArgs.first.type);
+    returnType = 'Future<${type.nativeType}>';
   } else {
     returnType = 'Future<List<DBusValue>>';
   }
@@ -728,10 +719,15 @@ String generateRemoteMethodCall(List<String> memberNames,
   var source = '';
   source += '  /// Invokes ${interface.name}.${method.name}()\n';
   source += '  $returnType $methodName(${argsList.join(', ')}) async {\n';
-  source += '    var result = $methodCall\n';
-  if (returnTypes.length == 1) {
-    source += '    return ${returnValues[0]};\n';
-  } else if (returnTypes.length > 1) {
+  if (outputArgs.isEmpty) {
+    source += '    $methodCall\n';
+  } else if (outputArgs.length == 1) {
+    var type = getDartType(outputArgs.first.type);
+    var convertedValue = type.dbusToNative('result.returnValues[0]');
+    source += '    var result = $methodCall\n';
+    source += '    return $convertedValue;\n';
+  } else if (outputArgs.length > 1) {
+    source += '    var result = $methodCall\n';
     source += '    return result.returnValues;\n';
   }
   source += '  }\n';
