@@ -83,7 +83,22 @@ void main(List<String> args) async {
 }
 
 Future<DBusIntrospectNode> loadNode(String filename) async {
-  var xml = await File(filename).readAsString();
+  String xml;
+  if (filename == '-') {
+    // Due to a Dart bug, we can't read as a stream because EOF is not detected:
+    // var data = await stdin.fold<List<int>>([], (previous, element) { previous.addAll(element); return previous; });
+    // https://github.com/dart-lang/sdk/issues/21796
+    xml = '';
+    while (true) {
+      var line = stdin.readLineSync(retainNewlines: true);
+      if (line == null) {
+        break;
+      }
+      xml += line;
+    }
+  } else {
+    xml = await File(filename).readAsString();
+  }
   return parseDBusIntrospectXml(xml);
 }
 
