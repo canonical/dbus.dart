@@ -1008,103 +1008,104 @@ class DBusServer {
     var dbusInterface =
         DBusIntrospectInterface('org.freedesktop.DBus', methods: [
       DBusIntrospectMethod('Hello', args: [
-        DBusIntrospectArgument(
-            'unique_name', DBusSignature('s'), DBusArgumentDirection.out)
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out,
+            name: 'unique_name')
       ]),
       DBusIntrospectMethod('RequestName', args: [
-        DBusIntrospectArgument(
-            'name', DBusSignature('s'), DBusArgumentDirection.in_),
-        DBusIntrospectArgument(
-            'flags', DBusSignature('u'), DBusArgumentDirection.in_),
-        DBusIntrospectArgument(
-            'result', DBusSignature('u'), DBusArgumentDirection.out)
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_,
+            name: 'name'),
+        DBusIntrospectArgument(DBusSignature('u'), DBusArgumentDirection.in_,
+            name: 'flags'),
+        DBusIntrospectArgument(DBusSignature('u'), DBusArgumentDirection.out,
+            name: 'result')
       ]),
       DBusIntrospectMethod('ReleaseName', args: [
-        DBusIntrospectArgument(
-            'name', DBusSignature('s'), DBusArgumentDirection.in_),
-        DBusIntrospectArgument(
-            'result', DBusSignature('u'), DBusArgumentDirection.out)
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_,
+            name: 'name'),
+        DBusIntrospectArgument(DBusSignature('u'), DBusArgumentDirection.out,
+            name: 'result')
       ]),
       DBusIntrospectMethod('ListQueuedOwners', args: [
-        DBusIntrospectArgument(
-            'name', DBusSignature('s'), DBusArgumentDirection.in_),
-        DBusIntrospectArgument(
-            'names', DBusSignature('as'), DBusArgumentDirection.out)
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_,
+            name: 'name'),
+        DBusIntrospectArgument(DBusSignature('as'), DBusArgumentDirection.out,
+            name: 'names')
       ]),
       DBusIntrospectMethod('ListNames', args: [
-        DBusIntrospectArgument(
-            'names', DBusSignature('as'), DBusArgumentDirection.out)
+        DBusIntrospectArgument(DBusSignature('as'), DBusArgumentDirection.out,
+            name: 'names')
       ]),
       DBusIntrospectMethod('ListActivatableNames', args: [
-        DBusIntrospectArgument(
-            'names', DBusSignature('as'), DBusArgumentDirection.out)
+        DBusIntrospectArgument(DBusSignature('as'), DBusArgumentDirection.out,
+            name: 'names')
       ]),
       DBusIntrospectMethod('NameHasOwner', args: [
-        DBusIntrospectArgument(
-            'name', DBusSignature('s'), DBusArgumentDirection.in_),
-        DBusIntrospectArgument(
-            'result', DBusSignature('b'), DBusArgumentDirection.out)
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_,
+            name: 'name'),
+        DBusIntrospectArgument(DBusSignature('b'), DBusArgumentDirection.out,
+            name: 'result')
       ]),
       DBusIntrospectMethod('StartServiceByName', args: [
-        DBusIntrospectArgument(
-            'name', DBusSignature('s'), DBusArgumentDirection.in_),
-        DBusIntrospectArgument(
-            'flags', DBusSignature('u'), DBusArgumentDirection.in_),
-        DBusIntrospectArgument(
-            'result', DBusSignature('u'), DBusArgumentDirection.out)
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_,
+            name: 'name'),
+        DBusIntrospectArgument(DBusSignature('u'), DBusArgumentDirection.in_,
+            name: 'flags'),
+        DBusIntrospectArgument(DBusSignature('u'), DBusArgumentDirection.out,
+            name: 'result')
       ]),
       DBusIntrospectMethod('GetNameOwner', args: [
-        DBusIntrospectArgument(
-            'name', DBusSignature('s'), DBusArgumentDirection.in_),
-        DBusIntrospectArgument(
-            'owner', DBusSignature('s'), DBusArgumentDirection.out)
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_,
+            name: 'name'),
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out,
+            name: 'owner')
       ]),
       DBusIntrospectMethod('GetConnectionUnixUser', args: [
-        DBusIntrospectArgument(
-            'name', DBusSignature('s'), DBusArgumentDirection.in_),
-        DBusIntrospectArgument(
-            'unix_user_id', DBusSignature('u'), DBusArgumentDirection.out)
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_,
+            name: 'name'),
+        DBusIntrospectArgument(DBusSignature('u'), DBusArgumentDirection.out,
+            name: 'unix_user_id')
       ]),
       DBusIntrospectMethod('GetConnectionUnixProcessID', args: [
-        DBusIntrospectArgument(
-            'name', DBusSignature('s'), DBusArgumentDirection.in_),
-        DBusIntrospectArgument(
-            'unix_process_id', DBusSignature('u'), DBusArgumentDirection.out)
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_,
+            name: 'name'),
+        DBusIntrospectArgument(DBusSignature('u'), DBusArgumentDirection.out,
+            name: 'unix_process_id')
       ]),
       DBusIntrospectMethod('GetConnectionCredentials', args: [
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_,
+            name: 'name'),
         DBusIntrospectArgument(
-            'name', DBusSignature('s'), DBusArgumentDirection.in_),
-        DBusIntrospectArgument(
-            'credentials', DBusSignature('a{sv}'), DBusArgumentDirection.out)
+            DBusSignature('a{sv}'), DBusArgumentDirection.out,
+            name: 'credentials')
       ]),
       DBusIntrospectMethod('AddMatch', args: [
-        DBusIntrospectArgument(
-            'rule', DBusSignature('s'), DBusArgumentDirection.in_)
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_,
+            name: 'rule')
       ]),
       DBusIntrospectMethod('RemoveMatch', args: [
-        DBusIntrospectArgument(
-            'rule', DBusSignature('s'), DBusArgumentDirection.in_)
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_,
+            name: 'rule')
       ]),
       DBusIntrospectMethod('GetId', args: [
-        DBusIntrospectArgument(
-            'id', DBusSignature('s'), DBusArgumentDirection.out)
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out,
+            name: 'id')
       ])
     ], signals: [
       DBusIntrospectSignal('NameOwnerChanged', args: [
-        DBusIntrospectArgument(
-            'name', DBusSignature('s'), DBusArgumentDirection.out),
-        DBusIntrospectArgument(
-            'old_owner', DBusSignature('s'), DBusArgumentDirection.out),
-        DBusIntrospectArgument(
-            'new_owner', DBusSignature('s'), DBusArgumentDirection.out)
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out,
+            name: 'name'),
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out,
+            name: 'old_owner'),
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out,
+            name: 'new_owner')
       ]),
       DBusIntrospectSignal('NameLost', args: [
-        DBusIntrospectArgument(
-            'name', DBusSignature('s'), DBusArgumentDirection.out),
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out,
+            name: 'name'),
       ]),
       DBusIntrospectSignal('NameAcquired', args: [
-        DBusIntrospectArgument(
-            'name', DBusSignature('s'), DBusArgumentDirection.out),
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out,
+            name: 'name'),
       ])
     ], properties: [
       DBusIntrospectProperty('Features', DBusSignature('as'),
@@ -1116,17 +1117,14 @@ class DBusServer {
     var serverPath = DBusObjectPath('/org/freedesktop/DBus');
     if (message.path != null && serverPath.isInNamespace(message.path!)) {
       children.add(DBusIntrospectNode(
-          serverPath.value.substring(message.path!.value.length)));
+          name: serverPath.value.substring(message.path!.value.length)));
     }
-    var node = DBusIntrospectNode(
-        null,
-        <DBusIntrospectInterface>[
-          dbusInterface,
-          introspectIntrospectable(),
-          introspectPeer(),
-          introspectProperties()
-        ],
-        children);
+    var node = DBusIntrospectNode(interfaces: <DBusIntrospectInterface>[
+      dbusInterface,
+      introspectIntrospectable(),
+      introspectPeer(),
+      introspectProperties()
+    ], children: children);
     return DBusMethodSuccessResponse([DBusString(node.toXml().toXmlString())]);
   }
 

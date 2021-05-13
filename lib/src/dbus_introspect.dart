@@ -18,8 +18,8 @@ class DBusIntrospectNode {
   /// Child nodes.
   final List<DBusIntrospectNode> children;
 
-  DBusIntrospectNode(this.name,
-      [this.interfaces = const [], this.children = const []]);
+  DBusIntrospectNode(
+      {this.name, this.interfaces = const [], this.children = const []});
 
   factory DBusIntrospectNode.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
@@ -31,7 +31,8 @@ class DBusIntrospectNode {
         .findElements('node')
         .map((n) => DBusIntrospectNode.fromXml(n))
         .toList();
-    return DBusIntrospectNode(name, interfaces, children);
+    return DBusIntrospectNode(
+        name: name, interfaces: interfaces, children: children);
   }
 
   XmlNode toXml() {
@@ -47,7 +48,7 @@ class DBusIntrospectNode {
 
   @override
   String toString() {
-    return "DBusIntrospectNode('$name', interfaces: $interfaces, children: $children)";
+    return "DBusIntrospectNode(name: ${name != null ? "'$name'" : 'null'}, interfaces: $interfaces, children: $children)";
   }
 }
 
@@ -302,8 +303,8 @@ class DBusIntrospectArgument {
   /// Annotations for this argument.
   final List<DBusIntrospectAnnotation> annotations;
 
-  DBusIntrospectArgument(this.name, this.type, this.direction,
-      {this.annotations = const []});
+  DBusIntrospectArgument(this.type, this.direction,
+      {this.name, this.annotations = const []});
 
   factory DBusIntrospectArgument.fromXml(
       XmlNode node, DBusArgumentDirection defaultDirection) {
@@ -324,8 +325,8 @@ class DBusIntrospectArgument {
         .findElements('annotation')
         .map((n) => DBusIntrospectAnnotation.fromXml(n))
         .toList();
-    return DBusIntrospectArgument(name, type, direction,
-        annotations: annotations);
+    return DBusIntrospectArgument(type, direction,
+        name: name, annotations: annotations);
   }
 
   XmlNode toXml({bool writeDirection = true}) {
@@ -347,7 +348,7 @@ class DBusIntrospectArgument {
 
   @override
   String toString() {
-    return "DBusIntrospectArgument('$name', type: '${type.value}', $direction)";
+    return "DBusIntrospectArgument($type, $direction${name != null ? ", name: '$name'" : ''})";
   }
 }
 
