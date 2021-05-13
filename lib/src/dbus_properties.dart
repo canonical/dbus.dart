@@ -7,35 +7,35 @@ import 'dbus_value.dart';
 /// Returns introspection data for the org.freedesktop.DBus.Properties interface.
 DBusIntrospectInterface introspectProperties() {
   final getMethod = DBusIntrospectMethod('Get', args: [
-    DBusIntrospectArgument(
-        'interface_name', DBusSignature('s'), DBusArgumentDirection.in_),
-    DBusIntrospectArgument(
-        'property_name', DBusSignature('s'), DBusArgumentDirection.in_),
-    DBusIntrospectArgument(
-        'value', DBusSignature('v'), DBusArgumentDirection.out),
+    DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_,
+        name: 'interface_name'),
+    DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_,
+        name: 'property_name'),
+    DBusIntrospectArgument(DBusSignature('v'), DBusArgumentDirection.out,
+        name: 'value'),
   ]);
   final setMethod = DBusIntrospectMethod('Set', args: [
-    DBusIntrospectArgument(
-        'interface_name', DBusSignature('s'), DBusArgumentDirection.in_),
-    DBusIntrospectArgument(
-        'property_name', DBusSignature('s'), DBusArgumentDirection.in_),
-    DBusIntrospectArgument(
-        'value', DBusSignature('v'), DBusArgumentDirection.in_),
+    DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_,
+        name: 'interface_name'),
+    DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_,
+        name: 'property_name'),
+    DBusIntrospectArgument(DBusSignature('v'), DBusArgumentDirection.in_,
+        name: 'value'),
   ]);
   final getAllMethod = DBusIntrospectMethod('GetAll', args: [
-    DBusIntrospectArgument(
-        'interface_name', DBusSignature('s'), DBusArgumentDirection.in_),
-    DBusIntrospectArgument(
-        'props', DBusSignature('a{sv}'), DBusArgumentDirection.out),
+    DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_,
+        name: 'interface_name'),
+    DBusIntrospectArgument(DBusSignature('a{sv}'), DBusArgumentDirection.out,
+        name: 'props'),
   ]);
   final propertiesChangedSignal =
       DBusIntrospectSignal('PropertiesChanged', args: [
-    DBusIntrospectArgument(
-        'interface_name', DBusSignature('s'), DBusArgumentDirection.out),
-    DBusIntrospectArgument('changed_properties', DBusSignature('a{sv}'),
-        DBusArgumentDirection.out),
-    DBusIntrospectArgument('invalidated_properties', DBusSignature('as'),
-        DBusArgumentDirection.out)
+    DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out,
+        name: 'interface_name'),
+    DBusIntrospectArgument(DBusSignature('a{sv}'), DBusArgumentDirection.out,
+        name: 'changed_properties'),
+    DBusIntrospectArgument(DBusSignature('as'), DBusArgumentDirection.out,
+        name: 'invalidated_properties')
   ]);
   final introspectable = DBusIntrospectInterface(
       'org.freedesktop.DBus.Properties',

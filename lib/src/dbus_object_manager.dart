@@ -25,21 +25,23 @@ Map<String, Map<String, DBusValue>> expandObjectInterfaceAndProperties(
 /// Returns introspection data for the org.freedesktop.DBus.ObjectManager interface.
 DBusIntrospectInterface introspectObjectManager() {
   final introspectMethod = DBusIntrospectMethod('GetManagedObjects', args: [
-    DBusIntrospectArgument('objpath_interfaces_and_properties',
-        DBusSignature('a{oa{sa{sv}}}'), DBusArgumentDirection.out)
+    DBusIntrospectArgument(
+        DBusSignature('a{oa{sa{sv}}}'), DBusArgumentDirection.out,
+        name: 'objpath_interfaces_and_properties')
   ]);
   final interfacesAddedSignal = DBusIntrospectSignal('InterfacesAdded', args: [
+    DBusIntrospectArgument(DBusSignature('o'), DBusArgumentDirection.out,
+        name: 'object_path'),
     DBusIntrospectArgument(
-        'object_path', DBusSignature('o'), DBusArgumentDirection.out),
-    DBusIntrospectArgument('interfaces_and_properties',
-        DBusSignature('a{sa{sv}}'), DBusArgumentDirection.out)
+        DBusSignature('a{sa{sv}}'), DBusArgumentDirection.out,
+        name: 'interfaces_and_properties')
   ]);
   final interfacesRemovedSignal =
       DBusIntrospectSignal('InterfacesRemoved', args: [
-    DBusIntrospectArgument(
-        'object_path', DBusSignature('o'), DBusArgumentDirection.out),
-    DBusIntrospectArgument(
-        'interfaces', DBusSignature('as'), DBusArgumentDirection.out)
+    DBusIntrospectArgument(DBusSignature('o'), DBusArgumentDirection.out,
+        name: 'object_path'),
+    DBusIntrospectArgument(DBusSignature('as'), DBusArgumentDirection.out,
+        name: 'interfaces')
   ]);
   final introspectable = DBusIntrospectInterface(
       'org.freedesktop.DBus.Introspectable',

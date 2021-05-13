@@ -8,8 +8,8 @@ import 'dbus_value.dart';
 /// Returns introspection data for the org.freedesktop.DBus.Peer interface.
 DBusIntrospectInterface introspectPeer() {
   final getMachineIdMethod = DBusIntrospectMethod('GetMachineId', args: [
-    DBusIntrospectArgument(
-        'machine_uuid', DBusSignature('s'), DBusArgumentDirection.out)
+    DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out,
+        name: 'machine_uuid')
   ]);
   final pingMethod = DBusIntrospectMethod('Ping');
   final peer = DBusIntrospectInterface('org.freedesktop.DBus.Peer',

@@ -10,8 +10,8 @@ import 'dbus_value.dart';
 /// Returns introspection data for the org.freedesktop.DBus.Introspectable interface.
 DBusIntrospectInterface introspectIntrospectable() {
   final introspectMethod = DBusIntrospectMethod('Introspect', args: [
-    DBusIntrospectArgument(
-        'xml_data', DBusSignature('s'), DBusArgumentDirection.out)
+    DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out,
+        name: 'xml_data')
   ]);
   final introspectable = DBusIntrospectInterface(
       'org.freedesktop.DBus.Introspectable',
@@ -40,11 +40,12 @@ DBusMethodResponse handleIntrospectableMethodCall(
     }
     var children = <DBusIntrospectNode>[];
     if (node != null) {
-      children
-          .addAll(node.children.keys.map((name) => DBusIntrospectNode(name)));
+      children.addAll(
+          node.children.keys.map((name) => DBusIntrospectNode(name: name)));
     }
-    var xml =
-        DBusIntrospectNode(null, interfaces, children).toXml().toXmlString();
+    var xml = DBusIntrospectNode(interfaces: interfaces, children: children)
+        .toXml()
+        .toXmlString();
     return DBusMethodSuccessResponse([DBusString(xml)]);
   } else {
     return DBusMethodErrorResponse.unknownMethod();

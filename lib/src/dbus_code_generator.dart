@@ -305,8 +305,11 @@ class DBusCodeGenerator {
         if (arg.direction == DBusArgumentDirection.in_) {
           direction = 'DBusArgumentDirection.in_';
         }
-        return makeIntrospectObject('DBusIntrospectArgument',
-            ["'${arg.name}'", "DBusSignature('${arg.type.value}')", direction]);
+        var args = ["DBusSignature('${arg.type.value}')", direction];
+        if (arg.name != null) {
+          args.add("name: '${arg.name}'");
+        }
+        return makeIntrospectObject('DBusIntrospectArgument', args);
       }
 
       String makeArgs(Iterable<DBusIntrospectArgument> args) {
