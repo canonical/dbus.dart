@@ -27,6 +27,8 @@ DBusDartType getDartType(DBusSignature signature) {
     return DBusObjectPathType();
   } else if (value == 'v') {
     return DBusVariantType();
+  } else if (value.startsWith('(') && value.endsWith(')')) {
+    return DBusStructType();
   } else if (value.startsWith('a{') && value.endsWith('}')) {
     var signatures =
         DBusSignature(value.substring(2, value.length - 1)).split();
@@ -297,6 +299,29 @@ class DBusVariantType extends DBusDartType {
   @override
   String dbusToNative(String name) {
     return '($name as DBusVariant).value';
+  }
+}
+
+/// Generates Dart code for the struct D-Bus type.
+class DBusStructType extends DBusDartType {
+  @override
+  String get nativeType {
+    return 'DBusStruct';
+  }
+
+  @override
+  String get dbusType {
+    return 'DBusStruct';
+  }
+
+  @override
+  String nativeToDBus(String name) {
+    return name;
+  }
+
+  @override
+  String dbusToNative(String name) {
+    return '$name as DBusStruct';
   }
 }
 
