@@ -1,0 +1,22 @@
+<node>
+  <interface name="com.example.Test">
+    <method name="Hello">
+      <arg name="byte_value" type="y" direction="in"/>
+      <arg name="boolean_value" type="b" direction="in"/>
+      <arg name="int16_value" type="n" direction="in"/>
+      <arg name="uint16_value" type="q" direction="in"/>
+      <arg name="int32_value" type="i" direction="in"/>
+      <arg name="uint32_value" type="u" direction="in"/>
+      <arg name="int64_value" type="x" direction="in"/>
+      <arg name="uint64_value" type="t" direction="in"/>
+      <arg name="double_value" type="d" direction="in"/>
+      <arg name="string_value" type="s" direction="in"/>
+      <arg name="object_path_value" type="o" direction="in"/>
+      <arg name="signature_value" type="g" direction="in"/>
+      <arg name="variant_value" type="v" direction="in"/>
+      <arg name="struct_value" type="(si)" direction="in"/>
+      <arg name="array_value" type="ay" direction="in"/>
+      <arg name="dict_value" type="a{sv}" direction="in"/>
+    </method>
+  </interface>
+</node>

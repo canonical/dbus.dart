@@ -1,0 +1,49 @@
+import 'package:dbus/dbus.dart';
+
+class ComExampleTest extends DBusObject {
+  /// Creates a new object to expose on [path].
+  ComExampleTest({DBusObjectPath path = const DBusObjectPath.unchecked('/')}) : super(path);
+
+  /// Emits signal com.example.Test.Event
+  void emitEvent(int byte_value, bool boolean_value, int int16_value, int uint16_value, int int32_value, int uint32_value, int int64_value, int uint64_value, double double_value, String string_value, String object_path_value, DBusValue signature_value, DBusValue variant_value, DBusStruct struct_value, List<int> array_value, Map<String, DBusValue> dict_value) {
+     emitSignal('com.example.Test', 'Event', [DBusByte(byte_value), DBusBoolean(boolean_value), DBusInt16(int16_value), DBusUint16(uint16_value), DBusInt32(int32_value), DBusUint32(uint32_value), DBusInt64(int64_value), DBusUint64(uint64_value), DBusDouble(double_value), DBusString(string_value), DBusObjectPath(object_path_value), signature_value, DBusVariant(variant_value), struct_value, DBusArray.byte(array_value), DBusDict.stringVariant(dict_value)]);
+  }
+
+  @override
+  List<DBusIntrospectInterface> introspect() {
+    return [DBusIntrospectInterface('com.example.Test', signals: [DBusIntrospectSignal('Event', args: [DBusIntrospectArgument(DBusSignature('y'), DBusArgumentDirection.out, name: 'byte_value'), DBusIntrospectArgument(DBusSignature('b'), DBusArgumentDirection.out, name: 'boolean_value'), DBusIntrospectArgument(DBusSignature('n'), DBusArgumentDirection.out, name: 'int16_value'), DBusIntrospectArgument(DBusSignature('q'), DBusArgumentDirection.out, name: 'uint16_value'), DBusIntrospectArgument(DBusSignature('i'), DBusArgumentDirection.out, name: 'int32_value'), DBusIntrospectArgument(DBusSignature('u'), DBusArgumentDirection.out, name: 'uint32_value'), DBusIntrospectArgument(DBusSignature('x'), DBusArgumentDirection.out, name: 'int64_value'), DBusIntrospectArgument(DBusSignature('t'), DBusArgumentDirection.out, name: 'uint64_value'), DBusIntrospectArgument(DBusSignature('d'), DBusArgumentDirection.out, name: 'double_value'), DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out, name: 'string_value'), DBusIntrospectArgument(DBusSignature('o'), DBusArgumentDirection.out, name: 'object_path_value'), DBusIntrospectArgument(DBusSignature('g'), DBusArgumentDirection.out, name: 'signature_value'), DBusIntrospectArgument(DBusSignature('v'), DBusArgumentDirection.out, name: 'variant_value'), DBusIntrospectArgument(DBusSignature('(si)'), DBusArgumentDirection.out, name: 'struct_value'), DBusIntrospectArgument(DBusSignature('ay'), DBusArgumentDirection.out, name: 'array_value'), DBusIntrospectArgument(DBusSignature('a{sv}'), DBusArgumentDirection.out, name: 'dict_value')])])];
+  }
+
+  @override
+  Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
+    if (methodCall.interface == 'com.example.Test') {
+      return DBusMethodErrorResponse.unknownMethod();
+    } else {
+      return DBusMethodErrorResponse.unknownInterface();
+    }
+  }
+
+  @override
+  Future<DBusMethodResponse> getProperty(String interface, String name) async {
+    if (interface == 'com.example.Test') {
+      return DBusMethodErrorResponse.unknownProperty();
+    } else {
+      return DBusMethodErrorResponse.unknownInterface();
+    }
+  }
+
+  @override
+  Future<DBusMethodResponse> setProperty(String interface, String name, DBusValue value) async {
+    if (interface == 'com.example.Test') {
+      return DBusMethodErrorResponse.unknownProperty();
+    } else {
+      return DBusMethodErrorResponse.unknownInterface();
+    }
+  }
+
+  @override
+  Future<DBusMethodResponse> getAllProperties(String interface) async {
+    var properties = <DBusValue, DBusValue>{};
+    return DBusMethodSuccessResponse([DBusDict(DBusSignature('s'), DBusSignature('v'), properties)]);
+  }
+}

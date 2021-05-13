@@ -1,0 +1,7 @@
+<node>
+  <interface name="com.example.Test">
+    <property name="ReadProperty" type="i" access="read"/>
+    <property name="WriteProperty" type="i" access="write"/>
+    <property name="ReadWriteProperty" type="i" access="readwrite"/>
+  </interface>
+</node>

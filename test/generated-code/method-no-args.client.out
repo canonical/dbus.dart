@@ -1,0 +1,10 @@
+import 'package:dbus/dbus.dart';
+
+class ComExampleTest extends DBusRemoteObject {
+  ComExampleTest(DBusClient client, String destination, DBusObjectPath path) : super(client, destination, path);
+
+  /// Invokes com.example.Test.Hello()
+  Future<void> callHello() async {
+    await callMethod('com.example.Test', 'Hello', [], replySignature: DBusSignature(''));
+  }
+}

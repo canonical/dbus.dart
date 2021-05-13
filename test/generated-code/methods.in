@@ -1,0 +1,7 @@
+<node>
+  <interface name="com.example.Test">
+    <method name="Hello1"/>
+    <method name="Hello2"/>
+    <method name="Hello3"/>
+  </interface>
+</node>
