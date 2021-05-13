@@ -1,0 +1,38 @@
+import 'package:dbus/dbus.dart';
+
+/// Signal data for com.example.Test.Event.
+class ComExampleTestEvent extends DBusSignal {
+  int get byte_value => (values[0] as DBusByte).value;
+  bool get boolean_value => (values[1] as DBusBoolean).value;
+  int get int16_value => (values[2] as DBusInt16).value;
+  int get uint16_value => (values[3] as DBusUint16).value;
+  int get int32_value => (values[4] as DBusInt32).value;
+  int get uint32_value => (values[5] as DBusUint32).value;
+  int get int64_value => (values[6] as DBusInt64).value;
+  int get uint64_value => (values[7] as DBusUint64).value;
+  double get double_value => (values[8] as DBusDouble).value;
+  String get string_value => (values[9] as DBusString).value;
+  String get object_path_value => (values[10] as DBusObjectPath).value;
+  DBusValue get signature_value => values[11];
+  DBusValue get variant_value => (values[12] as DBusVariant).value;
+  DBusStruct get struct_value => values[13] as DBusStruct;
+  List<int> get array_value => (values[14] as DBusArray).children.map((child) => (child as DBusByte).value).toList();
+  Map<String, DBusValue> get dict_value => (values[15] as DBusDict).children.map((key, value) => MapEntry((key as DBusString).value, (value as DBusVariant).value));
+
+  ComExampleTestEvent(DBusSignal signal) : super(signal.sender, signal.path, signal.interface, signal.name, signal.values);
+}
+
+class ComExampleTest extends DBusRemoteObject {
+  /// Stream of com.example.Test.Event signals.
+  late final Stream<ComExampleTestEvent> event;
+
+  ComExampleTest(DBusClient client, String destination, DBusObjectPath path) : super(client, destination, path) {
+    event = DBusRemoteObjectSignalStream(this, 'com.example.Test', 'Event').map((signal) {
+      if (signal.signature == DBusSignature('ybnqiuxtdsogv(si)aya{sv}')) {
+        return ComExampleTestEvent(signal);
+      } else {
+        throw 'com.example.Test.Event contains invalid values ${signal.values}';
+      }
+    });
+  }
+}

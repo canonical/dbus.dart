@@ -1,0 +1,10 @@
+<node>
+  <interface name="com.example.Test">
+    <signal name="Event1">
+      <arg name="value" type="s"/>
+    </signal>
+    <signal name="Event2">
+      <arg name="value" type="i"/>
+    </signal>
+  </interface>
+</node>

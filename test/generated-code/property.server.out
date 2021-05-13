@@ -1,0 +1,68 @@
+import 'package:dbus/dbus.dart';
+
+class ComExampleTest extends DBusObject {
+  /// Creates a new object to expose on [path].
+  ComExampleTest({DBusObjectPath path = const DBusObjectPath.unchecked('/')}) : super(path);
+
+  /// Gets value of property com.example.Test.Value
+  Future<DBusMethodResponse> getValue() async {
+    return DBusMethodErrorResponse.failed('Get com.example.Test.Value not implemented');
+  }
+
+  /// Sets property com.example.Test.Value
+  Future<DBusMethodResponse> setValue(String value) async {
+    return DBusMethodErrorResponse.failed('Set com.example.Test.Value not implemented');
+  }
+
+  @override
+  List<DBusIntrospectInterface> introspect() {
+    return [DBusIntrospectInterface('com.example.Test', properties: [DBusIntrospectProperty('Value', DBusSignature('s'), access: DBusPropertyAccess.readwrite)])];
+  }
+
+  @override
+  Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
+    if (methodCall.interface == 'com.example.Test') {
+      return DBusMethodErrorResponse.unknownMethod();
+    } else {
+      return DBusMethodErrorResponse.unknownInterface();
+    }
+  }
+
+  @override
+  Future<DBusMethodResponse> getProperty(String interface, String name) async {
+    if (interface == 'com.example.Test') {
+      if (name == 'Value') {
+        return getValue();
+      } else {
+        return DBusMethodErrorResponse.unknownProperty();
+      }
+    } else {
+      return DBusMethodErrorResponse.unknownInterface();
+    }
+  }
+
+  @override
+  Future<DBusMethodResponse> setProperty(String interface, String name, DBusValue value) async {
+    if (interface == 'com.example.Test') {
+      if (name == 'Value') {
+        if (value.signature != DBusSignature('s')) {
+          return DBusMethodErrorResponse.invalidArgs();
+        }
+        return setValue((value as DBusString).value);
+      } else {
+        return DBusMethodErrorResponse.unknownProperty();
+      }
+    } else {
+      return DBusMethodErrorResponse.unknownInterface();
+    }
+  }
+
+  @override
+  Future<DBusMethodResponse> getAllProperties(String interface) async {
+    var properties = <DBusValue, DBusValue>{};
+    if (interface == 'com.example.Test') {
+      properties[DBusString('Value')] = (await getValue()).returnValues[0];
+    }
+    return DBusMethodSuccessResponse([DBusDict(DBusSignature('s'), DBusSignature('v'), properties)]);
+  }
+}

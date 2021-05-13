@@ -1,0 +1,7 @@
+<node>
+  <interface name="com.example.Test">
+    <method name="Hello">
+      <arg type="s" direction="in"/>
+    </method>
+  </interface>
+</node>

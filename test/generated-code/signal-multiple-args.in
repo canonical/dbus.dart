@@ -1,0 +1,22 @@
+<node>
+  <interface name="com.example.Test">
+    <signal name="Event">
+      <arg name="byte_value" type="y"/>
+      <arg name="boolean_value" type="b"/>
+      <arg name="int16_value" type="n"/>
+      <arg name="uint16_value" type="q"/>
+      <arg name="int32_value" type="i"/>
+      <arg name="uint32_value" type="u"/>
+      <arg name="int64_value" type="x"/>
+      <arg name="uint64_value" type="t"/>
+      <arg name="double_value" type="d"/>
+      <arg name="string_value" type="s"/>
+      <arg name="object_path_value" type="o"/>
+      <arg name="signature_value" type="g"/>
+      <arg name="variant_value" type="v"/>
+      <arg name="struct_value" type="(si)"/>
+      <arg name="array_value" type="ay"/>
+      <arg name="dict_value" type="a{sv}"/>
+    </signal>
+  </interface>
+</node>

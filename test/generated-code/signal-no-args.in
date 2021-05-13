@@ -1,0 +1,5 @@
+<node>
+  <interface name="com.example.Test">
+    <signal name="Event"/>
+  </interface>
+</node>

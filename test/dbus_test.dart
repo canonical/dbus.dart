@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dbus/code_generator.dart';
 import 'package:dbus/dbus.dart';
 import 'package:dbus/src/getuid.dart';
 import 'package:test/test.dart';
@@ -1659,4 +1660,375 @@ void main() {
       'Property2': DBusString('VALUE2')
     });
   });
+
+  test('intropect xml - empty', () {
+    expect(() => parseDBusIntrospectXml(''), throwsFormatException);
+  });
+
+  test('intropect xml - unknown tag', () {
+    expect(() => parseDBusIntrospectXml('<foo/>'), throwsFormatException);
+  });
+
+  test('intropect xml - empty node', () {
+    var node = parseDBusIntrospectXml('<node/>');
+    expect(node, equals(DBusIntrospectNode()));
+  });
+
+  test('intropect xml - named node', () {
+    var node = parseDBusIntrospectXml('<node name="/com/example/Test"/>');
+    expect(node, equals(DBusIntrospectNode(name: '/com/example/Test')));
+  });
+
+  test('intropect xml - interface annotation', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"><annotation name="com.example.Test.Name" value="AnnotationValue"/></interface></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(interfaces: [
+          DBusIntrospectInterface('com.example.Test', annotations: [
+            DBusIntrospectAnnotation('com.example.Test.Name', 'AnnotationValue')
+          ])
+        ])));
+  });
+
+  test('intropect xml - empty interface', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"/></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(
+            interfaces: [DBusIntrospectInterface('com.example.Test')])));
+  });
+
+  test('intropect xml - missing interface name', () {
+    expect(() => parseDBusIntrospectXml('<node><interface/></node>'),
+        throwsFormatException);
+  });
+
+  test('intropect xml - method no args', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"><method name="Hello"/></interface></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(interfaces: [
+          DBusIntrospectInterface('com.example.Test',
+              methods: [DBusIntrospectMethod('Hello')])
+        ])));
+  });
+
+  test('intropect xml - method input arg', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"><method name="Hello"><arg type="s"/></method></interface></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(interfaces: [
+          DBusIntrospectInterface('com.example.Test', methods: [
+            DBusIntrospectMethod('Hello', args: [
+              DBusIntrospectArgument(
+                  DBusSignature('s'), DBusArgumentDirection.in_)
+            ])
+          ])
+        ])));
+  });
+
+  test('intropect xml - method named arg', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"><method name="Hello"><arg name="text" type="s"/></method></interface></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(interfaces: [
+          DBusIntrospectInterface('com.example.Test', methods: [
+            DBusIntrospectMethod('Hello', args: [
+              DBusIntrospectArgument(
+                  DBusSignature('s'), DBusArgumentDirection.in_,
+                  name: 'text')
+            ])
+          ])
+        ])));
+  });
+
+  test('intropect xml - method input arg', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"><method name="Hello"><arg type="s" direction="in"/></method></interface></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(interfaces: [
+          DBusIntrospectInterface('com.example.Test', methods: [
+            DBusIntrospectMethod('Hello', args: [
+              DBusIntrospectArgument(
+                  DBusSignature('s'), DBusArgumentDirection.in_)
+            ])
+          ])
+        ])));
+  });
+
+  test('intropect xml - method output arg', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"><method name="Hello"><arg type="s" direction="out"/></method></interface></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(interfaces: [
+          DBusIntrospectInterface('com.example.Test', methods: [
+            DBusIntrospectMethod('Hello', args: [
+              DBusIntrospectArgument(
+                  DBusSignature('s'), DBusArgumentDirection.out)
+            ])
+          ])
+        ])));
+  });
+
+  test('intropect xml - method arg annotation', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"><method name="Hello"><arg type="s"><annotation name="com.example.Test.Name" value="AnnotationValue"/></arg></method></interface></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(interfaces: [
+          DBusIntrospectInterface('com.example.Test', methods: [
+            DBusIntrospectMethod('Hello', args: [
+              DBusIntrospectArgument(
+                  DBusSignature('s'), DBusArgumentDirection.in_, annotations: [
+                DBusIntrospectAnnotation(
+                    'com.example.Test.Name', 'AnnotationValue')
+              ])
+            ])
+          ])
+        ])));
+  });
+
+  test('intropect xml - method annotation', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"><method name="Hello"><annotation name="com.example.Test.Name" value="AnnotationValue"/></method></interface></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(interfaces: [
+          DBusIntrospectInterface('com.example.Test', methods: [
+            DBusIntrospectMethod('Hello', annotations: [
+              DBusIntrospectAnnotation(
+                  'com.example.Test.Name', 'AnnotationValue')
+            ])
+          ])
+        ])));
+  });
+
+  test('intropect xml - missing method name', () {
+    expect(
+        () => parseDBusIntrospectXml(
+            '<node><interface name="com.example.Test"><method/></interface></node>'),
+        throwsFormatException);
+  });
+
+  test('intropect xml - missing argument type', () {
+    expect(
+        () => parseDBusIntrospectXml(
+            '<node><interface name="com.example.Test"><method name="Hello"><arg/></method></interface></node>'),
+        throwsFormatException);
+  });
+
+  test('intropect xml - unknown argument direction', () {
+    expect(
+        () => parseDBusIntrospectXml(
+            '<node><interface name="com.example.Test"><method name="Hello"><arg type="s" direction="down"/></method></interface></node>'),
+        throwsFormatException);
+  });
+
+  test('intropect xml - signal', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"><signal name="CountChanged"/></interface></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(interfaces: [
+          DBusIntrospectInterface('com.example.Test',
+              signals: [DBusIntrospectSignal('CountChanged')])
+        ])));
+  });
+
+  test('intropect xml - signal argument', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"><signal name="CountChanged"><arg type="u"/></signal></interface></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(interfaces: [
+          DBusIntrospectInterface('com.example.Test', signals: [
+            DBusIntrospectSignal('CountChanged', args: [
+              DBusIntrospectArgument(
+                  DBusSignature('u'), DBusArgumentDirection.out)
+            ])
+          ])
+        ])));
+  });
+
+  test('intropect xml - signal output argument', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"><signal name="CountChanged"><arg type="u" direction="out"/></signal></interface></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(interfaces: [
+          DBusIntrospectInterface('com.example.Test', signals: [
+            DBusIntrospectSignal('CountChanged', args: [
+              DBusIntrospectArgument(
+                  DBusSignature('u'), DBusArgumentDirection.out)
+            ])
+          ])
+        ])));
+  });
+
+  test('intropect xml - signal annotation', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"><signal name="CountChanged"><annotation name="com.example.Test.Name" value="AnnotationValue"/></signal></interface></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(interfaces: [
+          DBusIntrospectInterface('com.example.Test', signals: [
+            DBusIntrospectSignal('CountChanged', annotations: [
+              DBusIntrospectAnnotation(
+                  'com.example.Test.Name', 'AnnotationValue')
+            ])
+          ])
+        ])));
+  });
+
+  test('intropect xml - signal no name', () {
+    expect(
+        () => parseDBusIntrospectXml(
+            '<node><interface name="com.example.Test"><signal/></interface></node>'),
+        throwsFormatException);
+  });
+
+  test('intropect xml - signal input argument', () {
+    expect(
+        () => parseDBusIntrospectXml(
+            '<node><interface name="com.example.Test"><signal><arg type="u" direction="in"/></signal></interface></node>'),
+        throwsFormatException);
+  });
+
+  test('intropect xml - property', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"><property name="Count" type="u"/></interface></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(interfaces: [
+          DBusIntrospectInterface('com.example.Test',
+              properties: [DBusIntrospectProperty('Count', DBusSignature('u'))])
+        ])));
+  });
+
+  test('intropect xml - property - read access', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"><property name="Count" type="u" access="read"/></interface></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(interfaces: [
+          DBusIntrospectInterface('com.example.Test', properties: [
+            DBusIntrospectProperty('Count', DBusSignature('u'),
+                access: DBusPropertyAccess.read)
+          ])
+        ])));
+  });
+
+  test('intropect xml - property - write access', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"><property name="Count" type="u" access="write"/></interface></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(interfaces: [
+          DBusIntrospectInterface('com.example.Test', properties: [
+            DBusIntrospectProperty('Count', DBusSignature('u'),
+                access: DBusPropertyAccess.write)
+          ])
+        ])));
+  });
+
+  test('intropect xml - property - readwrite access', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"><property name="Count" type="u" access="readwrite"/></interface></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(interfaces: [
+          DBusIntrospectInterface('com.example.Test', properties: [
+            DBusIntrospectProperty('Count', DBusSignature('u'),
+                access: DBusPropertyAccess.readwrite)
+          ])
+        ])));
+  });
+
+  test('intropect xml - property annotation', () {
+    var node = parseDBusIntrospectXml(
+        '<node><interface name="com.example.Test"><property name="Count" type="u"><annotation name="com.example.Test.Name" value="AnnotationValue"/></property></interface></node>');
+    expect(
+        node,
+        equals(DBusIntrospectNode(interfaces: [
+          DBusIntrospectInterface('com.example.Test', properties: [
+            DBusIntrospectProperty('Count', DBusSignature('u'), annotations: [
+              DBusIntrospectAnnotation(
+                  'com.example.Test.Name', 'AnnotationValue')
+            ])
+          ])
+        ])));
+  });
+
+  test('intropect xml - property no name or type', () {
+    expect(
+        () => parseDBusIntrospectXml(
+            '<node><interface name="com.example.Test"><property/></interface></node>'),
+        throwsFormatException);
+  });
+
+  test('intropect xml - property no name', () {
+    expect(
+        () => parseDBusIntrospectXml(
+            '<node><interface name="com.example.Test"><property type="u"/></interface></node>'),
+        throwsFormatException);
+  });
+
+  test('intropect xml - property no type', () {
+    expect(
+        () => parseDBusIntrospectXml(
+            '<node><interface name="com.example.Test"><property name="Count"/></interface></node>'),
+        throwsFormatException);
+  });
+
+  test('intropect xml - property unknown access', () {
+    expect(
+        () => parseDBusIntrospectXml(
+            '<node><interface name="com.example.Test"><property name="Count" type="u" access="cook"/></interface></node>'),
+        throwsFormatException);
+  });
+
+  for (var name in [
+    'method-no-args',
+    'method-single-input',
+    'method-single-output',
+    'method-multiple-inputs',
+    'method-multiple-outputs',
+    'method-unnamed-arg',
+    'methods',
+    'property',
+    'properties',
+    'property-access',
+    'signal-no-args',
+    'signal-single-arg',
+    'signal-multiple-args',
+    'signals',
+    'multiple-interfaces'
+  ]) {
+    test('code generator - client - $name', () async {
+      var xml = await File('test/generated-code/$name.in').readAsString();
+      var node = parseDBusIntrospectXml(xml);
+      var generator = DBusCodeGenerator(node);
+      var code = generator.generateClientSource();
+      var expectedCode =
+          await File('test/generated-code/$name.client.out').readAsString();
+      expect(code, equals(expectedCode));
+    });
+
+    test('code generator - server - $name', () async {
+      var xml = await File('test/generated-code/$name.in').readAsString();
+      var node = parseDBusIntrospectXml(xml);
+      var generator = DBusCodeGenerator(node);
+      var code = generator.generateServerSource();
+      var expectedCode =
+          await File('test/generated-code/$name.server.out').readAsString();
+      expect(code, equals(expectedCode));
+    });
+  }
 }

@@ -1,0 +1,20 @@
+<node>
+  <interface name="com.example.Test">
+    <property name="ByteProperty" type="y"/>
+    <property name="BooleanProperty" type="b"/>
+    <property name="Int16Property" type="n"/>
+    <property name="Uint16Property" type="q"/>
+    <property name="Int32Property" type="i"/>
+    <property name="Uint32Property" type="u"/>
+    <property name="Int64Property" type="x"/>
+    <property name="Uint64Property" type="t"/>
+    <property name="DoubleProperty" type="d"/>
+    <property name="StringProperty" type="s"/>
+    <property name="ObjectPathProperty" type="o"/>
+    <property name="SignatureProperty" type="g"/>
+    <property name="VariantProperty" type="v"/>
+    <property name="StructProperty" type="(si)"/>
+    <property name="ArrayProperty" type="ay"/>
+    <property name="DictProperty" type="a{sv}"/>
+  </interface>
+</node>

@@ -1,0 +1,74 @@
+import 'package:dbus/dbus.dart';
+
+class ComExampleTest1 extends DBusObject {
+  /// Creates a new object to expose on [path].
+  ComExampleTest1({DBusObjectPath path = const DBusObjectPath.unchecked('/')}) : super(path);
+
+  /// Implementation of com.example.Test1.Hello()
+  Future<DBusMethodResponse> doHello() async {
+    return DBusMethodErrorResponse.failed('com.example.Test1.Hello() not implemented');
+  }
+
+  /// Implementation of com.example.Test2.Hello()
+  Future<DBusMethodResponse> doHello_() async {
+    return DBusMethodErrorResponse.failed('com.example.Test2.Hello() not implemented');
+  }
+
+  @override
+  List<DBusIntrospectInterface> introspect() {
+    return [DBusIntrospectInterface('com.example.Test1', methods: [DBusIntrospectMethod('Hello')]), DBusIntrospectInterface('com.example.Test2', methods: [DBusIntrospectMethod('Hello')])];
+  }
+
+  @override
+  Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
+    if (methodCall.interface == 'com.example.Test1') {
+      if (methodCall.name == 'Hello') {
+        if (methodCall.values.isNotEmpty) {
+          return DBusMethodErrorResponse.invalidArgs();
+        }
+        return doHello();
+      } else {
+        return DBusMethodErrorResponse.unknownMethod();
+      }
+    } else if (methodCall.interface == 'com.example.Test2') {
+      if (methodCall.name == 'Hello') {
+        if (methodCall.values.isNotEmpty) {
+          return DBusMethodErrorResponse.invalidArgs();
+        }
+        return doHello();
+      } else {
+        return DBusMethodErrorResponse.unknownMethod();
+      }
+    } else {
+      return DBusMethodErrorResponse.unknownInterface();
+    }
+  }
+
+  @override
+  Future<DBusMethodResponse> getProperty(String interface, String name) async {
+    if (interface == 'com.example.Test1') {
+      return DBusMethodErrorResponse.unknownProperty();
+    } else if (interface == 'com.example.Test2') {
+      return DBusMethodErrorResponse.unknownProperty();
+    } else {
+      return DBusMethodErrorResponse.unknownInterface();
+    }
+  }
+
+  @override
+  Future<DBusMethodResponse> setProperty(String interface, String name, DBusValue value) async {
+    if (interface == 'com.example.Test1') {
+      return DBusMethodErrorResponse.unknownProperty();
+    } else if (interface == 'com.example.Test2') {
+      return DBusMethodErrorResponse.unknownProperty();
+    } else {
+      return DBusMethodErrorResponse.unknownInterface();
+    }
+  }
+
+  @override
+  Future<DBusMethodResponse> getAllProperties(String interface) async {
+    var properties = <DBusValue, DBusValue>{};
+    return DBusMethodSuccessResponse([DBusDict(DBusSignature('s'), DBusSignature('v'), properties)]);
+  }
+}

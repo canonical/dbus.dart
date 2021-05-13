@@ -1,0 +1,23 @@
+import 'package:dbus/dbus.dart';
+
+/// Signal data for com.example.Test.Event.
+class ComExampleTestEvent extends DBusSignal {
+  String get value => (values[0] as DBusString).value;
+
+  ComExampleTestEvent(DBusSignal signal) : super(signal.sender, signal.path, signal.interface, signal.name, signal.values);
+}
+
+class ComExampleTest extends DBusRemoteObject {
+  /// Stream of com.example.Test.Event signals.
+  late final Stream<ComExampleTestEvent> event;
+
+  ComExampleTest(DBusClient client, String destination, DBusObjectPath path) : super(client, destination, path) {
+    event = DBusRemoteObjectSignalStream(this, 'com.example.Test', 'Event').map((signal) {
+      if (signal.signature == DBusSignature('s')) {
+        return ComExampleTestEvent(signal);
+      } else {
+        throw 'com.example.Test.Event contains invalid values ${signal.values}';
+      }
+    });
+  }
+}

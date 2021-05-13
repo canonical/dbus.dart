@@ -1,0 +1,54 @@
+import 'package:dbus/dbus.dart';
+
+class ComExampleTest extends DBusObject {
+  /// Creates a new object to expose on [path].
+  ComExampleTest({DBusObjectPath path = const DBusObjectPath.unchecked('/')}) : super(path);
+
+  /// Emits signal com.example.Test.Event1
+  void emitEvent1(String value) {
+     emitSignal('com.example.Test', 'Event1', [DBusString(value)]);
+  }
+
+  /// Emits signal com.example.Test.Event2
+  void emitEvent2(int value) {
+     emitSignal('com.example.Test', 'Event2', [DBusInt32(value)]);
+  }
+
+  @override
+  List<DBusIntrospectInterface> introspect() {
+    return [DBusIntrospectInterface('com.example.Test', signals: [DBusIntrospectSignal('Event1', args: [DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out, name: 'value')]), DBusIntrospectSignal('Event2', args: [DBusIntrospectArgument(DBusSignature('i'), DBusArgumentDirection.out, name: 'value')])])];
+  }
+
+  @override
+  Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
+    if (methodCall.interface == 'com.example.Test') {
+      return DBusMethodErrorResponse.unknownMethod();
+    } else {
+      return DBusMethodErrorResponse.unknownInterface();
+    }
+  }
+
+  @override
+  Future<DBusMethodResponse> getProperty(String interface, String name) async {
+    if (interface == 'com.example.Test') {
+      return DBusMethodErrorResponse.unknownProperty();
+    } else {
+      return DBusMethodErrorResponse.unknownInterface();
+    }
+  }
+
+  @override
+  Future<DBusMethodResponse> setProperty(String interface, String name, DBusValue value) async {
+    if (interface == 'com.example.Test') {
+      return DBusMethodErrorResponse.unknownProperty();
+    } else {
+      return DBusMethodErrorResponse.unknownInterface();
+    }
+  }
+
+  @override
+  Future<DBusMethodResponse> getAllProperties(String interface) async {
+    var properties = <DBusValue, DBusValue>{};
+    return DBusMethodSuccessResponse([DBusDict(DBusSignature('s'), DBusSignature('v'), properties)]);
+  }
+}

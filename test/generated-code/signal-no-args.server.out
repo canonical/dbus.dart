@@ -1,0 +1,49 @@
+import 'package:dbus/dbus.dart';
+
+class ComExampleTest extends DBusObject {
+  /// Creates a new object to expose on [path].
+  ComExampleTest({DBusObjectPath path = const DBusObjectPath.unchecked('/')}) : super(path);
+
+  /// Emits signal com.example.Test.Event
+  void emitEvent() {
+     emitSignal('com.example.Test', 'Event', []);
+  }
+
+  @override
+  List<DBusIntrospectInterface> introspect() {
+    return [DBusIntrospectInterface('com.example.Test', signals: [DBusIntrospectSignal('Event')])];
+  }
+
+  @override
+  Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
+    if (methodCall.interface == 'com.example.Test') {
+      return DBusMethodErrorResponse.unknownMethod();
+    } else {
+      return DBusMethodErrorResponse.unknownInterface();
+    }
+  }
+
+  @override
+  Future<DBusMethodResponse> getProperty(String interface, String name) async {
+    if (interface == 'com.example.Test') {
+      return DBusMethodErrorResponse.unknownProperty();
+    } else {
+      return DBusMethodErrorResponse.unknownInterface();
+    }
+  }
+
+  @override
+  Future<DBusMethodResponse> setProperty(String interface, String name, DBusValue value) async {
+    if (interface == 'com.example.Test') {
+      return DBusMethodErrorResponse.unknownProperty();
+    } else {
+      return DBusMethodErrorResponse.unknownInterface();
+    }
+  }
+
+  @override
+  Future<DBusMethodResponse> getAllProperties(String interface) async {
+    var properties = <DBusValue, DBusValue>{};
+    return DBusMethodSuccessResponse([DBusDict(DBusSignature('s'), DBusSignature('v'), properties)]);
+  }
+}
