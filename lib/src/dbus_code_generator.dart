@@ -283,7 +283,7 @@ class DBusCodeGenerator {
     source += '  /// Emits signal ${interface.name}.${signal.name}\n';
     source += '  void $methodName(${argsList.join(', ')}) {\n';
     source +=
-        "     emitSignal('${interface.name}', '${signal.name}', [ ${argValues.join(', ')} ]);\n";
+        "     emitSignal('${interface.name}', '${signal.name}', [${argValues.join(', ')}]);\n";
     source += '  }\n';
 
     return source;
