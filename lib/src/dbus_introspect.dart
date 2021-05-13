@@ -7,6 +7,20 @@ enum DBusPropertyAccess { readwrite, read, write }
 /// The direction a D-Bus method argument is passed, either [in_] for inputs (e.g. method arguments) or [out] for outputs.
 enum DBusArgumentDirection { in_, out }
 
+bool _listsEqual<T>(List<T> a, List<T> b) {
+  if (a.length != b.length) {
+    return false;
+  }
+
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 /// Introspection information about a D-Bus node.
 class DBusIntrospectNode {
   /// D-Bus object this node represents, either absolute or relative (optional).
@@ -50,6 +64,13 @@ class DBusIntrospectNode {
   String toString() {
     return "DBusIntrospectNode(name: ${name != null ? "'$name'" : 'null'}, interfaces: $interfaces, children: $children)";
   }
+
+  @override
+  bool operator ==(other) =>
+      other is DBusIntrospectNode &&
+      other.name == name &&
+      _listsEqual(other.interfaces, interfaces) &&
+      _listsEqual(other.children, children);
 }
 
 /// Introspection information about a D-Bus interface.
@@ -117,6 +138,15 @@ class DBusIntrospectInterface {
   String toString() {
     return "DBusIntrospectInterface('$name', $methods, $signals, $properties)";
   }
+
+  @override
+  bool operator ==(other) =>
+      other is DBusIntrospectInterface &&
+      other.name == name &&
+      _listsEqual(other.methods, methods) &&
+      _listsEqual(other.signals, signals) &&
+      _listsEqual(other.properties, properties) &&
+      _listsEqual(other.annotations, annotations);
 }
 
 /// Introspection information about a D-Bus method.
@@ -174,6 +204,13 @@ class DBusIntrospectMethod {
   String toString() {
     return "DBusIntrospectMethod('$name', $args)";
   }
+
+  @override
+  bool operator ==(other) =>
+      other is DBusIntrospectMethod &&
+      other.name == name &&
+      _listsEqual(other.args, args) &&
+      _listsEqual(other.annotations, annotations);
 }
 
 /// Introspection information about a D-Bus signal.
@@ -223,6 +260,13 @@ class DBusIntrospectSignal {
   String toString() {
     return "DBusIntrospectSignal('$name', $args)";
   }
+
+  @override
+  bool operator ==(other) =>
+      other is DBusIntrospectSignal &&
+      other.name == name &&
+      _listsEqual(other.args, args) &&
+      _listsEqual(other.annotations, annotations);
 }
 
 /// Introspection information about a D-Bus property.
@@ -287,6 +331,14 @@ class DBusIntrospectProperty {
   String toString() {
     return "DBusIntrospectProperty('$name', type: '${type.value}', $access)";
   }
+
+  @override
+  bool operator ==(other) =>
+      other is DBusIntrospectProperty &&
+      other.name == name &&
+      other.type == type &&
+      other.access == access &&
+      _listsEqual(other.annotations, annotations);
 }
 
 /// Introspection information about a D-Bus argument.
@@ -350,6 +402,14 @@ class DBusIntrospectArgument {
   String toString() {
     return "DBusIntrospectArgument($type, $direction${name != null ? ", name: '$name'" : ''})";
   }
+
+  @override
+  bool operator ==(other) =>
+      other is DBusIntrospectArgument &&
+      other.name == name &&
+      other.type == type &&
+      other.direction == direction &&
+      _listsEqual(other.annotations, annotations);
 }
 
 /// Annotation that applies to a D-Bus interface, method, signal, property or argument.
@@ -380,6 +440,12 @@ class DBusIntrospectAnnotation {
       XmlAttribute(XmlName('value'), value)
     ]);
   }
+
+  @override
+  bool operator ==(other) =>
+      other is DBusIntrospectAnnotation &&
+      other.name == name &&
+      other.value == value;
 }
 
 /// Parse D-Bus introspection data.
