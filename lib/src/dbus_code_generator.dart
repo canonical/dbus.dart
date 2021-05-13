@@ -584,7 +584,7 @@ class DBusCodeGenerator {
     } else {
       constructor += ' {\n';
       constructor += variableConstructors.join('\n');
-      constructor += '}\n';
+      constructor += '  }\n';
     }
 
     var members = <String>[];
