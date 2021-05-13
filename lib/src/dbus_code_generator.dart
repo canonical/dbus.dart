@@ -766,9 +766,11 @@ class DBusCodeGenerator {
 
     var source = '';
     source += '/// Signal data for ${interface.name}.${signal.name}.\n';
-    source += 'class $classPrefix${signal.name} extends DBusSignal{\n';
-    source += properties.join();
-    source += '\n';
+    source += 'class $classPrefix${signal.name} extends DBusSignal {\n';
+    if (properties.isNotEmpty) {
+      source += properties.join();
+      source += '\n';
+    }
     source +=
         '  $signalClassName(DBusSignal signal) : super(signal.sender, signal.path, signal.interface, signal.name, signal.values);\n';
     source += '}\n';
