@@ -77,7 +77,7 @@ class DBusIntrospectInterface {
   factory DBusIntrospectInterface.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
     if (name == null) {
-      throw 'D-Bus Introspection XML missing interface name';
+      throw FormatException('D-Bus Introspection XML missing interface name');
     }
     var methods = node
         .findElements('method')
@@ -147,7 +147,7 @@ class DBusIntrospectMethod {
   factory DBusIntrospectMethod.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
     if (name == null) {
-      throw 'D-Bus Introspection XML missing method name';
+      throw FormatException('D-Bus Introspection XML missing method name');
     }
     var args = node
         .findElements('arg')
@@ -196,7 +196,7 @@ class DBusIntrospectSignal {
   factory DBusIntrospectSignal.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
     if (name == null) {
-      throw 'D-Bus Introspection XML missing signal name';
+      throw FormatException('D-Bus Introspection XML missing signal name');
     }
     var args = node
         .findElements('arg')
@@ -245,11 +245,11 @@ class DBusIntrospectProperty {
   factory DBusIntrospectProperty.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
     if (name == null) {
-      throw 'D-Bus Introspection XML missing property name';
+      throw FormatException('D-Bus Introspection XML missing property name');
     }
     var typeString = node.getAttribute('type');
     if (typeString == null) {
-      throw 'D-Bus Introspection XML missing property type';
+      throw FormatException('D-Bus Introspection XML missing property type');
     }
     var type = DBusSignature(typeString);
     var accessText = node.getAttribute('access');
@@ -310,7 +310,7 @@ class DBusIntrospectArgument {
     var name = node.getAttribute('name');
     var typeString = node.getAttribute('type');
     if (typeString == null) {
-      throw 'D-Bus Introspection XML missing argument type';
+      throw FormatException('D-Bus Introspection XML missing argument type');
     }
     var type = DBusSignature(typeString);
     var directionText = node.getAttribute('direction');
@@ -364,11 +364,11 @@ class DBusIntrospectAnnotation {
   factory DBusIntrospectAnnotation.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
     if (name == null) {
-      throw 'D-Bus Introspection XML missing annotation name';
+      throw FormatException('D-Bus Introspection XML missing annotation name');
     }
     var value = node.getAttribute('value');
     if (value == null) {
-      throw 'D-Bus Introspection XML missing annotation value';
+      throw FormatException('D-Bus Introspection XML missing annotation value');
     }
     return DBusIntrospectAnnotation(name, value);
   }
@@ -383,10 +383,16 @@ class DBusIntrospectAnnotation {
 
 /// Parse D-Bus introspection data.
 DBusIntrospectNode parseDBusIntrospectXml(String xml) {
-  var document = XmlDocument.parse(xml);
+  XmlDocument document;
+  try {
+    document = XmlDocument.parse(xml);
+  } on XmlParserException catch (e) {
+    throw FormatException('D-Bus Introspection XML not valid: ${e.message}');
+  }
   var nodeName = document.rootElement.name.local;
   if (nodeName != 'node') {
-    throw "D-Bus Introspection XML has invalid root element '$nodeName', expected 'node'";
+    throw FormatException(
+        "D-Bus Introspection XML has invalid root element '$nodeName', expected 'node'");
   }
   return DBusIntrospectNode.fromXml(document.rootElement);
 }
