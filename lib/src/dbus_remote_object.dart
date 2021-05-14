@@ -38,6 +38,22 @@ class DBusPropertiesChangedSignal extends DBusSignal {
             signal.values);
 }
 
+/// Exception thrown when a D-Bus property returns a value that don't match the expected signature.
+class DBusPropertySignatureException implements Exception {
+  /// The name of the property.
+  final String propertyName;
+
+  /// The value that was returned.
+  final DBusValue value;
+
+  DBusPropertySignatureException(this.propertyName, this.value);
+
+  @override
+  String toString() {
+    return '$propertyName returned invalid value: $value';
+  }
+}
+
 /// An object to simplify access to a D-Bus object.
 class DBusRemoteObject {
   /// The client this object is accessed from.
@@ -78,7 +94,12 @@ class DBusRemoteObject {
   }
 
   /// Gets a property on this object.
-  Future<DBusValue> getProperty(String interface, String name) async {
+  ///
+  /// If [signature] is provided this causes this method to throw a
+  /// [DBusPropertySignatureException] if a property is returned that does not
+  /// match the provided signature.
+  Future<DBusValue> getProperty(String interface, String name,
+      {DBusSignature? signature}) async {
     var result = await client.callMethod(
         destination: destination,
         path: path,
@@ -86,7 +107,11 @@ class DBusRemoteObject {
         name: 'Get',
         values: [DBusString(interface), DBusString(name)],
         replySignature: DBusSignature('v'));
-    return (result.returnValues[0] as DBusVariant).value;
+    var value = (result.returnValues[0] as DBusVariant).value;
+    if (signature != null && value.signature != signature) {
+      throw DBusPropertySignatureException('$interface.$name', value);
+    }
+    return value;
   }
 
   /// Gets the values of all the properties on this object.
