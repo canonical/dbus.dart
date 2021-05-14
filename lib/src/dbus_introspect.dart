@@ -298,11 +298,14 @@ class DBusIntrospectProperty {
     }
     var type = DBusSignature(typeString);
     var accessText = node.getAttribute('access');
-    var access = DBusPropertyAccess.readwrite;
-    if (accessText == 'read') {
-      access = DBusPropertyAccess.read;
-    } else if (accessText == 'write') {
-      access = DBusPropertyAccess.write;
+    var access = {
+      null: DBusPropertyAccess.readwrite,
+      'readwrite': DBusPropertyAccess.readwrite,
+      'read': DBusPropertyAccess.read,
+      'write': DBusPropertyAccess.write
+    }[accessText];
+    if (access == null) {
+      throw FormatException("Unknown property access '$accessText'");
     }
     var annotations = node
         .findElements('annotation')
