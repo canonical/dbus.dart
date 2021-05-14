@@ -367,11 +367,13 @@ class DBusIntrospectArgument {
     }
     var type = DBusSignature(typeString);
     var directionText = node.getAttribute('direction');
-    var direction = defaultDirection;
-    if (directionText == 'in') {
-      direction = DBusArgumentDirection.in_;
-    } else if (directionText == 'out') {
-      direction = DBusArgumentDirection.out;
+    var direction = {
+      null: defaultDirection,
+      'in': DBusArgumentDirection.in_,
+      'out': DBusArgumentDirection.out
+    }[directionText];
+    if (direction == null) {
+      throw FormatException("Unknown argument direction '$directionText'");
     }
     var annotations = node
         .findElements('annotation')
