@@ -31,7 +31,9 @@ class TestObject extends DBusObject {
   final List<DBusValue>? expectedMethodValues;
 
   // Flags to expect on method call.
-  final Set<DBusMethodCallFlag>? expectedMethodFlags;
+  final bool expectedMethodNoReplyExpected;
+  final bool expectedMethodNoAutoStart;
+  final bool expectedMethodAllowInteractiveAuthorization;
 
   // Responses to send to method calls.
   final Map<String, DBusMethodResponse> methodResponses;
@@ -55,7 +57,9 @@ class TestObject extends DBusObject {
       {DBusObjectPath path = const DBusObjectPath.unchecked('/'),
       this.expectedMethodName,
       this.expectedMethodValues,
-      this.expectedMethodFlags,
+      this.expectedMethodNoReplyExpected = false,
+      this.expectedMethodNoAutoStart = false,
+      this.expectedMethodAllowInteractiveAuthorization = false,
       this.methodResponses = const {},
       this.introspectData = const [],
       this.propertyValues = const {},
@@ -84,9 +88,10 @@ class TestObject extends DBusObject {
     if (expectedMethodValues != null) {
       expect(methodCall.values, equals(expectedMethodValues));
     }
-    if (expectedMethodFlags != null) {
-      expect(methodCall.flags, equals(expectedMethodFlags));
-    }
+    expect(methodCall.noReplyExpected, equals(expectedMethodNoReplyExpected));
+    expect(methodCall.noAutoStart, equals(expectedMethodNoAutoStart));
+    expect(methodCall.allowInteractiveAuthorization,
+        equals(expectedMethodAllowInteractiveAuthorization));
 
     var response = methodResponses[name];
     return response ?? DBusMethodErrorResponse.unknownMethod();
@@ -725,7 +730,7 @@ void main() {
         TestObject(expectedMethodName: 'Test', expectedMethodValues: [
       DBusString('Hello'),
       DBusUint32(42)
-    ], expectedMethodFlags: {}, methodResponses: {
+    ], methodResponses: {
       'Test': DBusMethodSuccessResponse([DBusString('World'), DBusUint32(99)])
     }));
 
@@ -749,8 +754,8 @@ void main() {
     var client2 = DBusClient(address);
 
     // Create a client that exposes a method.
-    await client1.registerObject(
-        TestObject(expectedMethodFlags: {DBusMethodCallFlag.noReplyExpected}));
+    await client1
+        .registerObject(TestObject(expectedMethodNoReplyExpected: true));
 
     // Call the method from another client.
     var response = await client2.callMethod(
@@ -758,7 +763,7 @@ void main() {
         path: DBusObjectPath('/'),
         name: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)],
-        flags: {DBusMethodCallFlag.noReplyExpected});
+        noReplyExpected: true);
     expect(response.values, equals([]));
 
     await client1.close();
@@ -850,7 +855,7 @@ void main() {
 
     // Create a client that exposes a method.
     await client1.registerObject(TestObject(
-        expectedMethodFlags: {DBusMethodCallFlag.noAutoStart},
+        expectedMethodNoAutoStart: true,
         methodResponses: {'Test': DBusMethodSuccessResponse()}));
 
     // Call the method from another client.
@@ -859,7 +864,7 @@ void main() {
         path: DBusObjectPath('/'),
         name: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)],
-        flags: {DBusMethodCallFlag.noAutoStart});
+        noAutoStart: true);
     expect(response.values, equals([]));
 
     await client1.close();
@@ -875,7 +880,7 @@ void main() {
 
     // Create a client that exposes a method.
     await client1.registerObject(TestObject(
-        expectedMethodFlags: {DBusMethodCallFlag.allowInteractiveAuthorization},
+        expectedMethodAllowInteractiveAuthorization: true,
         methodResponses: {'Test': DBusMethodSuccessResponse()}));
 
     // Call the method from another client.
@@ -884,7 +889,7 @@ void main() {
         path: DBusObjectPath('/'),
         name: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)],
-        flags: {DBusMethodCallFlag.allowInteractiveAuthorization});
+        allowInteractiveAuthorization: true);
     expect(response.values, equals([]));
 
     await client1.close();
@@ -935,7 +940,6 @@ void main() {
           DBusString('Hello'),
           DBusUint32(42)
         ],
-        expectedMethodFlags: {},
         methodResponses: {
           'com.example.Test.Foo':
               DBusMethodSuccessResponse([DBusString('World'), DBusUint32(99)])
@@ -962,7 +966,6 @@ void main() {
     // Create a client that exposes a method.
     await client1.registerObject(TestObject(
         expectedMethodName: 'com.example.Test.Foo',
-        expectedMethodFlags: {},
         methodResponses: {
           'com.example.Test.Foo':
               DBusMethodSuccessResponse([DBusString('World'), DBusUint32(99)])
@@ -989,7 +992,6 @@ void main() {
     // Create a client that exposes a method.
     await client1.registerObject(TestObject(
         expectedMethodName: 'com.example.Test.Foo',
-        expectedMethodFlags: {},
         methodResponses: {
           'com.example.Test.Foo':
               DBusMethodSuccessResponse([DBusString('Hello'), DBusUint32(42)])
