@@ -534,7 +534,9 @@ class DBusClient {
       required String name,
       Iterable<DBusValue> values = const [],
       DBusSignature? replySignature,
-      Set<DBusMethodCallFlag> flags = const {}}) async {
+      bool noReplyExpected = false,
+      bool noAutoStart = false,
+      bool allowInteractiveAuthorization = false}) async {
     return await _callMethod(
         destination: destination != null ? DBusBusName(destination) : null,
         path: path,
@@ -542,7 +544,9 @@ class DBusClient {
         name: DBusMemberName(name),
         values: values,
         replySignature: replySignature,
-        flags: flags);
+        noReplyExpected: noReplyExpected,
+        noAutoStart: noAutoStart,
+        allowInteractiveAuthorization: allowInteractiveAuthorization);
   }
 
   /// Find the unique name for a D-Bus client.
@@ -880,20 +884,13 @@ class DBusClient {
     }
     var object = node?.object;
 
-    var methodCall = DBusMethodCall(
-        message.sender?.value ?? '',
-        message.interface?.value,
-        message.member?.value ?? '',
-        message.values,
-        message.flags
-            .map((flag) => {
-                  DBusMessageFlag.noReplyExpected:
-                      DBusMethodCallFlag.noReplyExpected,
-                  DBusMessageFlag.noAutoStart: DBusMethodCallFlag.noAutoStart,
-                  DBusMessageFlag.allowInteractiveAuthorization:
-                      DBusMethodCallFlag.allowInteractiveAuthorization
-                }[flag]!)
-            .toSet());
+    var methodCall = DBusMethodCall(message.sender?.value ?? '',
+        message.interface?.value, message.member?.value ?? '', message.values,
+        noReplyExpected:
+            message.flags.contains(DBusMessageFlag.noReplyExpected),
+        noAutoStart: message.flags.contains(DBusMessageFlag.noAutoStart),
+        allowInteractiveAuthorization: message.flags
+            .contains(DBusMessageFlag.allowInteractiveAuthorization));
 
     DBusMethodResponse response;
     if (message.member == null) {
@@ -992,12 +989,14 @@ class DBusClient {
       required DBusMemberName name,
       Iterable<DBusValue> values = const {},
       DBusSignature? replySignature,
-      Set<DBusMethodCallFlag> flags = const {},
+      bool noReplyExpected = false,
+      bool noAutoStart = false,
+      bool allowInteractiveAuthorization = false,
       bool requireConnect = true}) async {
     _lastSerial++;
     var serial = _lastSerial;
     Future<DBusMethodResponse> response;
-    if (flags.contains(DBusMethodCallFlag.noReplyExpected)) {
+    if (noReplyExpected) {
       response = Future<DBusMethodResponse>.value(DBusMethodSuccessResponse());
     } else {
       var completer = Completer<DBusMethodResponse>();
@@ -1005,6 +1004,16 @@ class DBusClient {
       response = completer.future;
     }
 
+    var flags = <DBusMessageFlag>{};
+    if (noReplyExpected) {
+      flags.add(DBusMessageFlag.noReplyExpected);
+    }
+    if (noAutoStart) {
+      flags.add(DBusMessageFlag.noAutoStart);
+    }
+    if (allowInteractiveAuthorization) {
+      flags.add(DBusMessageFlag.allowInteractiveAuthorization);
+    }
     var message = DBusMessage(DBusMessageType.methodCall,
         serial: _lastSerial,
         destination: destination,
@@ -1012,15 +1021,7 @@ class DBusClient {
         interface: interface,
         member: name,
         values: values.toList(),
-        flags: flags
-            .map((flag) => {
-                  DBusMethodCallFlag.noReplyExpected:
-                      DBusMessageFlag.noReplyExpected,
-                  DBusMethodCallFlag.noAutoStart: DBusMessageFlag.noAutoStart,
-                  DBusMethodCallFlag.allowInteractiveAuthorization:
-                      DBusMessageFlag.allowInteractiveAuthorization
-                }[flag]!)
-            .toSet());
+        flags: flags);
     await _sendMessage(message, requireConnect: requireConnect);
 
     var r = await response;

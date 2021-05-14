@@ -1,6 +1,5 @@
 import 'dbus_client.dart';
 import 'dbus_introspect.dart';
-import 'dbus_method_call.dart';
 import 'dbus_method_response.dart';
 import 'dbus_signal.dart';
 import 'dbus_value.dart';
@@ -123,7 +122,9 @@ class DBusRemoteObject {
   Future<DBusMethodSuccessResponse> callMethod(
       String? interface, String name, Iterable<DBusValue> values,
       {DBusSignature? replySignature,
-      Set<DBusMethodCallFlag> flags = const {}}) async {
+      bool noReplyExpected = false,
+      bool noAutoStart = false,
+      bool allowInteractiveAuthorization = false}) async {
     return client.callMethod(
         destination: destination,
         path: path,
@@ -131,7 +132,9 @@ class DBusRemoteObject {
         name: name,
         values: values,
         replySignature: replySignature,
-        flags: flags);
+        noReplyExpected: noReplyExpected,
+        noAutoStart: noAutoStart,
+        allowInteractiveAuthorization: allowInteractiveAuthorization);
   }
 
   @override
