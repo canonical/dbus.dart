@@ -5,7 +5,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.ByteProperty
   Future<int> getByteProperty() async {
-    var value = await getProperty('com.example.Test', 'ByteProperty');
+    var value = await getProperty('com.example.Test', 'ByteProperty', signature: DBusSignature('y'));
     return (value as DBusByte).value;
   }
 
@@ -16,7 +16,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.BooleanProperty
   Future<bool> getBooleanProperty() async {
-    var value = await getProperty('com.example.Test', 'BooleanProperty');
+    var value = await getProperty('com.example.Test', 'BooleanProperty', signature: DBusSignature('b'));
     return (value as DBusBoolean).value;
   }
 
@@ -27,7 +27,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.Int16Property
   Future<int> getInt16Property() async {
-    var value = await getProperty('com.example.Test', 'Int16Property');
+    var value = await getProperty('com.example.Test', 'Int16Property', signature: DBusSignature('n'));
     return (value as DBusInt16).value;
   }
 
@@ -38,7 +38,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.Uint16Property
   Future<int> getUint16Property() async {
-    var value = await getProperty('com.example.Test', 'Uint16Property');
+    var value = await getProperty('com.example.Test', 'Uint16Property', signature: DBusSignature('q'));
     return (value as DBusUint16).value;
   }
 
@@ -49,7 +49,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.Int32Property
   Future<int> getInt32Property() async {
-    var value = await getProperty('com.example.Test', 'Int32Property');
+    var value = await getProperty('com.example.Test', 'Int32Property', signature: DBusSignature('i'));
     return (value as DBusInt32).value;
   }
 
@@ -60,7 +60,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.Uint32Property
   Future<int> getUint32Property() async {
-    var value = await getProperty('com.example.Test', 'Uint32Property');
+    var value = await getProperty('com.example.Test', 'Uint32Property', signature: DBusSignature('u'));
     return (value as DBusUint32).value;
   }
 
@@ -71,7 +71,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.Int64Property
   Future<int> getInt64Property() async {
-    var value = await getProperty('com.example.Test', 'Int64Property');
+    var value = await getProperty('com.example.Test', 'Int64Property', signature: DBusSignature('x'));
     return (value as DBusInt64).value;
   }
 
@@ -82,7 +82,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.Uint64Property
   Future<int> getUint64Property() async {
-    var value = await getProperty('com.example.Test', 'Uint64Property');
+    var value = await getProperty('com.example.Test', 'Uint64Property', signature: DBusSignature('t'));
     return (value as DBusUint64).value;
   }
 
@@ -93,7 +93,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.DoubleProperty
   Future<double> getDoubleProperty() async {
-    var value = await getProperty('com.example.Test', 'DoubleProperty');
+    var value = await getProperty('com.example.Test', 'DoubleProperty', signature: DBusSignature('d'));
     return (value as DBusDouble).value;
   }
 
@@ -104,7 +104,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.StringProperty
   Future<String> getStringProperty() async {
-    var value = await getProperty('com.example.Test', 'StringProperty');
+    var value = await getProperty('com.example.Test', 'StringProperty', signature: DBusSignature('s'));
     return (value as DBusString).value;
   }
 
@@ -115,7 +115,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.ObjectPathProperty
   Future<String> getObjectPathProperty() async {
-    var value = await getProperty('com.example.Test', 'ObjectPathProperty');
+    var value = await getProperty('com.example.Test', 'ObjectPathProperty', signature: DBusSignature('o'));
     return (value as DBusObjectPath).value;
   }
 
@@ -126,7 +126,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.SignatureProperty
   Future<DBusValue> getSignatureProperty() async {
-    var value = await getProperty('com.example.Test', 'SignatureProperty');
+    var value = await getProperty('com.example.Test', 'SignatureProperty', signature: DBusSignature('g'));
     return value;
   }
 
@@ -137,7 +137,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.VariantProperty
   Future<DBusValue> getVariantProperty() async {
-    var value = await getProperty('com.example.Test', 'VariantProperty');
+    var value = await getProperty('com.example.Test', 'VariantProperty', signature: DBusSignature('v'));
     return (value as DBusVariant).value;
   }
 
@@ -148,7 +148,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.StructProperty
   Future<DBusStruct> getStructProperty() async {
-    var value = await getProperty('com.example.Test', 'StructProperty');
+    var value = await getProperty('com.example.Test', 'StructProperty', signature: DBusSignature('(si)'));
     return value as DBusStruct;
   }
 
@@ -159,7 +159,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.ArrayProperty
   Future<List<int>> getArrayProperty() async {
-    var value = await getProperty('com.example.Test', 'ArrayProperty');
+    var value = await getProperty('com.example.Test', 'ArrayProperty', signature: DBusSignature('ay'));
     return (value as DBusArray).children.map((child) => (child as DBusByte).value).toList();
   }
 
@@ -170,7 +170,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.DictProperty
   Future<Map<String, DBusValue>> getDictProperty() async {
-    var value = await getProperty('com.example.Test', 'DictProperty');
+    var value = await getProperty('com.example.Test', 'DictProperty', signature: DBusSignature('a{sv}'));
     return (value as DBusDict).children.map((key, value) => MapEntry((key as DBusString).value, (value as DBusVariant).value));
   }
 

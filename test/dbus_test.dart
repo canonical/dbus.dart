@@ -1233,6 +1233,36 @@ void main() {
     await client2.close();
   });
 
+  test('get property - match signature', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes an object with properties.
+    var object = TestObject(
+        propertyValues: {'com.example.Test.Property': DBusString('Value')});
+    await client1.registerObject(object);
+
+    var remoteObject =
+        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+
+    // Get properties and check they match expected signature.
+    expect(
+        await remoteObject.getProperty('com.example.Test', 'Property',
+            signature: DBusSignature('s')),
+        equals(DBusString('Value')));
+    expect(
+        () async => await remoteObject.getProperty(
+            'com.example.Test', 'Property',
+            signature: DBusSignature('i')),
+        throwsA(isA<DBusPropertySignatureException>()));
+
+    await client1.close();
+    await client2.close();
+  });
+
   test('set property', () async {
     var server = DBusServer();
     var address =

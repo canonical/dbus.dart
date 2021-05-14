@@ -5,7 +5,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.ReadProperty
   Future<int> getReadProperty() async {
-    var value = await getProperty('com.example.Test', 'ReadProperty');
+    var value = await getProperty('com.example.Test', 'ReadProperty', signature: DBusSignature('i'));
     return (value as DBusInt32).value;
   }
 
@@ -16,7 +16,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Gets com.example.Test.ReadWriteProperty
   Future<int> getReadWriteProperty() async {
-    var value = await getProperty('com.example.Test', 'ReadWriteProperty');
+    var value = await getProperty('com.example.Test', 'ReadWriteProperty', signature: DBusSignature('i'));
     return (value as DBusInt32).value;
   }
 

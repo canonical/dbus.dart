@@ -620,7 +620,7 @@ class DBusCodeGenerator {
       source += '  /// Gets ${interface.name}.${property.name}\n';
       source += '  Future<${type.nativeType}> $methodName() async {\n';
       source +=
-          "    var value = await getProperty('${interface.name}', '${property.name}');\n";
+          "    var value = await getProperty('${interface.name}', '${property.name}', signature: DBusSignature('${property.type.value}'));\n";
       source += '    return $convertedValue;\n';
       source += '  }\n';
       methods.add(source);
