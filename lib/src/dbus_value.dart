@@ -349,6 +349,7 @@ class DBusObjectPath extends DBusString {
   DBusObjectPath(String value) : super(value) {
     if (value != '/') {
       if (value.contains(RegExp('[^a-zA-Z0-9_/]')) ||
+          value.contains('//') ||
           !value.startsWith('/') ||
           value.endsWith('/')) {
         throw ArgumentError.value(value, 'value', 'Invalid object path');
