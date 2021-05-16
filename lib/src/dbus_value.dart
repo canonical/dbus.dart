@@ -1,3 +1,31 @@
+bool _listsEqual<T>(List<T> a, List<T> b) {
+  if (a.length != b.length) {
+    return false;
+  }
+
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool _mapsEqual<K, V>(Map<K, V> a, Map<K, V> b) {
+  if (a.length != b.length) {
+    return false;
+  }
+
+  for (var key in a.keys) {
+    if (a[key] != b[key]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 /// Base class for D-Bus values.
 abstract class DBusValue {
   /// Gets the signature for this value.
@@ -529,7 +557,9 @@ class DBusStruct extends DBusValue {
   }
 
   @override
-  bool operator ==(other) => other is DBusStruct && other.children == children;
+  bool operator ==(other) =>
+      other is DBusStruct &&
+      _listsEqual(other.children.toList(), children.toList());
 
   @override
   int get hashCode => children.hashCode;
@@ -646,7 +676,10 @@ class DBusArray extends DBusValue {
   }
 
   @override
-  bool operator ==(other) => other is DBusArray && other.children == children;
+  bool operator ==(other) =>
+      other is DBusArray &&
+      other.childSignature == childSignature &&
+      _listsEqual(other.children.toList(), children.toList());
 
   @override
   int get hashCode => children.hashCode;
@@ -715,7 +748,11 @@ class DBusDict extends DBusValue {
   }
 
   @override
-  bool operator ==(other) => other is DBusDict && other.children == children;
+  bool operator ==(other) =>
+      other is DBusDict &&
+      other.keySignature == keySignature &&
+      other.valueSignature == valueSignature &&
+      _mapsEqual(other.children, children);
 
   @override
   int get hashCode => children.hashCode;
