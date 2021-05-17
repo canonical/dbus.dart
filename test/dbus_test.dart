@@ -257,10 +257,18 @@ void main() {
     expect(DBusObjectPath('/com').value, equals('/com'));
     expect(
         DBusObjectPath('/com/example/Test').value, equals('/com/example/Test'));
+    // Empty.
     expect(() => DBusObjectPath(''), throwsArgumentError);
+    // Empty element.
     expect(() => DBusObjectPath('//'), throwsArgumentError);
-    expect(() => DBusObjectPath('/com/'), throwsArgumentError);
     expect(() => DBusObjectPath('//example/Test'), throwsArgumentError);
+    // Missing leading '/'
+    expect(() => DBusObjectPath('com/example/Test'), throwsArgumentError);
+    // Trailing '/'.
+    expect(() => DBusObjectPath('/com/example/Test/'), throwsArgumentError);
+    // Invalid characters
+    expect(() => DBusObjectPath(r'/com/example/Te$t'), throwsArgumentError);
+    expect(() => DBusObjectPath(r'/com/example/T😄st'), throwsArgumentError);
     expect(DBusObjectPath('/com/example/Test').signature,
         equals(DBusSignature('o')));
     expect(DBusObjectPath('/com/example/Test').toNative(),
