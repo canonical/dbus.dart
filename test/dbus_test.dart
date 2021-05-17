@@ -284,6 +284,8 @@ void main() {
     expect(DBusSignature('').value, equals(''));
     expect(DBusSignature('s').value, equals('s'));
     expect(DBusSignature('ybnq').value, equals('ybnq'));
+    expect(DBusSignature('s' * 255).value, equals('s' * 255));
+    expect(() => DBusSignature('s' * 256), throwsArgumentError);
     expect(
         DBusSignature('ybnq').split(),
         equals([
