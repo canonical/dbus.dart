@@ -146,6 +146,302 @@ class TestObject extends DBusObject {
 }
 
 void main() {
+  test('value - byte', () async {
+    expect(() => DBusByte(-1), throwsArgumentError);
+    expect(DBusByte(0).value, equals(0));
+    expect(DBusByte(255).value, equals(255));
+    expect(() => DBusByte(256), throwsArgumentError);
+    expect(DBusByte(0).signature, equals(DBusSignature('y')));
+    expect(DBusByte(42).toNative(), equals(42));
+    expect(DBusByte(42) == DBusByte(42), isTrue);
+    expect(DBusByte(42) == DBusByte(99), isFalse);
+  });
+
+  test('value - boolean', () async {
+    expect(DBusBoolean(false).value, isFalse);
+    expect(DBusBoolean(true).value, isTrue);
+    expect(DBusBoolean(true).signature, equals(DBusSignature('b')));
+    expect(DBusBoolean(true).toNative(), equals(true));
+    expect(DBusBoolean(false).toNative(), equals(false));
+    expect(DBusBoolean(true) == DBusBoolean(true), isTrue);
+    expect(DBusBoolean(true) == DBusBoolean(false), isFalse);
+  });
+
+  test('value - int16', () async {
+    expect(() => DBusInt16(-32769), throwsArgumentError);
+    expect(DBusInt16(-32768).value, equals(-32768));
+    expect(DBusInt16(0).value, equals(0));
+    expect(DBusInt16(32767).value, equals(32767));
+    expect(() => DBusInt16(32768), throwsArgumentError);
+    expect(DBusInt16(0).signature, equals(DBusSignature('n')));
+    expect(DBusInt16(-42).toNative(), equals(-42));
+    expect(DBusInt16(42) == DBusInt16(42), isTrue);
+    expect(DBusInt16(42) == DBusInt16(99), isFalse);
+  });
+
+  test('value - uint16', () async {
+    expect(() => DBusUint16(-1), throwsArgumentError);
+    expect(DBusUint16(0).value, equals(0));
+    expect(DBusUint16(65535).value, equals(65535));
+    expect(() => DBusUint16(65536), throwsArgumentError);
+    expect(DBusUint16(0).signature, equals(DBusSignature('q')));
+    expect(DBusUint16(42).toNative(), equals(42));
+    expect(DBusUint16(42) == DBusUint16(42), isTrue);
+    expect(DBusUint16(42) == DBusUint16(99), isFalse);
+  });
+
+  test('value - int32', () async {
+    expect(() => DBusInt32(-2147483649), throwsArgumentError);
+    expect(DBusInt32(-2147483648).value, equals(-2147483648));
+    expect(DBusInt32(0).value, equals(0));
+    expect(DBusInt32(2147483647).value, equals(2147483647));
+    expect(() => DBusInt32(2147483648), throwsArgumentError);
+    expect(DBusInt32(0).signature, equals(DBusSignature('i')));
+    expect(DBusInt32(-42).toNative(), equals(-42));
+    expect(DBusInt32(42) == DBusInt32(42), isTrue);
+    expect(DBusInt32(42) == DBusInt32(99), isFalse);
+  });
+
+  test('value - uint32', () async {
+    expect(() => DBusUint32(-1), throwsArgumentError);
+    expect(DBusUint32(0).value, equals(0));
+    expect(DBusUint32(4294967295).value, equals(4294967295));
+    expect(() => DBusUint32(4294967296), throwsArgumentError);
+    expect(DBusUint32(0).signature, equals(DBusSignature('u')));
+    expect(DBusUint32(42).toNative(), equals(42));
+    expect(DBusUint32(42) == DBusUint32(42), isTrue);
+    expect(DBusUint32(42) == DBusUint32(99), isFalse);
+  });
+
+  test('value - int64', () async {
+    expect(DBusInt64(-9223372036854775808).value, equals(-9223372036854775808));
+    expect(DBusInt64(0).value, equals(0));
+    expect(DBusInt64(9223372036854775807).value, equals(9223372036854775807));
+    expect(DBusInt64(0).signature, equals(DBusSignature('x')));
+    expect(DBusInt64(-42).toNative(), equals(-42));
+    expect(DBusInt64(42) == DBusInt64(42), isTrue);
+    expect(DBusInt64(42) == DBusInt64(99), isFalse);
+  });
+
+  test('value - uint64', () async {
+    expect(DBusUint64(0).value, equals(0));
+    expect(DBusUint64(0xffffffffffffffff).value, equals(0xffffffffffffffff));
+    expect(() => DBusUint32(4294967296), throwsArgumentError);
+    expect(DBusUint64(0).signature, equals(DBusSignature('t')));
+    expect(DBusUint64(42).toNative(), equals(42));
+    expect(DBusUint64(42) == DBusUint64(42), isTrue);
+    expect(DBusUint64(42) == DBusUint64(99), isFalse);
+  });
+
+  test('value - double', () async {
+    expect(DBusDouble(3.14159).value, equals(3.14159));
+    expect(DBusDouble(3.14159).signature, equals(DBusSignature('d')));
+    expect(DBusDouble(3.14159).toNative(), equals(3.14159));
+    expect(DBusDouble(3.14159) == DBusDouble(3.14159), isTrue);
+    expect(DBusDouble(3.14159) == DBusDouble(2.71828), isFalse);
+  });
+
+  test('value - string', () async {
+    expect(DBusString('').value, equals(''));
+    expect(DBusString('one').value, equals('one'));
+    expect(DBusString('😄🙃🤪🧐').value, equals('😄🙃🤪🧐'));
+    expect(
+        DBusString(
+                '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789')
+            .value,
+        equals(
+            '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789'));
+    expect(DBusString('one').signature, equals(DBusSignature('s')));
+    expect(DBusString('one').toNative(), equals('one'));
+    expect(DBusString('one') == DBusString('one'), isTrue);
+    expect(DBusString('one') == DBusString('two'), isFalse);
+  });
+
+  test('value - object path', () async {
+    expect(DBusObjectPath('/').value, equals('/'));
+    expect(DBusObjectPath('/com').value, equals('/com'));
+    expect(
+        DBusObjectPath('/com/example/Test').value, equals('/com/example/Test'));
+    expect(() => DBusObjectPath(''), throwsArgumentError);
+    expect(() => DBusObjectPath('//'), throwsArgumentError);
+    expect(() => DBusObjectPath('/com/'), throwsArgumentError);
+    expect(() => DBusObjectPath('//example/Test'), throwsArgumentError);
+    expect(DBusObjectPath('/com/example/Test').signature,
+        equals(DBusSignature('o')));
+    expect(DBusObjectPath('/com/example/Test').toNative(),
+        equals(DBusObjectPath('/com/example/Test')));
+    expect(
+        DBusObjectPath('/com/example/Test') ==
+            DBusObjectPath('/com/example/Test'),
+        isTrue);
+    expect(
+        DBusObjectPath('/com/example/Test') ==
+            DBusObjectPath('/com/example/Test2'),
+        isFalse);
+  });
+
+  test('value - signature', () async {
+    expect(DBusSignature('').value, equals(''));
+    expect(DBusSignature('s').value, equals('s'));
+    expect(DBusSignature('ybnq').value, equals('ybnq'));
+    expect(
+        DBusSignature('ybnq').split(),
+        equals([
+          DBusSignature('y'),
+          DBusSignature('b'),
+          DBusSignature('n'),
+          DBusSignature('q')
+        ]));
+    expect(DBusSignature('s').signature, equals(DBusSignature('g')));
+    expect(DBusSignature('s').toNative(), equals(DBusSignature('s')));
+    expect(DBusSignature('(ybnq)').split(), equals([DBusSignature('(ybnq)')]));
+    expect(DBusSignature('').split(), equals([]));
+    expect(DBusSignature('a{sv}') == DBusSignature('a{sv}'), isTrue);
+    expect(DBusSignature('a{sv}') == DBusSignature('s'), isFalse);
+  });
+
+  test('value - variant', () async {
+    expect(DBusVariant(DBusString('one')).value, equals(DBusString('one')));
+    expect(DBusVariant(DBusUint32(2)).value, equals(DBusUint32(2)));
+    expect(
+        DBusVariant(DBusString('one')).signature, equals(DBusSignature('v')));
+    expect(DBusVariant(DBusString('one')).toNative(), equals('one'));
+    expect(DBusVariant(DBusString('one')) == DBusVariant(DBusString('one')),
+        isTrue);
+    expect(
+        DBusVariant(DBusString('one')) == DBusVariant(DBusUint32(2)), isFalse);
+  });
+
+  test('value - struct', () async {
+    expect(DBusStruct([]).children, equals([]));
+    expect(
+        DBusStruct([DBusString('one'), DBusUint32(2), DBusDouble(3.0)])
+            .children,
+        equals([DBusString('one'), DBusUint32(2), DBusDouble(3.0)]));
+    expect(DBusStruct([]).signature, equals(DBusSignature('()')));
+    expect(
+        DBusStruct([DBusString('one'), DBusUint32(2), DBusDouble(3.0)])
+            .toNative(),
+        equals(['one', 2, 3.0]));
+    expect(
+        DBusStruct([DBusString('one'), DBusUint32(2), DBusDouble(3.0)])
+            .signature,
+        equals(DBusSignature('(sud)')));
+    expect(
+        DBusStruct([DBusString('one'), DBusUint32(2), DBusDouble(3.0)]) ==
+            DBusStruct([DBusString('one'), DBusUint32(2), DBusDouble(3.0)]),
+        isTrue);
+    expect(
+        DBusStruct([DBusString('one'), DBusUint32(2), DBusDouble(3.0)]) ==
+            DBusStruct([DBusString('one'), DBusInt32(2), DBusDouble(3.0)]),
+        isFalse);
+  });
+
+  test('value - array', () async {
+    expect(DBusArray(DBusSignature('s'), []).children, equals([]));
+    expect(
+        DBusArray(DBusSignature('s'), [
+          DBusString('one'),
+          DBusString('two'),
+          DBusString('three')
+        ]).children,
+        equals([DBusString('one'), DBusString('two'), DBusString('three')]));
+    expect(
+        () => DBusArray(DBusSignature('s'),
+            [DBusString('one'), DBusUint32(2), DBusDouble(3.0)]),
+        throwsArgumentError);
+    expect(DBusArray(DBusSignature('s'), []).childSignature,
+        equals(DBusSignature('s')));
+    expect(DBusArray(DBusSignature('s'), []).signature,
+        equals(DBusSignature('as')));
+    expect(
+        DBusArray(DBusSignature('s'), [
+          DBusString('one'),
+          DBusString('two'),
+          DBusString('three')
+        ]).toNative(),
+        equals(['one', 'two', 'three']));
+    expect(
+        DBusArray(DBusSignature('s'),
+                [DBusString('one'), DBusString('two'), DBusString('three')]) ==
+            DBusArray(DBusSignature('s'),
+                [DBusString('one'), DBusString('two'), DBusString('three')]),
+        isTrue);
+    expect(
+        DBusArray(DBusSignature('s'),
+                [DBusString('one'), DBusString('two'), DBusString('three')]) ==
+            DBusArray(DBusSignature('s'),
+                [DBusString('three'), DBusString('two'), DBusString('one')]),
+        isFalse);
+  });
+
+  test('value - dict', () async {
+    expect(DBusDict(DBusSignature('i'), DBusSignature('s'), {}).children,
+        equals({}));
+    expect(
+        DBusDict(DBusSignature('i'), DBusSignature('s'), {
+          DBusInt32(1): DBusString('one'),
+          DBusInt32(2): DBusString('two'),
+          DBusInt32(3): DBusString('three')
+        }).children,
+        equals({
+          DBusInt32(1): DBusString('one'),
+          DBusInt32(2): DBusString('two'),
+          DBusInt32(3): DBusString('three')
+        }));
+    expect(
+        () => DBusDict(DBusSignature('i'), DBusSignature('s'), {
+              DBusInt32(1): DBusString('one'),
+              DBusUint32(2): DBusString('two'),
+              DBusInt32(3): DBusString('three')
+            }),
+        throwsArgumentError);
+    expect(
+        () => DBusDict(DBusSignature('i'), DBusSignature('s'), {
+              DBusInt32(1): DBusString('one'),
+              DBusInt32(2): DBusUint32(2),
+              DBusInt32(3): DBusString('three')
+            }),
+        throwsArgumentError);
+    expect(DBusDict(DBusSignature('i'), DBusSignature('s'), {}).keySignature,
+        equals(DBusSignature('i')));
+    expect(DBusDict(DBusSignature('i'), DBusSignature('s'), {}).valueSignature,
+        equals(DBusSignature('s')));
+    expect(DBusDict(DBusSignature('i'), DBusSignature('s'), {}).signature,
+        equals(DBusSignature('a{is}')));
+    expect(
+        DBusDict(DBusSignature('i'), DBusSignature('s'), {
+          DBusInt32(1): DBusString('one'),
+          DBusInt32(2): DBusString('two'),
+          DBusInt32(3): DBusString('three')
+        }).toNative(),
+        equals({1: 'one', 2: 'two', 3: 'three'}));
+    expect(
+        DBusDict(DBusSignature('i'), DBusSignature('s'), {
+              DBusInt32(1): DBusString('one'),
+              DBusInt32(2): DBusString('two'),
+              DBusInt32(3): DBusString('three')
+            }) ==
+            DBusDict(DBusSignature('i'), DBusSignature('s'), {
+              DBusInt32(1): DBusString('one'),
+              DBusInt32(2): DBusString('two'),
+              DBusInt32(3): DBusString('three')
+            }),
+        isTrue);
+    expect(
+        DBusDict(DBusSignature('i'), DBusSignature('s'), {
+              DBusInt32(1): DBusString('one'),
+              DBusInt32(2): DBusString('two'),
+              DBusInt32(3): DBusString('three')
+            }) ==
+            DBusDict(DBusSignature('i'), DBusSignature('s'), {
+              DBusInt32(1): DBusString('three'),
+              DBusInt32(2): DBusString('two'),
+              DBusInt32(3): DBusString('one')
+            }),
+        isFalse);
+  });
+
   test('ping', () async {
     var server = DBusServer();
     var address =
