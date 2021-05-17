@@ -432,9 +432,11 @@ class DBusObjectPath extends DBusString {
   }
 }
 
-/// D-Bus value that indicates a D-Bus type.
+/// D-Bus value that indicates a set of D-Bus types.
 ///
-/// The following signatures map to classes:
+/// A signature may be empty (''), contain a single type (e.g. 's'), or contain multiple types (e.g. 'ysas').
+///
+/// The following patterns map to classes:
 ///
 /// * `y` → [DBusByte]
 /// * `b` → [DBusBoolean]
@@ -452,6 +454,8 @@ class DBusObjectPath extends DBusString {
 /// * `(xyz...)` → [DBusStruct] (`x`, `y`, `z` represent the child value signatures).
 /// * `av` → [DBusArray] (v represents the array value signature).
 /// * `a{kv}` → [DBusDict] (`k` and `v` represent the key and value signatures).
+///
+/// There is also a Unix file descriptor `h` which may be in a signature, but is not supported in Dart.
 class DBusSignature extends DBusValue {
   /// A D-Bus signature string.
   final String value;
@@ -461,6 +465,10 @@ class DBusSignature extends DBusValue {
     if (value.length > 255) {
       throw ArgumentError.value(
           value, 'value', 'Signature maximum length is 255 characters');
+    }
+    if (value.contains(RegExp('[^ybnqiuxtdsogvha(){}]'))) {
+      throw ArgumentError.value(
+          value, 'value', 'Signature contains unknown characters');
     }
   }
 
