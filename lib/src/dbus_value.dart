@@ -351,7 +351,7 @@ class DBusObjectPath extends DBusString {
       if (value.contains(RegExp('[^a-zA-Z0-9_/]')) ||
           !value.startsWith('/') ||
           value.endsWith('/')) {
-        throw 'Invalid object path: $value';
+        throw ArgumentError.value(value, 'value', 'Invalid object path');
       }
     }
   }
@@ -588,7 +588,8 @@ class DBusArray extends DBusValue {
   DBusArray(this.childSignature, [this.children = const []]) {
     for (var child in children) {
       if (child.signature.value != childSignature.value) {
-        throw "Provided children don't match array signature";
+        throw ArgumentError.value(children, 'children',
+            "Provided children don't match array signature ${childSignature.value}");
       }
     }
   }
@@ -711,10 +712,12 @@ class DBusDict extends DBusValue {
   DBusDict(this.keySignature, this.valueSignature, [this.children = const {}]) {
     children.forEach((key, value) {
       if (key.signature.value != keySignature.value) {
-        throw "Provided key doesn't match signature";
+        throw ArgumentError.value(key, 'children',
+            "Provided key doesn't match signature ${keySignature.value}");
       }
       if (value.signature.value != valueSignature.value) {
-        throw "Provided value doesn't match signature";
+        throw ArgumentError.value(value, 'children',
+            "Provided value doesn't match signature ${valueSignature.value}");
       }
     });
   }
