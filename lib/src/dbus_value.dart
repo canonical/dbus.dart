@@ -457,7 +457,12 @@ class DBusSignature extends DBusValue {
   final String value;
 
   /// Create a new D-Bus signature with the given [value].
-  const DBusSignature(this.value);
+  DBusSignature(this.value) {
+    if (value.length > 255) {
+      throw ArgumentError.value(
+          value, 'value', 'Signature maximum length is 255 characters');
+    }
+  }
 
   /// Splits this signature into a list of signatures, e.g. 'asbo' -> ['as', 'b', 'o']
   List<DBusSignature> split() {
