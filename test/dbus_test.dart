@@ -280,8 +280,39 @@ void main() {
     expect(DBusSignature('s').value, equals('s'));
     expect(DBusSignature('ybnq').value, equals('ybnq'));
     expect(DBusSignature('s' * 255).value, equals('s' * 255));
+    // Container types.
+    expect(DBusSignature('()').value, equals('()'));
+    expect(DBusSignature('(iss)').value, equals('(iss)'));
+    expect(DBusSignature('as').value, equals('as'));
+    expect(DBusSignature('a{sv}').value, equals('a{sv}'));
+    // Unknown character.
     expect(() => DBusSignature('!'), throwsArgumentError);
+    // Too long.
     expect(() => DBusSignature('s' * 256), throwsArgumentError);
+    // Missing array type.
+    expect(() => DBusSignature('a'), throwsArgumentError);
+    expect(() => DBusSignature('(a)'), throwsArgumentError);
+    expect(() => DBusSignature('aa'), throwsArgumentError);
+    expect(() => DBusSignature('a{sa}'), throwsArgumentError);
+    // Containers containing invalid types.
+    expect(() => DBusSignature('(!)'), throwsArgumentError);
+    expect(() => DBusSignature('a!'), throwsArgumentError);
+    expect(() => DBusSignature('a{!!}'), throwsArgumentError);
+    // Missing opening/closing characters.
+    expect(() => DBusSignature('('), throwsArgumentError);
+    expect(() => DBusSignature(')'), throwsArgumentError);
+    expect(() => DBusSignature('(s'), throwsArgumentError);
+    expect(() => DBusSignature('s)'), throwsArgumentError);
+    expect(() => DBusSignature('a{'), throwsArgumentError);
+    expect(() => DBusSignature('}'), throwsArgumentError);
+    expect(() => DBusSignature('a{sv'), throwsArgumentError);
+    expect(() => DBusSignature('sv}'), throwsArgumentError);
+    // Dict entry outside of array.
+    expect(() => DBusSignature('{}'), throwsArgumentError);
+    // Dict with wrong number of types.
+    expect(() => DBusSignature('a{}'), throwsArgumentError);
+    expect(() => DBusSignature('a{s}'), throwsArgumentError);
+    expect(() => DBusSignature('a{siv}'), throwsArgumentError);
     expect(
         DBusSignature('ybnq').split(),
         equals([
@@ -290,10 +321,10 @@ void main() {
           DBusSignature('n'),
           DBusSignature('q')
         ]));
-    expect(DBusSignature('s').signature, equals(DBusSignature('g')));
-    expect(DBusSignature('s').toNative(), equals(DBusSignature('s')));
     expect(DBusSignature('(ybnq)').split(), equals([DBusSignature('(ybnq)')]));
     expect(DBusSignature('').split(), equals([]));
+    expect(DBusSignature('s').signature, equals(DBusSignature('g')));
+    expect(DBusSignature('s').toNative(), equals(DBusSignature('s')));
     expect(DBusSignature('a{sv}') == DBusSignature('a{sv}'), isTrue);
     expect(DBusSignature('a{sv}') == DBusSignature('s'), isFalse);
   });

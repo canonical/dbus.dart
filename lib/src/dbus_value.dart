@@ -434,7 +434,7 @@ class DBusObjectPath extends DBusString {
 
 /// D-Bus value that indicates a set of D-Bus types.
 ///
-/// A signature may be empty (''), contain a single type (e.g. 's'), or contain multiple types (e.g. 'ysas').
+/// A signature may be empty (''), contain a single type (e.g. 's'), or contain multiple types (e.g. 'asbo').
 ///
 /// The following patterns map to classes:
 ///
@@ -466,9 +466,9 @@ class DBusSignature extends DBusValue {
       throw ArgumentError.value(
           value, 'value', 'Signature maximum length is 255 characters');
     }
-    if (value.contains(RegExp('[^ybnqiuxtdsogvha(){}]'))) {
-      throw ArgumentError.value(
-          value, 'value', 'Signature contains unknown characters');
+    var index = 0;
+    while (index < value.length) {
+      index = _validate(value, index) + 1;
     }
   }
 
@@ -476,51 +476,94 @@ class DBusSignature extends DBusValue {
   List<DBusSignature> split() {
     var signatures = <DBusSignature>[];
 
-    var start = 0;
-    while (start < value.length) {
-      var end = _findChildEnd(start);
-      signatures.add(DBusSignature(value.substring(start, end)));
-      start = end;
+    var index = 0;
+    while (index < value.length) {
+      var end = _findChildSignatureEnd(value, index);
+      if (end < 0) {
+        throw FormatException('Unable to split invalid signature');
+      }
+      signatures.add(DBusSignature(value.substring(index, end + 1)));
+      index = end + 1;
     }
 
     return signatures;
   }
 
-  /// Gets the end of the child signature starting at [offset].
-  int _findChildEnd(int offset) {
-    /// Dicts and structs have the child type following.
-    if (value[offset] == 'a') {
-      return _findChildEnd(offset + 1);
-    }
-
-    // Structs and dict entries are multiple characters, everything else is a single character.
-    if (value[offset] == '(') {
-      return _findClosing(offset, ')');
-    } else if (value[offset] == '{') {
-      return _findClosing(offset, '}');
+  /// Check [value] contains a valid signature and return the index of the end of the current child signature.
+  int _validate(String value, int index) {
+    if (value.startsWith('(', index)) {
+      // Struct.
+      var end = _findClosing(value, index, '(', ')');
+      if (end < 0) {
+        throw ArgumentError.value(
+            value, 'value', 'Struct missing closing parenthesis');
+      }
+      var childIndex = index + 1;
+      while (childIndex < end) {
+        childIndex = _validate(value, childIndex) + 1;
+      }
+      return end;
+    } else if (value.startsWith('a{', index)) {
+      // Dict.
+      var end = _findClosing(value, index, '{', '}');
+      if (end < 0) {
+        throw ArgumentError.value(value, 'value', 'Dict missing closing brace');
+      }
+      var childIndex = index + 2;
+      var childCount = 0;
+      while (childIndex < end) {
+        childIndex = _validate(value, childIndex) + 1;
+        childCount++;
+      }
+      if (childCount != 2) {
+        throw ArgumentError.value(value, 'value',
+            "Dict doesn't have correct number of child signatures");
+      }
+      return end;
+    } else if (value.startsWith('a', index)) {
+      // Array.
+      if (index >= value.length - 1) {
+        throw ArgumentError.value(value, 'value', 'Array missing child type');
+      }
+      return _validate(value, index + 1);
+    } else if ('ybnqiuxtdsogvha'.contains(value[index])) {
+      return index;
     } else {
-      return offset + 1;
+      throw ArgumentError.value(
+          value, 'value', 'Signature contains unknown characters');
     }
   }
 
-  // Find the closing parenthesis/brace.
-  int _findClosing(int start, String closeChar) {
-    var openChar = value[start];
-    var count = 0;
-    var end = start;
-    while (end < value.length) {
-      if (value[end] == openChar) {
-        count++;
-      } else if (value[end] == closeChar) {
-        count--;
-        if (count == 0) {
-          return end + 1;
+  /// Find the index where the current child signature ends.
+  int _findChildSignatureEnd(String value, int index) {
+    if (index >= value.length) {
+      return -1;
+    } else if (value.startsWith('(', index)) {
+      return _findClosing(value, index, '(', ')');
+    } else if (value.startsWith('a{', index)) {
+      return _findClosing(value, index, '{', '}');
+    } else if (value.startsWith('a', index)) {
+      return _findChildSignatureEnd(value, index + 1);
+    } else {
+      return index;
+    }
+  }
+
+  /// Find the index int [value] where there is a [closeChar] that matches [openChar].
+  /// These characters nest.
+  int _findClosing(String value, int index, String openChar, String closeChar) {
+    var depth = 0;
+    for (var i = index; i < value.length; i++) {
+      if (value[i] == openChar) {
+        depth++;
+      } else if (value[i] == closeChar) {
+        depth--;
+        if (depth == 0) {
+          return i;
         }
       }
-      end++;
     }
-
-    throw 'Unable to find closing $closeChar in signature: $value';
+    return -1;
   }
 
   @override
