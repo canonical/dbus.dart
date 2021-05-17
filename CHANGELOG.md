@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.5.0
+
+* Make callMethod always return success and throw an exception on error.
+* Add a response signature check parameter to method calls and getting properties.
+* Fix equality operators for DBusStruct, DBusArray and DBusDict.
+* Use DBusStruct class in generated code.
+* Replace simple exceptions with ArgumentError/FormatException where appropiate.
+* Validate D-Bus integer values.
+* Add more validation for DBusSignature, DBusObjectPath.
+* Validate more introspection XML.
+* Break out code generation from dart-dbus to classes.
+* Allow dart-dbus to read introspection XML from stdin.
+* Rename test file so can just run 'dart test'.
+* Add test for basic DBus types.
+* Add tests for generted code.
+* Add test for introspection XML parsing.
+
 ## 0.4.3
 
 * Fix a race unsubscribing from signals which could trigger an exception if a DBusClient was closed very soon after creation or signal subscription.
