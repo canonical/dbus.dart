@@ -193,28 +193,20 @@ class DBusCodeGenerator {
       index++;
     }
 
-    var returnTypes = <String>[];
-    var returnValues = <String>[];
-    index = 0;
-    for (var arg in method.args) {
-      if (arg.direction == DBusArgumentDirection.out) {
-        var type = getDartType(arg.type);
-        var returnValue = 'result[${returnTypes.length}]';
-        returnTypes.add(type.nativeType);
-        var convertedValue = type.dbusToNative(returnValue);
-        returnValues.add(convertedValue);
-      }
-      index++;
-    }
+    var isNoReply = _getBooleanAnnotation(
+        method.annotations, 'org.freedesktop.DBus.Method.NoReply');
+    var returnType = isNoReply ? 'void' : 'DBusMethodResponse';
 
     var methodName = _getUniqueMethodName(memberNames, 'do${method.name}');
 
     var source = '';
     source += '  /// Implementation of ${interface.name}.${method.name}()\n';
     source +=
-        '  Future<DBusMethodResponse> $methodName(${argsList.join(', ')}) async {\n';
-    source +=
-        "    return DBusMethodErrorResponse.failed('${interface.name}.${method.name}() not implemented');\n";
+        '  Future<$returnType> $methodName(${argsList.join(', ')}) async {\n';
+    if (!isNoReply) {
+      source +=
+          "    return DBusMethodErrorResponse.failed('${interface.name}.${method.name}() not implemented');\n";
+    }
     source += '  }\n';
 
     return source;
@@ -395,11 +387,20 @@ class DBusCodeGenerator {
           argValues.add(convertedValue);
         }
 
+        var methodImplementation = 'do${method.name}(${argValues.join(', ')})';
+        var isNoReply = _getBooleanAnnotation(
+            method.annotations, 'org.freedesktop.DBus.Method.NoReply');
+
         var source = '';
         source += 'if ($argCheck) {\n';
         source += '  return DBusMethodErrorResponse.invalidArgs();\n';
         source += '}\n';
-        source += 'return do${method.name}(${argValues.join(', ')});\n';
+        if (isNoReply) {
+          source += 'await $methodImplementation;\n';
+          source += 'return DBusMethodSuccessResponse();\n';
+        } else {
+          source += 'return $methodImplementation;\n';
+        }
         methodBranches
             .add(_SwitchBranch("methodCall.name == '${method.name}'", source));
       }
@@ -664,8 +665,11 @@ class DBusCodeGenerator {
       index++;
     }
 
+    var isNoReply = _getBooleanAnnotation(
+        method.annotations, 'org.freedesktop.DBus.Method.NoReply');
+
     String returnType;
-    if (outputArgs.isEmpty) {
+    if (isNoReply || outputArgs.isEmpty) {
       returnType = 'Future<void>';
     } else if (outputArgs.length == 1) {
       var type = getDartType(outputArgs.first.type);
@@ -674,15 +678,23 @@ class DBusCodeGenerator {
       returnType = 'Future<List<DBusValue>>';
     }
 
-    var methodCall =
-        "await callMethod('${interface.name}', '${method.name}', [${argValues.join(', ')}], replySignature: DBusSignature('${method.outputSignature.value}'));";
+    var methodArgs = [
+      "'${interface.name}'",
+      "'${method.name}'",
+      "[${argValues.join(', ')}]",
+      "replySignature: DBusSignature('${method.outputSignature.value}')"
+    ];
+    if (isNoReply) {
+      methodArgs.add('noReplyExpected: true');
+    }
+    var methodCall = "await callMethod(${methodArgs.join(', ')});";
 
     var methodName = _getUniqueMethodName(memberNames, 'call${method.name}');
 
     var source = '';
     source += '  /// Invokes ${interface.name}.${method.name}()\n';
     source += '  $returnType $methodName(${argsList.join(', ')}) async {\n';
-    if (outputArgs.isEmpty) {
+    if (isNoReply || outputArgs.isEmpty) {
       source += '    $methodCall\n';
     } else if (outputArgs.length == 1) {
       var type = getDartType(outputArgs.first.type);
@@ -886,5 +898,23 @@ class DBusCodeGenerator {
       }
     }
     return indentedLines.join('\n');
+  }
+
+  String? _getAnnotation(
+      Iterable<DBusIntrospectAnnotation> annotations, String name) {
+    for (var annotation in annotations) {
+      if (annotation.name == name) {
+        return annotation.value;
+      }
+    }
+
+    return null;
+  }
+
+  bool _getBooleanAnnotation(
+      Iterable<DBusIntrospectAnnotation> annotations, String name,
+      {bool defaultValue = false}) {
+    var value = _getAnnotation(annotations, name);
+    return value == null ? defaultValue : value == 'true';
   }
 }

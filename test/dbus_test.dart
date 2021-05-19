@@ -2422,6 +2422,7 @@ void main() {
     'method-multiple-inputs',
     'method-multiple-outputs',
     'method-unnamed-arg',
+    'method-no-reply',
     'methods',
     'property',
     'properties',
