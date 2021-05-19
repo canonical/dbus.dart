@@ -632,10 +632,10 @@ class DBusVariant extends DBusValue {
 /// D-Bus value that contains a fixed set of other values.
 class DBusStruct extends DBusValue {
   /// Child values in this structure.
-  final Iterable<DBusValue> children;
+  final List<DBusValue> children;
 
   /// Creates a new D-Bus structure containing [children] values.
-  const DBusStruct(this.children);
+  DBusStruct(Iterable<DBusValue> children) : children = children.toList();
 
   @override
   DBusSignature get signature {
@@ -653,8 +653,7 @@ class DBusStruct extends DBusValue {
 
   @override
   bool operator ==(other) =>
-      other is DBusStruct &&
-      _listsEqual(other.children.toList(), children.toList());
+      other is DBusStruct && _listsEqual(other.children, children);
 
   @override
   int get hashCode => children.hashCode;
@@ -675,13 +674,14 @@ class DBusArray extends DBusValue {
   final DBusSignature childSignature;
 
   /// Ordered list of children in this array.
-  final Iterable<DBusValue> children;
+  final List<DBusValue> children;
 
   /// Creates a new empty D-Bus array containing [children].
   ///
   /// [childSignature] must contain a single type.
   /// An exception will be thrown if a DBusValue in [children] doesn't have a signature matching [childSignature].
-  DBusArray(this.childSignature, [this.children = const []]) {
+  DBusArray(this.childSignature, [Iterable<DBusValue> children = const []])
+      : children = children.toList() {
     if (!childSignature.isSingleCompleteType) {
       throw ArgumentError.value(childSignature, 'childSignature',
           'Array value type must be a single complete type');
@@ -700,7 +700,9 @@ class DBusArray extends DBusValue {
   /// No checking is performed on the validity of [children].
   /// This function is useful when you need a constant value (e.g. for a
   /// parameter default value). In all other cases use the standard constructor.
-  const DBusArray.unchecked(this.childSignature, [this.children = const []]);
+  DBusArray.unchecked(this.childSignature,
+      [Iterable<DBusValue> children = const []])
+      : children = children.toList();
 
   /// Creates a new array of unsigned 8 bit values.
   factory DBusArray.byte(Iterable<int> values) {
@@ -781,7 +783,7 @@ class DBusArray extends DBusValue {
   bool operator ==(other) =>
       other is DBusArray &&
       other.childSignature == childSignature &&
-      _listsEqual(other.children.toList(), children.toList());
+      _listsEqual(other.children, children);
 
   @override
   int get hashCode => children.hashCode;
