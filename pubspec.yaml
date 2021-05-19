@@ -19,6 +19,7 @@ dependencies:
 
 dev_dependencies:
   test: ^1.16.8
+  test_cov: ^1.0.1
 
 executables:
   dart-dbus:
