@@ -364,7 +364,7 @@ class DBusCodeGenerator {
     return source;
   }
 
-// Generates a method that overrides DBusObject.handleMethodCall().
+  // Generates a method that overrides DBusObject.handleMethodCall().
   String _generateHandleMethodCall(DBusIntrospectNode node) {
     var interfaceBranches = <_SwitchBranch>[];
     for (var interface in node.interfaces) {
@@ -423,7 +423,7 @@ class DBusCodeGenerator {
     return source;
   }
 
-// Generates a method that overrides DBusObject.getProperty().
+  // Generates a method that overrides DBusObject.getProperty().
   String _generateGetProperty(
       Map<String, String> getMethodNames, DBusIntrospectNode node) {
     // Override DBusObject.getProperty().
@@ -461,7 +461,7 @@ class DBusCodeGenerator {
     return source;
   }
 
-// Generates a method that overrides DBusObject.setProperty().
+  // Generates a method that overrides DBusObject.setProperty().
   String _generateSetProperty(
       Map<String, String> setMethodNames, DBusIntrospectNode node) {
     var interfaceBranches = <_SwitchBranch>[];
@@ -505,7 +505,7 @@ class DBusCodeGenerator {
     return source;
   }
 
-// Generates a method that overrides DBusObject.getAllProperties().
+  // Generates a method that overrides DBusObject.getAllProperties().
   String _generateGetAllProperties(DBusIntrospectNode node) {
     var interfaceBranches = <_SwitchBranch>[];
     for (var interface in node.interfaces) {
