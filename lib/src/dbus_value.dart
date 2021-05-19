@@ -460,6 +460,14 @@ class DBusSignature extends DBusValue {
   /// A D-Bus signature string.
   final String value;
 
+  /// True if this signature is for a basic type (byte, boolean, int16, uint16, int32, uint32, int64, uint64, double, unix_fd).
+  bool get isBasic => value.length == 1 && 'ybnqiuxtdhsog'.contains(value);
+
+  /// True if this signature is for a single complete type, i.e. represents a single dbus value.
+  /// If False, then use [split] to get the types this signature contains.
+  bool get isSingleCompleteType =>
+      value.isNotEmpty && _findChildSignatureEnd(value, 0) == value.length - 1;
+
   /// Create a new D-Bus signature with the given [value].
   DBusSignature(this.value) {
     if (value.length > 255) {
@@ -472,7 +480,7 @@ class DBusSignature extends DBusValue {
     }
   }
 
-  /// Splits this signature into a list of signatures, e.g. 'asbo' -> ['as', 'b', 'o']
+  /// Splits this signature into a list of signatures with single complete types, e.g. 'asbo' -> ['as', 'b', 'o']
   List<DBusSignature> split() {
     var signatures = <DBusSignature>[];
 
@@ -671,8 +679,14 @@ class DBusArray extends DBusValue {
 
   /// Creates a new empty D-Bus array containing [children].
   ///
+  /// [childSignature] must contain a single type.
   /// An exception will be thrown if a DBusValue in [children] doesn't have a signature matching [childSignature].
   DBusArray(this.childSignature, [this.children = const []]) {
+    if (!childSignature.isSingleCompleteType) {
+      throw ArgumentError.value(childSignature, 'childSignature',
+          'Array value type must be a single complete type');
+    }
+
     for (var child in children) {
       if (child.signature.value != childSignature.value) {
         throw ArgumentError.value(children, 'children',
@@ -794,9 +808,21 @@ class DBusDict extends DBusValue {
   final Map<DBusValue, DBusValue> children;
 
   /// Creates a new dictionary with keys of the type [keySignature] and values of the type [valueSignature].
+  /// [keySignature] must contain a single basic type, i.e. byte, boolean, int16, uint16, int32, uint32, int64, uint64, double or unix_fd.
+  /// Container types are not allowed as keys.
+  /// [valueSignature] must contain a single type.
   ///
   /// An exception will be thrown if the DBusValues in [children] don't have signatures matching [keySignature] and [valueSignature].
   DBusDict(this.keySignature, this.valueSignature, [this.children = const {}]) {
+    if (!keySignature.isBasic) {
+      throw ArgumentError.value(keySignature, 'keySignature',
+          'Only basic key types are allowed in dicts');
+    }
+    if (!valueSignature.isSingleCompleteType) {
+      throw ArgumentError.value(valueSignature, 'valueSignature',
+          'Dict value type must be a single complete type');
+    }
+
     children.forEach((key, value) {
       if (key.signature.value != keySignature.value) {
         throw ArgumentError.value(key, 'children',
