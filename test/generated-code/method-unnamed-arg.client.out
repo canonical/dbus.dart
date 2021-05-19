@@ -4,7 +4,7 @@ class ComExampleTest extends DBusRemoteObject {
   ComExampleTest(DBusClient client, String destination, DBusObjectPath path) : super(client, destination, path);
 
   /// Invokes com.example.Test.Hello()
-  Future<void> callHello(String arg_0) async {
-    await callMethod('com.example.Test', 'Hello', [DBusString(arg_0)], replySignature: DBusSignature(''));
+  Future<void> callHello(String arg_0, {bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    await callMethod('com.example.Test', 'Hello', [DBusString(arg_0)], replySignature: DBusSignature(''), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
   }
 }

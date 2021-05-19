@@ -664,6 +664,8 @@ class DBusCodeGenerator {
       argValues.add(convertedValue);
       index++;
     }
+    argsList.add(
+        '{bool noAutoStart = false, bool allowInteractiveAuthorization = false}');
 
     var isNoReply = _getBooleanAnnotation(
         method.annotations, 'org.freedesktop.DBus.Method.NoReply');
@@ -687,6 +689,9 @@ class DBusCodeGenerator {
     if (isNoReply) {
       methodArgs.add('noReplyExpected: true');
     }
+    methodArgs.add('noAutoStart: noAutoStart');
+    methodArgs
+        .add('allowInteractiveAuthorization: allowInteractiveAuthorization');
     var methodCall = "await callMethod(${methodArgs.join(', ')});";
 
     var methodName = _getUniqueMethodName(memberNames, 'call${method.name}');

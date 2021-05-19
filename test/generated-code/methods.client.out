@@ -4,17 +4,17 @@ class ComExampleTest extends DBusRemoteObject {
   ComExampleTest(DBusClient client, String destination, DBusObjectPath path) : super(client, destination, path);
 
   /// Invokes com.example.Test.Hello1()
-  Future<void> callHello1() async {
-    await callMethod('com.example.Test', 'Hello1', [], replySignature: DBusSignature(''));
+  Future<void> callHello1({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    await callMethod('com.example.Test', 'Hello1', [], replySignature: DBusSignature(''), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
   }
 
   /// Invokes com.example.Test.Hello2()
-  Future<void> callHello2() async {
-    await callMethod('com.example.Test', 'Hello2', [], replySignature: DBusSignature(''));
+  Future<void> callHello2({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    await callMethod('com.example.Test', 'Hello2', [], replySignature: DBusSignature(''), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
   }
 
   /// Invokes com.example.Test.Hello3()
-  Future<void> callHello3() async {
-    await callMethod('com.example.Test', 'Hello3', [], replySignature: DBusSignature(''));
+  Future<void> callHello3({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    await callMethod('com.example.Test', 'Hello3', [], replySignature: DBusSignature(''), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
   }
 }
