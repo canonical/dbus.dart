@@ -288,6 +288,44 @@ void main() {
     expect(DBusSignature('s').value, equals('s'));
     expect(DBusSignature('ybnq').value, equals('ybnq'));
     expect(DBusSignature('s' * 255).value, equals('s' * 255));
+    // Basic types.
+    expect(DBusSignature('').isBasic, isFalse);
+    expect(DBusSignature('y').isBasic, isTrue);
+    expect(DBusSignature('b').isBasic, isTrue);
+    expect(DBusSignature('n').isBasic, isTrue);
+    expect(DBusSignature('q').isBasic, isTrue);
+    expect(DBusSignature('i').isBasic, isTrue);
+    expect(DBusSignature('u').isBasic, isTrue);
+    expect(DBusSignature('x').isBasic, isTrue);
+    expect(DBusSignature('t').isBasic, isTrue);
+    expect(DBusSignature('d').isBasic, isTrue);
+    expect(DBusSignature('s').isBasic, isTrue);
+    expect(DBusSignature('o').isBasic, isTrue);
+    expect(DBusSignature('g').isBasic, isTrue);
+    expect(DBusSignature('v').isBasic, isFalse);
+    expect(DBusSignature('()').isBasic, isFalse);
+    expect(DBusSignature('as').isBasic, isFalse);
+    expect(DBusSignature('a{sv}').isBasic, isFalse);
+    expect(DBusSignature('yy').isBasic, isFalse);
+    // Single complete types
+    expect(DBusSignature('').isSingleCompleteType, isFalse);
+    expect(DBusSignature('y').isSingleCompleteType, isTrue);
+    expect(DBusSignature('b').isSingleCompleteType, isTrue);
+    expect(DBusSignature('n').isSingleCompleteType, isTrue);
+    expect(DBusSignature('q').isSingleCompleteType, isTrue);
+    expect(DBusSignature('i').isSingleCompleteType, isTrue);
+    expect(DBusSignature('u').isSingleCompleteType, isTrue);
+    expect(DBusSignature('x').isSingleCompleteType, isTrue);
+    expect(DBusSignature('t').isSingleCompleteType, isTrue);
+    expect(DBusSignature('d').isSingleCompleteType, isTrue);
+    expect(DBusSignature('s').isSingleCompleteType, isTrue);
+    expect(DBusSignature('o').isSingleCompleteType, isTrue);
+    expect(DBusSignature('g').isSingleCompleteType, isTrue);
+    expect(DBusSignature('v').isSingleCompleteType, isTrue);
+    expect(DBusSignature('()').isSingleCompleteType, isTrue);
+    expect(DBusSignature('as').isSingleCompleteType, isTrue);
+    expect(DBusSignature('a{sv}').isSingleCompleteType, isTrue);
+    expect(DBusSignature('yy').isSingleCompleteType, isFalse);
     // Container types.
     expect(DBusSignature('()').value, equals('()'));
     expect(DBusSignature('(iss)').value, equals('(iss)'));
@@ -376,6 +414,8 @@ void main() {
 
   test('value - array', () async {
     expect(DBusArray(DBusSignature('s'), []).children, equals([]));
+    // Signature must be single complete type.
+    expect(() => DBusArray(DBusSignature('si'), []), throwsArgumentError);
     expect(
         DBusArray(DBusSignature('s'), [
           DBusString('one'),
@@ -426,6 +466,7 @@ void main() {
           DBusInt32(2): DBusString('two'),
           DBusInt32(3): DBusString('three')
         }));
+    // Keys that don't match signature.
     expect(
         () => DBusDict(DBusSignature('i'), DBusSignature('s'), {
               DBusInt32(1): DBusString('one'),
@@ -433,12 +474,27 @@ void main() {
               DBusInt32(3): DBusString('three')
             }),
         throwsArgumentError);
+    // Values that don't match signature.
     expect(
         () => DBusDict(DBusSignature('i'), DBusSignature('s'), {
               DBusInt32(1): DBusString('one'),
               DBusInt32(2): DBusUint32(2),
               DBusInt32(3): DBusString('three')
             }),
+        throwsArgumentError);
+    // Only basic types are allowed as keys.
+    expect(() => DBusDict(DBusSignature('ii'), DBusSignature('s'), {}),
+        throwsArgumentError);
+    expect(() => DBusDict(DBusSignature('v'), DBusSignature('s'), {}),
+        throwsArgumentError);
+    expect(() => DBusDict(DBusSignature('(i)'), DBusSignature('s'), {}),
+        throwsArgumentError);
+    expect(() => DBusDict(DBusSignature('as'), DBusSignature('s'), {}),
+        throwsArgumentError);
+    expect(() => DBusDict(DBusSignature('a{sv}'), DBusSignature('s'), {}),
+        throwsArgumentError);
+    // Value must be a complete type.
+    expect(() => DBusDict(DBusSignature('s'), DBusSignature('ss'), {}),
         throwsArgumentError);
     expect(DBusDict(DBusSignature('i'), DBusSignature('s'), {}).keySignature,
         equals(DBusSignature('i')));
