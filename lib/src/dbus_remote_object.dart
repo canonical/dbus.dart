@@ -7,13 +7,19 @@ import 'dbus_value.dart';
 /// A stream of signals from a remote object.
 class DBusRemoteObjectSignalStream extends DBusSignalStream {
   /// Creates a stream of signals [interface.name] from [object].
+  ///
+  /// If [signature] is provided this causes the stream to throw a
+  /// [DBusSignalSignatureException] if a signal is received that does not
+  /// match the provided signature.
   DBusRemoteObjectSignalStream(
-      DBusRemoteObject object, String interface, String name)
+      DBusRemoteObject object, String interface, String name,
+      {DBusSignature? signature})
       : super(object.client,
             sender: object.destination,
             path: object.path,
             interface: interface,
-            name: name);
+            name: name,
+            signature: signature);
 }
 
 /// Signal received when properties are changed.
