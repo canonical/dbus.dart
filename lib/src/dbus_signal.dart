@@ -26,6 +26,29 @@ class DBusSignal {
       this.sender, this.path, this.interface, this.name, this.values);
 
   @override
+  bool operator ==(other) =>
+      other is DBusSignal &&
+      other.sender == sender &&
+      other.path == path &&
+      other.interface == interface &&
+      other.name == name &&
+      _listsEqual(other.values, values);
+
+  @override
   String toString() =>
       "DBusSignal(sender: '$sender', path: $path, interface: '$interface', name: '$name', values: $values)";
+}
+
+bool _listsEqual<T>(List<T> a, List<T> b) {
+  if (a.length != b.length) {
+    return false;
+  }
+
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) {
+      return false;
+    }
+  }
+
+  return true;
 }

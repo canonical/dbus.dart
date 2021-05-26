@@ -816,28 +816,8 @@ class DBusCodeGenerator {
       String classPrefix,
       DBusIntrospectInterface interface,
       DBusIntrospectSignal signal) {
-    String valueCheck;
-    if (signal.args.isEmpty) {
-      valueCheck = 'signal.values.isEmpty';
-    } else {
-      valueCheck =
-          "signal.signature == DBusSignature('${signal.signature.value}')";
-    }
-
     var signalClassName = '$classPrefix${signal.name}';
-
-    var source = '';
-    source +=
-        "    $variableName = DBusRemoteObjectSignalStream(this, '${interface.name}', '${signal.name}').map((signal) {\n";
-    source += '      if ($valueCheck) {\n';
-    source += '        return $signalClassName(signal);\n';
-    source += '      } else {\n';
-    source +=
-        "        throw '${interface.name}.${signal.name} contains invalid values \${signal.values}';\n";
-    source += '      }\n';
-    source += '    });\n';
-
-    return source;
+    return "    $variableName = DBusRemoteObjectSignalStream(this, '${interface.name}', '${signal.name}', signature: DBusSignature('${signal.signature.value}')).map((signal) => $signalClassName(signal));\n";
   }
 
   // Converts a introspection node to a Dart class name using the object path or interface name.

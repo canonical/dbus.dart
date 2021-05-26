@@ -1431,6 +1431,44 @@ void main() {
         'com.example.Test', 'Ping', [DBusString('Hello'), DBusUint32(42)]);
   });
 
+  test('subscribe signal - match signature', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client to emit a signal.
+    var object = DBusObject(DBusObjectPath('/'));
+    await client1.registerObject(object);
+
+    // Subscribe to the signal from another client.
+    var signals = DBusSignalStream(client2,
+        interface: 'com.example.Test',
+        name: 'Ping',
+        signature: DBusSignature('su'));
+    expect(
+        signals,
+        emitsInOrder([
+          DBusSignal(
+              client1.uniqueName,
+              DBusObjectPath('/'),
+              'com.example.Test',
+              'Ping',
+              [DBusString('Hello'), DBusUint32(42)]),
+          emitsError(isA<DBusSignalSignatureException>())
+        ]));
+
+    // Do a round-trip to the server to ensure the signal has been subscribed to.
+    await client2.ping();
+
+    // Emit one signal with correct signature, one without
+    object.emitSignal(
+        'com.example.Test', 'Ping', [DBusString('Hello'), DBusUint32(42)]);
+    object.emitSignal(
+        'com.example.Test', 'Ping', [DBusUint32(42), DBusString('Hello')]);
+  });
+
   test('subscribe signal - remote object', () async {
     var server = DBusServer();
     var address =
@@ -1461,6 +1499,45 @@ void main() {
     // Emit the signal.
     object.emitSignal(
         'com.example.Test', 'Ping', [DBusString('Hello'), DBusUint32(42)]);
+  });
+
+  test('subscribe signal - remote object - match signature', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client to emit a signal.
+    var object = DBusObject(DBusObjectPath('/'));
+    await client1.registerObject(object);
+
+    // Subscribe to the signal from another client.
+    var remoteObject =
+        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var signals = DBusRemoteObjectSignalStream(
+        remoteObject, 'com.example.Test', 'Ping',
+        signature: DBusSignature('su'));
+    expect(
+        signals,
+        emitsInOrder([
+          DBusSignal(
+              client1.uniqueName,
+              DBusObjectPath('/'),
+              'com.example.Test',
+              'Ping',
+              [DBusString('Hello'), DBusUint32(42)]),
+          emitsError(isA<DBusSignalSignatureException>())
+        ]));
+
+    // Do a round-trip to the server to ensure the signal has been subscribed to.
+    await client2.ping();
+
+    // Emit one signal with correct signature, one without
+    object.emitSignal(
+        'com.example.Test', 'Ping', [DBusString('Hello'), DBusUint32(42)]);
+    object.emitSignal(
+        'com.example.Test', 'Ping', [DBusUint32(42), DBusString('Hello')]);
   });
 
   test('subscribe signal - remote named object', () async {

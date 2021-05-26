@@ -88,15 +88,21 @@ class DBusProcessCredentials {
 class DBusSignalStream extends Stream<DBusSignal> {
   final DBusClient _client;
   final DBusMatchRule _rule;
+  final DBusSignature? _signature;
   final _controller = StreamController<DBusSignal>();
 
   /// Creates a stream of signals that match [sender], [interface], [name], [path] and/or [pathNamespace].
+  ///
+  /// If [signature] is provided this causes the stream to throw a
+  /// [DBusSignalSignatureException] if a signal is received that does not
+  /// match the provided signature.
   DBusSignalStream(DBusClient client,
       {String? sender,
       String? interface,
       String? name,
       DBusObjectPath? path,
-      DBusObjectPath? pathNamespace})
+      DBusObjectPath? pathNamespace,
+      DBusSignature? signature})
       : _client = client,
         _rule = DBusMatchRule(
             type: DBusMessageType.signal,
@@ -104,7 +110,8 @@ class DBusSignalStream extends Stream<DBusSignal> {
             interface: interface != null ? DBusInterfaceName(interface) : null,
             member: name != null ? DBusMemberName(name) : null,
             path: path,
-            pathNamespace: pathNamespace) {
+            pathNamespace: pathNamespace),
+        _signature = signature {
     _controller.onListen = _onListen;
     _controller.onCancel = _onCancel;
   }
@@ -146,6 +153,22 @@ class DBusReplySignatureException implements Exception {
   @override
   String toString() {
     return '$methodName returned invalid values: ${response.returnValues}';
+  }
+}
+
+/// Exception thrown when a D-Bus signal contains values that don't match the expected signature.
+class DBusSignalSignatureException implements Exception {
+  /// The name of the signal.
+  final String signalName;
+
+  /// The signal that generated the exception.
+  final DBusSignal signal;
+
+  DBusSignalSignatureException(this.signalName, this.signal);
+
+  @override
+  String toString() {
+    return '$signalName received with invalid values: ${signal.values}';
   }
 }
 
@@ -972,12 +995,18 @@ class DBusClient {
         continue;
       }
 
-      stream._controller.add(DBusSignal(
+      var signal = DBusSignal(
           message.sender?.value ?? '',
           message.path ?? DBusObjectPath('/'),
           message.interface?.value ?? '',
           message.member?.value ?? '',
-          message.values));
+          message.values);
+      if (stream._signature != null && message.signature != stream._signature) {
+        stream._controller.addError(DBusSignalSignatureException(
+            '${message.interface?.value}.${message.member?.value}', signal));
+      } else {
+        stream._controller.add(signal);
+      }
     }
   }
 

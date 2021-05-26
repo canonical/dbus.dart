@@ -22,20 +22,8 @@ class ComExampleTest extends DBusRemoteObject {
   late final Stream<ComExampleTestEvent2> event2;
 
   ComExampleTest(DBusClient client, String destination, DBusObjectPath path) : super(client, destination, path) {
-    event1 = DBusRemoteObjectSignalStream(this, 'com.example.Test', 'Event1').map((signal) {
-      if (signal.signature == DBusSignature('s')) {
-        return ComExampleTestEvent1(signal);
-      } else {
-        throw 'com.example.Test.Event1 contains invalid values ${signal.values}';
-      }
-    });
+    event1 = DBusRemoteObjectSignalStream(this, 'com.example.Test', 'Event1', signature: DBusSignature('s')).map((signal) => ComExampleTestEvent1(signal));
 
-    event2 = DBusRemoteObjectSignalStream(this, 'com.example.Test', 'Event2').map((signal) {
-      if (signal.signature == DBusSignature('i')) {
-        return ComExampleTestEvent2(signal);
-      } else {
-        throw 'com.example.Test.Event2 contains invalid values ${signal.values}';
-      }
-    });
+    event2 = DBusRemoteObjectSignalStream(this, 'com.example.Test', 'Event2', signature: DBusSignature('i')).map((signal) => ComExampleTestEvent2(signal));
   }
 }
