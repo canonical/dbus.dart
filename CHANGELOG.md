@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.1
+
+* Replace Iterable with List for children in DBusArray, DBusStruct.
+* Add a signature check to DBusSignalStream/DBusRemoteSignalStream.
+* Validate signatures of DBusDict and DBusArray.
+* Send no reply flag in generated code with the org.freedesktop.DBus.Method.NoReply annotation.
+* Add noAutoStart and allowInteractiveAuthorization flags to generated method calls.
+
 ## 0.5.0
 
 * Make callMethod always return success and throw an exception on error.
