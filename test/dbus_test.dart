@@ -546,6 +546,17 @@ void main() {
     await client.close();
   });
 
+  test('ping - abstract', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(abstract: 'abstract'));
+    var client = DBusClient(address);
+
+    // Check can ping the server.
+    await client.ping();
+    await client.close();
+  });
+
   test('ping - ipv4 tcp', () async {
     var server = DBusServer();
     var address = await server.listenAddress(

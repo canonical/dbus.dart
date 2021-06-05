@@ -348,32 +348,37 @@ class DBusServer {
       throw FormatException("Runtime must only contain the value 'yes'");
     }
 
-    if (path == null) {
-      Directory directory;
-      if (dir != null) {
-        directory = Directory(dir);
-      } else if (runtime != null) {
-        var runtimeDir = Platform.environment['XDG_RUNTIME_DIR'];
-        if (runtimeDir == null) {
-          throw SocketException('Unable to determine runtime directory');
-        }
-        directory = Directory(runtimeDir);
-      } else if (tmpdir != null) {
-        throw "Unix addresses with 'tmpdir' not supported";
-      } else if (abstract != null) {
-        throw "Unix addresses with 'abstract' not supported";
-      } else {
-        // Shouldn't be able to get here.
-        throw 'Not able to determine Unix path';
-      }
-
+    String entryWithRandomSuffix(Directory dir) {
       var chars =
           'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
       var random = Random();
       var suffix =
           List<String>.generate(8, (i) => chars[random.nextInt(chars.length)])
               .join();
-      path = '${directory.path}/dbus-$suffix';
+      return '${dir.path}/dbus-$suffix';
+    }
+
+    if (path == null) {
+      Directory directory;
+      if (dir != null) {
+        directory = Directory(dir);
+        path = entryWithRandomSuffix(directory);
+      } else if (runtime != null) {
+        var runtimeDir = Platform.environment['XDG_RUNTIME_DIR'];
+        if (runtimeDir == null) {
+          throw SocketException('Unable to determine runtime directory');
+        }
+        directory = Directory(runtimeDir);
+        path = entryWithRandomSuffix(directory);
+      } else if (tmpdir != null) {
+        throw "Unix addresses with 'tmpdir' not supported";
+      } else if (abstract != null) {
+        // Dart expects abstract unix socket paths to be prepended with '@'.
+        path = '@$abstract';
+      } else {
+        // Shouldn't be able to get here.
+        throw 'Not able to determine Unix path';
+      }
     }
     await _addServerSocket(
         InternetAddress(path, type: InternetAddressType.unix), 0);

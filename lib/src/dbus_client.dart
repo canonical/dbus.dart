@@ -667,7 +667,12 @@ class DBusClient {
       case 'unix':
         var path = _address.properties['path'];
         if (path == null) {
-          throw "Unable to determine D-Bus unix address path from address '$_address'";
+          path = _address.properties['abstract'];
+          if (path == null) {
+            throw "Unable to determine D-Bus unix address path from address '$_address'";
+          }
+          // Dart expects abstract unix socket paths to be prepended with '@'.
+          path = '@$path';
         }
 
         socketAddress = InternetAddress(path, type: InternetAddressType.unix);
