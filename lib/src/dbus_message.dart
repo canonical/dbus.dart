@@ -69,6 +69,7 @@ class DBusMessage {
   @override
   String toString() {
     var parameters = <String, String?>{
+      'type': type.toString(),
       'flags': flags.isNotEmpty ? flags.toString() : null,
       'serial': serial.toString(),
       'path': path?.toString(),
