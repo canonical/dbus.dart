@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.2
+
+* Support abstract unix domain addresses (requires Dart >= 2.14.0-170.0.dev).
+* Fix message type not being written in DBusMessage.toString().
+
 ## 0.5.1
 
 * Replace Iterable with List for children in DBusArray, DBusStruct.
