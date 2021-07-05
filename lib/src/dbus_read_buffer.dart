@@ -12,7 +12,10 @@ import 'dbus_value.dart';
 /// Decodes DBus messages from binary data.
 class DBusReadBuffer extends DBusBuffer {
   /// Data in the buffer.
-  final _data = <int>[];
+  var _data = Uint8List(0);
+
+  /// View of the buffer to allow accessing fixed width integers and floats.
+  late ByteData _view;
 
   /// Read position.
   int readOffset = 0;
@@ -23,23 +26,18 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Add bytes to the buffer.
-  void writeBytes(Iterable<int> value) {
-    _data.addAll(value);
+  void writeBytes(Uint8List value) {
+    var builder = BytesBuilder(copy: false);
+    builder.add(_data);
+    builder.add(value);
+    _data = builder.takeBytes();
+    _view = ByteData.view(_data.buffer);
   }
 
   /// Read a single byte from the buffer.
-  int readByte() {
+  int _readByte() {
     readOffset++;
     return _data[readOffset - 1];
-  }
-
-  /// Reads [length] bytes from the buffer.
-  ByteBuffer readBytes(int length) {
-    var bytes = Uint8List(length);
-    for (var i = 0; i < length; i++) {
-      bytes[i] = readByte();
-    }
-    return bytes.buffer;
   }
 
   /// Reads a single line of UTF-8 text (terminated with CR LF) from the buffer.
@@ -47,9 +45,9 @@ class DBusReadBuffer extends DBusBuffer {
   String? readLine() {
     for (var i = readOffset; i < _data.length - 1; i++) {
       if (_data[i] == 13 /* '\r' */ && _data[i + 1] == 10 /* '\n' */) {
-        var bytes = List<int>.generate(i - readOffset, (index) => readByte());
+        var bytes = _data.getRange(readOffset, i);
         readOffset = i + 2;
-        return utf8.decode(bytes);
+        return utf8.decode(bytes.toList());
       }
     }
     return null;
@@ -206,43 +204,57 @@ class DBusReadBuffer extends DBusBuffer {
   /// Reads a 16 bit signed integer from the buffer.
   /// Assumes that there is sufficient data in the buffer.
   int readInt16([Endian endian = Endian.little]) {
-    return ByteData.view(readBytes(2)).getInt16(0, endian);
+    var value = _view.getInt16(readOffset, endian);
+    readOffset += 2;
+    return value;
   }
 
   /// Reads a 16 bit unsigned integer from the buffer.
   /// Assumes that there is sufficient data in the buffer.
   int readUint16([Endian endian = Endian.little]) {
-    return ByteData.view(readBytes(2)).getUint16(0, endian);
+    var value = _view.getUint16(readOffset, endian);
+    readOffset += 2;
+    return value;
   }
 
   /// Reads a 32 bit signed integer from the buffer.
   /// Assumes that there is sufficient data in the buffer.
   int readInt32([Endian endian = Endian.little]) {
-    return ByteData.view(readBytes(4)).getInt32(0, endian);
+    var value = _view.getInt32(readOffset, endian);
+    readOffset += 4;
+    return value;
   }
 
   /// Reads a 32 bit unsigned integer from the buffer.
   /// Assumes that there is sufficient data in the buffer.
   int readUint32([Endian endian = Endian.little]) {
-    return ByteData.view(readBytes(4)).getUint32(0, endian);
+    var value = _view.getUint32(readOffset, endian);
+    readOffset += 4;
+    return value;
   }
 
   /// Reads a 64 bit signed integer from the buffer.
   /// Assumes that there is sufficient data in the buffer.
   int readInt64([Endian endian = Endian.little]) {
-    return ByteData.view(readBytes(8)).getInt64(0, endian);
+    var value = _view.getInt64(readOffset, endian);
+    readOffset += 8;
+    return value;
   }
 
   /// Reads a 64 bit unsigned integer from the buffer.
   /// Assumes that there is sufficient data in the buffer.
   int readUint64([Endian endian = Endian.little]) {
-    return ByteData.view(readBytes(8)).getUint64(0, endian);
+    var value = _view.getUint64(readOffset, endian);
+    readOffset += 8;
+    return value;
   }
 
   /// Reads a 64 bit floating point number from the buffer.
   /// Assumes that there is sufficient data in the buffer.
   double readFloat64([Endian endian = Endian.little]) {
-    return ByteData.view(readBytes(8)).getFloat64(0, endian);
+    var value = _view.getFloat64(readOffset, endian);
+    readOffset += 8;
+    return value;
   }
 
   /// Reads a [DBusByte] from the buffer or returns null if not enough data.
@@ -250,7 +262,7 @@ class DBusReadBuffer extends DBusBuffer {
     if (remaining < 1) {
       return null;
     }
-    return DBusByte(readByte());
+    return DBusByte(_readByte());
   }
 
   /// Reads a [DBusBoolean] from the buffer or returns null if not enough data.
@@ -324,15 +336,13 @@ class DBusReadBuffer extends DBusBuffer {
       return null;
     }
 
-    var values = <int>[];
-    for (var i = 0; i < length.value; i++) {
-      values.add(readByte());
-    }
-    if (readByte() != 0) {
+    var values = _data.getRange(readOffset, readOffset + length.value);
+    readOffset += length.value;
+    if (_readByte() != 0) {
       throw 'String missing trailing nul';
     }
 
-    return DBusString(utf8.decode(values));
+    return DBusString(utf8.decode(values.toList()));
   }
 
   /// Reads a [DBusObjectPath] from the buffer or returns null if not enough data.
@@ -349,20 +359,18 @@ class DBusReadBuffer extends DBusBuffer {
     if (remaining < 1) {
       return null;
     }
-    var length = readByte();
+    var length = _readByte();
     if (remaining < length + 1) {
       return null;
     }
 
-    var values = <int>[];
-    for (var i = 0; i < length; i++) {
-      values.add(readByte());
-    }
-    if (readByte() != 0) {
+    var values = _data.getRange(readOffset, readOffset + length);
+    readOffset += length;
+    if (_readByte() != 0) {
       throw 'Signature missing trailing nul';
     }
 
-    return DBusSignature(utf8.decode(values));
+    return DBusSignature(utf8.decode(values.toList()));
   }
 
   /// Reads a [DBusVariant] from the buffer or returns null if not enough data.
@@ -504,7 +512,8 @@ class DBusReadBuffer extends DBusBuffer {
 
   /// Removes all buffered data.
   void flush() {
-    _data.removeRange(0, readOffset);
+    _data = _data.sublist(readOffset);
+    _view = ByteData.view(_data.buffer);
     readOffset = 0;
   }
 
