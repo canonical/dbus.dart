@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.3
+
+* Improve efficiency of DBusReadBuffer.
+* Add DBusMaybe type (not used in D-Bus, but used in other code that used GVariant).
+* Move DBusDict key checks to D-Bus en/decoding - GVariant code that uses dicts is allowed more key types.
+
 ## 0.5.2
 
 * Support abstract unix domain addresses (requires Dart >= 2.14.0-170.0.dev).
