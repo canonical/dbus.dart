@@ -172,6 +172,10 @@ class DBusWriteBuffer extends DBusBuffer {
       }
       writeByte(0); // Terminating nul.
     } else if (value is DBusSignature) {
+      if (value.value.contains('m')) {
+        throw UnsupportedError(
+            "D-Bus doesn't support reserved maybe type in signatures");
+      }
       var data = utf8.encode(value.value);
       writeByte(data.length);
       for (var d in data) {
@@ -182,6 +186,8 @@ class DBusWriteBuffer extends DBusBuffer {
       var childValue = value.value;
       writeValue(childValue.signature);
       writeValue(childValue);
+    } else if (value is DBusMaybe) {
+      throw UnsupportedError("D-Bus doesn't support reserved maybe type");
     } else if (value is DBusStruct) {
       align(STRUCT_ALIGNMENT);
       var children = value.children;
@@ -222,6 +228,8 @@ class DBusWriteBuffer extends DBusBuffer {
       data[lengthOffset + 1] = (length >> 8) & 0xFF;
       data[lengthOffset + 2] = (length >> 16) & 0xFF;
       data[lengthOffset + 3] = (length >> 24) & 0xFF;
+    } else {
+      throw 'Unknown D-Bus value: $value';
     }
   }
 

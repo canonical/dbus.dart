@@ -303,6 +303,7 @@ void main() {
     expect(DBusSignature('o').isBasic, isTrue);
     expect(DBusSignature('g').isBasic, isTrue);
     expect(DBusSignature('v').isBasic, isFalse);
+    expect(DBusSignature('m').isBasic, isFalse);
     expect(DBusSignature('()').isBasic, isFalse);
     expect(DBusSignature('as').isBasic, isFalse);
     expect(DBusSignature('a{sv}').isBasic, isFalse);
@@ -322,6 +323,7 @@ void main() {
     expect(DBusSignature('o').isSingleCompleteType, isTrue);
     expect(DBusSignature('g').isSingleCompleteType, isTrue);
     expect(DBusSignature('v').isSingleCompleteType, isTrue);
+    expect(DBusSignature('m').isSingleCompleteType, isTrue);
     expect(DBusSignature('()').isSingleCompleteType, isTrue);
     expect(DBusSignature('as').isSingleCompleteType, isTrue);
     expect(DBusSignature('a{sv}').isSingleCompleteType, isTrue);
@@ -385,6 +387,31 @@ void main() {
         isTrue);
     expect(
         DBusVariant(DBusString('one')) == DBusVariant(DBusUint32(2)), isFalse);
+  });
+
+  test('value - maybe', () async {
+    expect(DBusMaybe(DBusSignature('s'), DBusString('one')).value,
+        equals(DBusString('one')));
+    expect(DBusMaybe(DBusSignature('s'), null).value, isNull);
+    expect(
+        () => DBusMaybe(DBusSignature('s'), DBusInt32(1)), throwsArgumentError);
+    expect(DBusMaybe(DBusSignature('s'), null).signature,
+        equals(DBusSignature('ms')));
+    expect(DBusMaybe(DBusSignature('s'), DBusString('one')).toNative(),
+        equals('one'));
+    expect(DBusMaybe(DBusSignature('s'), null).toNative(), isNull);
+    expect(
+        DBusMaybe(DBusSignature('s'), DBusString('one')) ==
+            DBusMaybe(DBusSignature('s'), DBusString('one')),
+        isTrue);
+    expect(
+        DBusMaybe(DBusSignature('s'), DBusString('one')) ==
+            DBusMaybe(DBusSignature('s'), null),
+        isFalse);
+    expect(
+        DBusMaybe(DBusSignature('s'), DBusString('as')) ==
+            DBusMaybe(DBusSignature('g'), DBusSignature('as')),
+        isFalse);
   });
 
   test('value - struct', () async {
@@ -1189,6 +1216,59 @@ void main() {
         name: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)]);
     expect(response.values, equals([]));
+
+    await client1.close();
+    await client2.close();
+  });
+
+  test('call method - maybe type', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes a method.
+    await client1.registerObject(TestObject(expectedMethodName: 'Test'));
+
+    // Call the method from another client.
+    try {
+      await client2.callMethod(
+          destination: client1.uniqueName,
+          path: DBusObjectPath('/'),
+          name: 'Test',
+          values: [DBusMaybe(DBusSignature('s'), DBusString('Hello'))]);
+      fail('Expected UnsupportedError');
+    } on UnsupportedError catch (e) {
+      expect(e.message, equals("D-Bus doesn't support reserved maybe type"));
+    }
+
+    await client1.close();
+    await client2.close();
+  });
+
+  test('call method - maybe signature', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes a method.
+    await client1.registerObject(TestObject(expectedMethodName: 'Test'));
+
+    // Call the method from another client.
+    try {
+      await client2.callMethod(
+          destination: client1.uniqueName,
+          path: DBusObjectPath('/'),
+          name: 'Test',
+          values: [DBusSignature('ms')]);
+      fail('Expected UnsupportedError');
+    } on UnsupportedError catch (e) {
+      expect(e.message,
+          equals("D-Bus doesn't support reserved maybe type in signatures"));
+    }
 
     await client1.close();
     await client2.close();
