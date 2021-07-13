@@ -370,7 +370,11 @@ class DBusReadBuffer extends DBusBuffer {
       throw 'Signature missing trailing nul';
     }
 
-    return DBusSignature(utf8.decode(values.toList()));
+    var signatureText = utf8.decode(values.toList());
+    if (signatureText.contains('m')) {
+      throw 'Signature contains reserved maybe type';
+    }
+    return DBusSignature(signatureText);
   }
 
   /// Reads a [DBusVariant] from the buffer or returns null if not enough data.
@@ -482,6 +486,8 @@ class DBusReadBuffer extends DBusBuffer {
       return readDBusSignature();
     } else if (s == 'v') {
       return readDBusVariant(endian);
+    } else if (s == 'm') {
+      throw 'D-Bus reserved maybe type not valid';
     } else if (s.startsWith('a{') && s.endsWith('}')) {
       var childSignature = DBusSignature(s.substring(2, s.length - 1));
       var signatures = childSignature.split();
@@ -495,7 +501,7 @@ class DBusReadBuffer extends DBusBuffer {
       return readDBusStruct(
           DBusSignature(s.substring(1, s.length - 1)).split(), endian);
     } else {
-      throw "Unknown DBus data type '$s'";
+      throw "Unknown D-Bus data type '$s'";
     }
   }
 

@@ -451,6 +451,7 @@ class DBusObjectPath extends DBusString {
 /// * `o` → [DBusObjectPath]
 /// * `g` → [DBusSignature]
 /// * `v` → [DBusVariant]
+/// * `m` → [DBusMaybe]
 /// * `(xyz...)` → [DBusStruct] (`x`, `y`, `z` represent the child value signatures).
 /// * `av` → [DBusArray] (v represents the array value signature).
 /// * `a{kv}` → [DBusDict] (`k` and `v` represent the key and value signatures).
@@ -534,7 +535,7 @@ class DBusSignature extends DBusValue {
         throw ArgumentError.value(value, 'value', 'Array missing child type');
       }
       return _validate(value, index + 1);
-    } else if ('ybnqiuxtdsogvha'.contains(value[index])) {
+    } else if ('ybnqiuxtdsogvmha'.contains(value[index])) {
       return index;
     } else {
       throw ArgumentError.value(
@@ -626,6 +627,48 @@ class DBusVariant extends DBusValue {
   @override
   String toString() {
     return 'DBusVariant(${value.toString()})';
+  }
+}
+
+/// D-Bus value that contains a D-Bus type or null.
+/// This type is reserved for future use, and is not currently able to be sent or received using D-Bus.
+class DBusMaybe extends DBusValue {
+  /// Signature of the value this maybe contains.
+  final DBusSignature valueSignature;
+
+  /// The value contained in this maybe.
+  final DBusValue? value;
+
+  /// Creates a new D-Bus maybe containing [value].
+  DBusMaybe(this.valueSignature, this.value) {
+    if (value != null && value!.signature.value != valueSignature.value) {
+      throw ArgumentError.value(
+          value, 'value', "Value doesn't match signature $valueSignature");
+    }
+  }
+
+  @override
+  DBusSignature get signature {
+    return DBusSignature('m' + valueSignature.value);
+  }
+
+  @override
+  dynamic toNative() {
+    return value?.toNative();
+  }
+
+  @override
+  bool operator ==(other) =>
+      other is DBusMaybe &&
+      other.valueSignature == valueSignature &&
+      other.value == value;
+
+  @override
+  int get hashCode => valueSignature.hashCode | value.hashCode;
+
+  @override
+  String toString() {
+    return 'DBusMaybe($valueSignature, ${value?.toString()})';
   }
 }
 
