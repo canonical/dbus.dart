@@ -509,16 +509,8 @@ void main() {
               DBusInt32(3): DBusString('three')
             }),
         throwsArgumentError);
-    // Only basic types are allowed as keys.
+    // Only single types are allowed as keys.
     expect(() => DBusDict(DBusSignature('ii'), DBusSignature('s'), {}),
-        throwsArgumentError);
-    expect(() => DBusDict(DBusSignature('v'), DBusSignature('s'), {}),
-        throwsArgumentError);
-    expect(() => DBusDict(DBusSignature('(i)'), DBusSignature('s'), {}),
-        throwsArgumentError);
-    expect(() => DBusDict(DBusSignature('as'), DBusSignature('s'), {}),
-        throwsArgumentError);
-    expect(() => DBusDict(DBusSignature('a{sv}'), DBusSignature('s'), {}),
         throwsArgumentError);
     // Value must be a complete type.
     expect(() => DBusDict(DBusSignature('s'), DBusSignature('ss'), {}),
@@ -1216,6 +1208,33 @@ void main() {
         name: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)]);
     expect(response.values, equals([]));
+
+    await client1.close();
+    await client2.close();
+  });
+
+  test('call method - dict container key', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client that exposes a method.
+    await client1.registerObject(TestObject(expectedMethodName: 'Test'));
+
+    // Call the method from another client.
+    try {
+      await client2.callMethod(
+          destination: client1.uniqueName,
+          path: DBusObjectPath('/'),
+          name: 'Test',
+          values: [DBusDict(DBusSignature('(is)'), DBusSignature('s'), {})]);
+      fail('Expected UnsupportedError');
+    } on UnsupportedError catch (e) {
+      expect(e.message,
+          equals("D-Bus doesn't support dicts with non basic key types"));
+    }
 
     await client1.close();
     await client2.close();

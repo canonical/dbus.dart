@@ -641,6 +641,11 @@ class DBusMaybe extends DBusValue {
 
   /// Creates a new D-Bus maybe containing [value].
   DBusMaybe(this.valueSignature, this.value) {
+    if (!valueSignature.isSingleCompleteType) {
+      throw ArgumentError.value(valueSignature, 'valueSignature',
+          'Maybe value type must be a single complete type');
+    }
+
     if (value != null && value!.signature.value != valueSignature.value) {
       throw ArgumentError.value(
           value, 'value', "Value doesn't match signature $valueSignature");
@@ -853,15 +858,15 @@ class DBusDict extends DBusValue {
   final Map<DBusValue, DBusValue> children;
 
   /// Creates a new dictionary with keys of the type [keySignature] and values of the type [valueSignature].
-  /// [keySignature] must contain a single basic type, i.e. byte, boolean, int16, uint16, int32, uint32, int64, uint64, double or unix_fd.
-  /// Container types are not allowed as keys.
-  /// [valueSignature] must contain a single type.
+  /// [keySignature] and [valueSignature] must a single type.
+  /// D-Bus doesn't allow sending and receiving dicts with keys that not basic types, i.e. byte, boolean, int16, uint16, int32, uint32, int64, uint64, double or unix_fd.
+  /// An exception will be thrown when sending a message containing dicts using other types for keys.
   ///
   /// An exception will be thrown if the DBusValues in [children] don't have signatures matching [keySignature] and [valueSignature].
   DBusDict(this.keySignature, this.valueSignature, [this.children = const {}]) {
-    if (!keySignature.isBasic) {
+    if (!keySignature.isSingleCompleteType) {
       throw ArgumentError.value(keySignature, 'keySignature',
-          'Only basic key types are allowed in dicts');
+          'Dict key type must be a single complete type');
     }
     if (!valueSignature.isSingleCompleteType) {
       throw ArgumentError.value(valueSignature, 'valueSignature',
