@@ -212,6 +212,11 @@ class DBusWriteBuffer extends DBusBuffer {
       data[lengthOffset + 2] = (length >> 16) & 0xFF;
       data[lengthOffset + 3] = (length >> 24) & 0xFF;
     } else if (value is DBusDict) {
+      if (!value.keySignature.isBasic) {
+        throw UnsupportedError(
+            "D-Bus doesn't support dicts with non basic key types");
+      }
+
       // Length will be overwritten later.
       writeValue(DBusUint32(0));
       var lengthOffset = data.length - 4;

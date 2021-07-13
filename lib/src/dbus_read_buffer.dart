@@ -494,7 +494,12 @@ class DBusReadBuffer extends DBusBuffer {
       if (signatures.length != 2) {
         throw 'Invalid dict signature ${childSignature.value}';
       }
-      return readDBusDict(signatures[0], signatures[1], endian);
+      var keySignature = signatures[0];
+      var valueSignature = signatures[1];
+      if (!keySignature.isBasic) {
+        throw 'Invalid dict key signature ${keySignature.value}';
+      }
+      return readDBusDict(keySignature, valueSignature, endian);
     } else if (s.startsWith('a')) {
       return readDBusArray(DBusSignature(s.substring(1, s.length)), endian);
     } else if (s.startsWith('(') && s.endsWith(')')) {
