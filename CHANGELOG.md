@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.4
+
+* Fix validation of maybe type.
+* Use type specific constructors in DBusArray.toString() and DBusDict.toString().
+
 ## 0.5.3
 
 * Improve efficiency of DBusReadBuffer.
