@@ -535,7 +535,13 @@ class DBusSignature extends DBusValue {
         throw ArgumentError.value(value, 'value', 'Array missing child type');
       }
       return _validate(value, index + 1);
-    } else if ('ybnqiuxtdsogvmha'.contains(value[index])) {
+    } else if (value.startsWith('m', index)) {
+      // Maybe.
+      if (index >= value.length - 1) {
+        throw ArgumentError.value(value, 'value', 'Maybe missing child type');
+      }
+      return _validate(value, index + 1);
+    } else if ('ybnqiuxtdsogvha'.contains(value[index])) {
       return index;
     } else {
       throw ArgumentError.value(
@@ -552,6 +558,8 @@ class DBusSignature extends DBusValue {
     } else if (value.startsWith('a{', index)) {
       return _findClosing(value, index, '{', '}');
     } else if (value.startsWith('a', index)) {
+      return _findChildSignatureEnd(value, index + 1);
+    } else if (value.startsWith('m', index)) {
       return _findChildSignatureEnd(value, index + 1);
     } else {
       return index;
