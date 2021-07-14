@@ -838,11 +838,62 @@ class DBusArray extends DBusValue {
 
   @override
   String toString() {
-    var childrenText = <String>[];
-    for (var child in children) {
-      childrenText.add(child.toString());
+    switch (childSignature.value) {
+      case 'y':
+        return 'DBusArray.byte([' +
+            children.map((child) => (child as DBusByte).value).join(', ') +
+            '])';
+      case 'n':
+        return 'DBusArray.int16([' +
+            children.map((child) => (child as DBusInt16).value).join(', ') +
+            '])';
+      case 'q':
+        return 'DBusArray.uint16([' +
+            children.map((child) => (child as DBusUint16).value).join(', ') +
+            '])';
+      case 'i':
+        return 'DBusArray.int32([' +
+            children.map((child) => (child as DBusInt32).value).join(', ') +
+            '])';
+      case 'u':
+        return 'DBusArray.uint32([' +
+            children.map((child) => (child as DBusUint32).value).join(', ') +
+            '])';
+      case 'x':
+        return 'DBusArray.int64([' +
+            children.map((child) => (child as DBusInt64).value).join(', ') +
+            '])';
+      case 't':
+        return 'DBusArray.uint64([' +
+            children.map((child) => (child as DBusUint64).value).join(', ') +
+            '])';
+      case 'd':
+        return 'DBusArray.double([' +
+            children.map((child) => (child as DBusDouble).value).join(', ') +
+            '])';
+      case 's':
+        return 'DBusArray.string([' +
+            children
+                .map((child) => "'" + (child as DBusString).value + "'")
+                .join(', ') +
+            '])';
+      case 'o':
+        return 'DBusArray.objectPath([' +
+            children
+                .map((child) => (child as DBusObjectPath).value)
+                .join(', ') +
+            '])';
+      case 'v':
+        return 'DBusArray.variant([' +
+            children.map((child) => (child as DBusVariant).value).join(', ') +
+            '])';
+      default:
+        var childrenText = <String>[];
+        for (var child in children) {
+          childrenText.add(child.toString());
+        }
+        return "DBusArray($childSignature, [${childrenText.join(', ')}])";
     }
-    return "DBusArray($childSignature, [${childrenText.join(', ')}])";
   }
 }
 
@@ -925,10 +976,24 @@ class DBusDict extends DBusValue {
 
   @override
   String toString() {
-    var childrenText = <String>[];
-    children.forEach((key, value) {
-      childrenText.add('${key.toString()}: ${value.toString()}');
-    });
-    return "DBusDict($keySignature, $valueSignature, {${childrenText.join(', ')}})";
+    if (keySignature.value == 's' && valueSignature.value == 'v') {
+      return 'DBusDict.stringVariant({' +
+          children.entries
+              .map((entry) =>
+                  "'${(entry.key as DBusString).value}': ${(entry.value as DBusVariant).value.toString()}")
+              .join(', ') +
+          '})';
+    } else {
+      var childrenText = <String>[];
+      children.forEach((key, value) {
+        childrenText.add('${key.toString()}: ${value.toString()}');
+      });
+      return 'DBusDict($keySignature, $valueSignature, {' +
+          children.entries
+              .map((entry) =>
+                  '${entry.key.toString()}: ${entry.value.toString()}')
+              .join(', ') +
+          '})';
+    }
   }
 }
