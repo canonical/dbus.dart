@@ -303,7 +303,7 @@ void main() {
     expect(DBusSignature('o').isBasic, isTrue);
     expect(DBusSignature('g').isBasic, isTrue);
     expect(DBusSignature('v').isBasic, isFalse);
-    expect(DBusSignature('m').isBasic, isFalse);
+    expect(DBusSignature('mv').isBasic, isFalse);
     expect(DBusSignature('()').isBasic, isFalse);
     expect(DBusSignature('as').isBasic, isFalse);
     expect(DBusSignature('a{sv}').isBasic, isFalse);
@@ -323,7 +323,7 @@ void main() {
     expect(DBusSignature('o').isSingleCompleteType, isTrue);
     expect(DBusSignature('g').isSingleCompleteType, isTrue);
     expect(DBusSignature('v').isSingleCompleteType, isTrue);
-    expect(DBusSignature('m').isSingleCompleteType, isTrue);
+    expect(DBusSignature('mv').isSingleCompleteType, isTrue);
     expect(DBusSignature('()').isSingleCompleteType, isTrue);
     expect(DBusSignature('as').isSingleCompleteType, isTrue);
     expect(DBusSignature('a{sv}').isSingleCompleteType, isTrue);
@@ -342,6 +342,8 @@ void main() {
     expect(() => DBusSignature('(a)'), throwsArgumentError);
     expect(() => DBusSignature('aa'), throwsArgumentError);
     expect(() => DBusSignature('a{sa}'), throwsArgumentError);
+    // Missing maybe type.
+    expect(() => DBusSignature('m'), throwsArgumentError);
     // Containers containing invalid types.
     expect(() => DBusSignature('(!)'), throwsArgumentError);
     expect(() => DBusSignature('a!'), throwsArgumentError);
