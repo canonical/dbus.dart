@@ -249,7 +249,7 @@ class DBusInt64 extends DBusValue {
 
   /// Creates a new signed 64 bit integer with the given [value].
   DBusInt64(this.value) {
-    if (value < -9223372036854775808 || value > 9223372036854775807) {
+    if (value < -(1 << 63) || value > (1 << 63) - 1) {
       throw ArgumentError.value(value, 'value',
           'Uint64 must be in range [-9223372036854775808, 9223372036854775807]');
     }
