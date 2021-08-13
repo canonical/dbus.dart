@@ -560,6 +560,7 @@ class DBusClient {
       bool noReplyExpected = false,
       bool noAutoStart = false,
       bool allowInteractiveAuthorization = false}) async {
+    await _connect();
     return await _callMethod(
         destination: destination != null ? DBusBusName(destination) : null,
         path: path,
@@ -593,6 +594,7 @@ class DBusClient {
       required String interface,
       required String name,
       Iterable<DBusValue> values = const []}) async {
+    await _connect();
     await _sendSignal(destination != null ? DBusBusName(destination) : null,
         path, DBusInterfaceName(interface), DBusMemberName(name), values);
   }
@@ -750,8 +752,7 @@ class DBusClient {
         path: DBusObjectPath('/org/freedesktop/DBus'),
         interface: DBusInterfaceName('org.freedesktop.DBus'),
         name: DBusMemberName('Hello'),
-        replySignature: DBusSignature('s'),
-        requireConnect: false);
+        replySignature: DBusSignature('s'));
     _uniqueName = DBusBusName((result.returnValues[0] as DBusString).value);
 
     // Notify anyone else awaiting connection.
@@ -1025,8 +1026,7 @@ class DBusClient {
       DBusSignature? replySignature,
       bool noReplyExpected = false,
       bool noAutoStart = false,
-      bool allowInteractiveAuthorization = false,
-      bool requireConnect = true}) async {
+      bool allowInteractiveAuthorization = false}) async {
     _lastSerial++;
     var serial = _lastSerial;
     Future<DBusMethodResponse> response;
@@ -1056,7 +1056,7 @@ class DBusClient {
         member: name,
         values: values.toList(),
         flags: flags);
-    await _sendMessage(message, requireConnect: requireConnect);
+    await _sendMessage(message);
 
     var r = await response;
     if (r is DBusMethodSuccessResponse) {
@@ -1119,11 +1119,7 @@ class DBusClient {
   }
 
   /// Sends a message (method call/return/error/signal) to the D-Bus server.
-  Future<void> _sendMessage(DBusMessage message,
-      {bool requireConnect = true}) async {
-    if (requireConnect) {
-      await _connect();
-    }
+  Future<void> _sendMessage(DBusMessage message) async {
     var buffer = DBusWriteBuffer();
     buffer.writeMessage(message);
     _socket?.add(buffer.data);
