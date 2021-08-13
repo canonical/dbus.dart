@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'dbus_uuid.dart';
+import 'getsid.dart';
 import 'getuid.dart';
 
 /// A client for D-Bus authentication.
@@ -113,11 +115,19 @@ class DBusAuthClient {
 
   /// Start authentication using the EXTERNAL mechanism.
   void _authenticateExternal() {
-    var uid = getuid();
-    var uidString = '';
-    for (var c in uid.toString().runes) {
-      uidString += c.toRadixString(16).padLeft(2, '0');
+    String authId;
+    if (Platform.isLinux) {
+      authId = getuid().toString();
+    } else if (Platform.isWindows) {
+      authId = getsid();
+    } else {
+      throw 'Authentication not supported on ${Platform.operatingSystem}';
     }
-    _send('AUTH EXTERNAL $uidString');
+
+    var authIdHex = '';
+    for (var c in authId.runes) {
+      authIdHex += c.toRadixString(16).padLeft(2, '0');
+    }
+    _send('AUTH EXTERNAL $authIdHex');
   }
 }
