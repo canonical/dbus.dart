@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.5
+
+* Fix JS compilation due to large integer literals.
+* Fix D-Bus message serial numbers being mixed up on connection, which was causing apps to fail inside Flatpaks.
+* Implement D-Bus authentication on Windows.
+
 ## 0.5.4
 
 * Fix validation of maybe type.
