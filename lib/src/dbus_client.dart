@@ -210,7 +210,7 @@ class DBusClient {
   factory DBusClient.system({bool introspectable = true}) {
     var address = Platform.environment['DBUS_SYSTEM_BUS_ADDRESS'];
     return DBusClient(
-        DBusAddress(address ??= 'unix:path=/run/dbus/system_bus_socket'),
+        DBusAddress(address ??= 'unix:path=/var/run/dbus/system_bus_socket'),
         introspectable: introspectable);
   }
 
