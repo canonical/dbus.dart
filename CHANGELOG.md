@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.6
+
+* Fix default system bus address - it is /var/run, not /run.
+
 ## 0.5.5
 
 * Fix JS compilation due to large integer literals.
