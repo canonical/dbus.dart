@@ -145,6 +145,16 @@ class TestObject extends DBusObject {
       interfacesAndProperties_;
 }
 
+class TestEmitObject extends DBusObject {
+  TestEmitObject() : super(DBusObjectPath('/'));
+
+  @override
+  Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
+    emitSignal('com.example.Test', 'Event');
+    return DBusMethodSuccessResponse();
+  }
+}
+
 void main() {
   test('value - byte', () async {
     expect(() => DBusByte(-1), throwsArgumentError);
@@ -1683,6 +1693,33 @@ void main() {
     // Emit the signal.
     object.emitSignal(
         'com.example.Test', 'Ping', [DBusString('Hello'), DBusUint32(42)]);
+  });
+
+  test('signal from method call', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Create a client to emit a signal.
+    var object = TestEmitObject();
+    await client1.registerObject(object);
+
+    // Subscribe to the signal from another client.
+    // Check that the signal is recived before the method call response completes.
+    var methodCallDone = false;
+    var remoteObject =
+        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var signals =
+        DBusRemoteObjectSignalStream(remoteObject, 'com.example.Test', 'Event');
+    signals.listen(expectAsync1((signal) {
+      expect(methodCallDone, isFalse);
+    }));
+
+    // Make the method call that will emit the signal.
+    await remoteObject.callMethod('com.example.Test', 'EmitEvent', []);
+    methodCallDone = true;
   });
 
   test('introspect', () async {
