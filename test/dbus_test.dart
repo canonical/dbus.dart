@@ -150,7 +150,18 @@ class TestEmitObject extends DBusObject {
 
   @override
   Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
-    emitSignal('com.example.Test', 'Event');
+    await emitSignal('com.example.Test', 'Event');
+    return DBusMethodSuccessResponse();
+  }
+}
+
+class TestManagerObject extends DBusObject {
+  TestManagerObject() : super(DBusObjectPath('/'), isObjectManager: true);
+
+  @override
+  Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
+    await client?.registerObject(
+        TestObject(path: DBusObjectPath('/com/example/Object1')));
     return DBusMethodSuccessResponse();
   }
 }
@@ -1549,7 +1560,7 @@ void main() {
     await client2.ping();
 
     // Emit the signal.
-    object.emitSignal(
+    await object.emitSignal(
         'com.example.Test', 'Ping', [DBusString('Hello'), DBusUint32(42)]);
   });
 
@@ -1585,9 +1596,9 @@ void main() {
     await client2.ping();
 
     // Emit one signal with correct signature, one without
-    object.emitSignal(
+    await object.emitSignal(
         'com.example.Test', 'Ping', [DBusString('Hello'), DBusUint32(42)]);
-    object.emitSignal(
+    await object.emitSignal(
         'com.example.Test', 'Ping', [DBusUint32(42), DBusString('Hello')]);
   });
 
@@ -1619,7 +1630,7 @@ void main() {
     await client2.ping();
 
     // Emit the signal.
-    object.emitSignal(
+    await object.emitSignal(
         'com.example.Test', 'Ping', [DBusString('Hello'), DBusUint32(42)]);
   });
 
@@ -1656,9 +1667,9 @@ void main() {
     await client2.ping();
 
     // Emit one signal with correct signature, one without
-    object.emitSignal(
+    await object.emitSignal(
         'com.example.Test', 'Ping', [DBusString('Hello'), DBusUint32(42)]);
-    object.emitSignal(
+    await object.emitSignal(
         'com.example.Test', 'Ping', [DBusUint32(42), DBusString('Hello')]);
   });
 
@@ -1691,7 +1702,7 @@ void main() {
     await client2.ping();
 
     // Emit the signal.
-    object.emitSignal(
+    await object.emitSignal(
         'com.example.Test', 'Ping', [DBusString('Hello'), DBusUint32(42)]);
   });
 
@@ -1977,7 +1988,7 @@ void main() {
     // Do a round-trip to the server to ensure the signal has been subscribed to.
     await client2.ping();
 
-    object.emitPropertiesChanged('com.example.Test', changedProperties: {
+    await object.emitPropertiesChanged('com.example.Test', changedProperties: {
       'Property1': DBusString('VALUE1'),
       'Property2': DBusString('VALUE2')
     }, invalidatedProperties: [
@@ -2218,7 +2229,7 @@ void main() {
 
     // Add an interface to the object.
     object.updateInterface('com.example.Interface2', {});
-    objectManager.emitInterfacesAdded(object.path, {
+    await objectManager.emitInterfacesAdded(object.path, {
       'com.example.Interface2': {
         'Property1': DBusString('VALUE1'),
         'Property2': DBusString('VALUE2')
@@ -2261,7 +2272,7 @@ void main() {
 
     // Remove an interface from the object.
     object.removeInterface('com.example.Interface2');
-    objectManager
+    await objectManager
         .emitInterfacesRemoved(object.path, ['com.example.Interface2']);
   });
 
@@ -2302,10 +2313,40 @@ void main() {
     await client2.ping();
 
     // Change a property on the object.
-    object.emitPropertiesChanged('com.example.Test', changedProperties: {
+    await object.emitPropertiesChanged('com.example.Test', changedProperties: {
       'Property1': DBusString('VALUE1'),
       'Property2': DBusString('VALUE2')
     });
+  });
+
+  test('object manager - object added from method call', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+
+    // Register an object manager that responds to a method call.
+    await client1.registerObject(TestManagerObject());
+
+    // Subscribe to object manager signals.
+    // Check that the signal is recived before the method call response completes.
+    var methodCallDone = false;
+    var remoteManagerObject = DBusRemoteObjectManager(
+        client2, client1.uniqueName, DBusObjectPath('/'));
+    remoteManagerObject.signals.listen(expectAsync1((signal) {
+      expect(methodCallDone, isFalse);
+      expect(signal, TypeMatcher<DBusObjectManagerInterfacesAddedSignal>());
+      var interfacesAdded = signal as DBusObjectManagerInterfacesAddedSignal;
+      expect(interfacesAdded.changedPath,
+          equals(DBusObjectPath('/com/example/Object1')));
+    }));
+
+    // Call a method that adds an object.
+    var remoteObject =
+        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    await remoteObject.callMethod('com.example.Test', 'AddObject', []);
+    methodCallDone = true;
   });
 
   test('intropect xml - empty', () {

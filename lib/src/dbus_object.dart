@@ -49,17 +49,17 @@ class DBusObject {
   }
 
   /// Emits a signal on this object.
-  void emitSignal(String interface, String name,
-      [Iterable<DBusValue> values = const []]) {
-    client?.emitSignal(
+  Future<void> emitSignal(String interface, String name,
+      [Iterable<DBusValue> values = const []]) async {
+    await client?.emitSignal(
         path: path, interface: interface, name: name, values: values);
   }
 
   /// Emits org.freedesktop.DBus.Properties.PropertiesChanged on this object.
-  void emitPropertiesChanged(String interface,
+  Future<void> emitPropertiesChanged(String interface,
       {Map<String, DBusValue> changedProperties = const {},
-      List<String> invalidatedProperties = const []}) {
-    emitSignal('org.freedesktop.DBus.Properties', 'PropertiesChanged', [
+      List<String> invalidatedProperties = const []}) async {
+    await emitSignal('org.freedesktop.DBus.Properties', 'PropertiesChanged', [
       DBusString(interface),
       DBusDict(
           DBusSignature('s'),
@@ -74,8 +74,8 @@ class DBusObject {
   /// Emits org.freedesktop.DBus.ObjectManager.InterfacesAdded on this object.
   /// [path] is the path to the object that has been added or changed.
   /// [interfacesAndProperties] is the interfaces added to the object at [path] and the properties this object has.
-  void emitInterfacesAdded(DBusObjectPath path,
-      Map<String, Map<String, DBusValue>> interfacesAndProperties) {
+  Future<void> emitInterfacesAdded(DBusObjectPath path,
+      Map<String, Map<String, DBusValue>> interfacesAndProperties) async {
     DBusValue encodeProperties(Map<String, DBusValue> properties) => DBusDict(
         DBusSignature('s'),
         DBusSignature('v'),
@@ -89,15 +89,17 @@ class DBusObject {
             interfacesAndProperties.map<DBusValue, DBusValue>(
                 (name, properties) =>
                     MapEntry(DBusString(name), encodeProperties(properties))));
-    emitSignal('org.freedesktop.DBus.ObjectManager', 'InterfacesAdded',
+    await emitSignal('org.freedesktop.DBus.ObjectManager', 'InterfacesAdded',
         [path, encodeInterfacesAndProperties(interfacesAndProperties)]);
   }
 
   /// Emits org.freedesktop.DBus.ObjectManager.InterfacesRemoved on this object.
   /// [path] is the path to the object is being removed or changed.
   /// [interfaces] is the names of the interfaces being removed from the object at [path].
-  void emitInterfacesRemoved(DBusObjectPath path, Iterable<String> interfaces) {
-    emitSignal('org.freedesktop.DBus.ObjectManager', 'InterfacesRemoved', [
+  Future<void> emitInterfacesRemoved(
+      DBusObjectPath path, Iterable<String> interfaces) async {
+    await emitSignal(
+        'org.freedesktop.DBus.ObjectManager', 'InterfacesRemoved', [
       path,
       DBusArray(DBusSignature('s'),
           interfaces.map((interface) => DBusString(interface)))

@@ -273,9 +273,9 @@ class DBusCodeGenerator {
 
     var source = '';
     source += '  /// Emits signal ${interface.name}.${signal.name}\n';
-    source += '  void $methodName(${argsList.join(', ')}) {\n';
+    source += '  Future<void> $methodName(${argsList.join(', ')}) async {\n';
     source +=
-        "     emitSignal('${interface.name}', '${signal.name}', [${argValues.join(', ')}]);\n";
+        "     await emitSignal('${interface.name}', '${signal.name}', [${argValues.join(', ')}]);\n";
     source += '  }\n';
 
     return source;
