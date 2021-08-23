@@ -26,8 +26,8 @@ void main(List<String> args) async {
   if (mode == 'client') {
     var object = DBusRemoteObject(
       client,
-      'com.canonical.DBusDart',
-      DBusObjectPath('/com/canonical/DBusDart'),
+      name: 'com.canonical.DBusDart',
+      path: DBusObjectPath('/com/canonical/DBusDart'),
     );
     var signals = DBusRemoteObjectSignalStream(
         object: object, interface: 'com.canonical.DBusDart', name: 'Ping');

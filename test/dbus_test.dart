@@ -1468,8 +1468,8 @@ void main() {
         }));
 
     // Call the method from another client.
-    var remoteObject =
-        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteObject = DBusRemoteObject(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     var response = await remoteObject.callMethod(
         'com.example.Test', 'Foo', [DBusString('Hello'), DBusUint32(42)]);
     expect(response.values, equals([DBusString('World'), DBusUint32(99)]));
@@ -1494,8 +1494,8 @@ void main() {
         }));
 
     // Call the method from another client.
-    var remoteObject =
-        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteObject = DBusRemoteObject(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     var response = await remoteObject.callMethod('com.example.Test', 'Foo', [],
         replySignature: DBusSignature('su'));
     expect(response.values, equals([DBusString('World'), DBusUint32(99)]));
@@ -1520,8 +1520,8 @@ void main() {
         }));
 
     // Call the method from another client.
-    var remoteObject =
-        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteObject = DBusRemoteObject(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     try {
       await remoteObject.callMethod('com.example.Test', 'Foo', [],
           replySignature: DBusSignature('us'));
@@ -1614,8 +1614,8 @@ void main() {
     await client1.registerObject(object);
 
     // Subscribe to the signal from another client.
-    var remoteObject =
-        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteObject = DBusRemoteObject(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     var signals = DBusRemoteObjectSignalStream(
         object: remoteObject, interface: 'com.example.Test', name: 'Ping');
     signals.listen(expectAsync1((signal) {
@@ -1646,8 +1646,8 @@ void main() {
     await client1.registerObject(object);
 
     // Subscribe to the signal from another client.
-    var remoteObject =
-        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteObject = DBusRemoteObject(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     var signals = DBusRemoteObjectSignalStream(
         object: remoteObject,
         interface: 'com.example.Test',
@@ -1688,8 +1688,8 @@ void main() {
     await client1.registerObject(object);
 
     // Subscribe to the signal from another client.
-    var remoteObject =
-        DBusRemoteObject(client2, 'com.example.Test', DBusObjectPath('/'));
+    var remoteObject = DBusRemoteObject(client2,
+        name: 'com.example.Test', path: DBusObjectPath('/'));
     var signals = DBusRemoteObjectSignalStream(
         object: remoteObject, interface: 'com.example.Test', name: 'Ping');
     signals.listen(expectAsync1((signal) {
@@ -1722,8 +1722,8 @@ void main() {
     // Subscribe to the signal from another client.
     // Check that the signal is recived before the method call response completes.
     var methodCallDone = false;
-    var remoteObject =
-        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteObject = DBusRemoteObject(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     var signals = DBusRemoteObjectSignalStream(
         object: remoteObject, interface: 'com.example.Test', name: 'Event');
     signals.listen(expectAsync1((signal) {
@@ -1749,8 +1749,8 @@ void main() {
     ]));
 
     // Read introspection data from the first client.
-    var remoteObject =
-        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteObject = DBusRemoteObject(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     var node = await remoteObject.introspect();
     expect(
         node.toXml().toXmlString(),
@@ -1810,8 +1810,8 @@ void main() {
     ]));
 
     // Unable to read introspection data from the first client.
-    var remoteObject =
-        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteObject = DBusRemoteObject(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     try {
       await remoteObject.introspect();
       fail('Expected DBusMethodResponseException');
@@ -1843,8 +1843,8 @@ void main() {
     });
     await client1.registerObject(object);
 
-    var remoteObject =
-        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteObject = DBusRemoteObject(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
 
     // Get properties from another client.
 
@@ -1875,8 +1875,8 @@ void main() {
         propertyValues: {'com.example.Test.Property': DBusString('Value')});
     await client1.registerObject(object);
 
-    var remoteObject =
-        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteObject = DBusRemoteObject(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
 
     // Get properties and check they match expected signature.
     expect(
@@ -1912,8 +1912,8 @@ void main() {
     });
     await client1.registerObject(object);
 
-    var remoteObject =
-        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteObject = DBusRemoteObject(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
 
     // Set properties from another client.
 
@@ -1950,8 +1950,8 @@ void main() {
     });
     await client1.registerObject(object);
 
-    var remoteObject =
-        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteObject = DBusRemoteObject(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
 
     var properties = await remoteObject.getAllProperties('com.example.Test');
     expect(
@@ -1974,8 +1974,8 @@ void main() {
     await client1.registerObject(object);
 
     /// Subscribe to properties changed signals.
-    var remoteObject =
-        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteObject = DBusRemoteObject(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     remoteObject.propertiesChanged.listen(expectAsync1((signal) {
       expect(signal.propertiesInterface, equals('com.example.Test'));
       expect(
@@ -2345,8 +2345,8 @@ void main() {
     }));
 
     // Call a method that adds an object.
-    var remoteObject =
-        DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteObject = DBusRemoteObject(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     await remoteObject.callMethod('com.example.Test', 'AddObject', []);
     methodCallDone = true;
   });

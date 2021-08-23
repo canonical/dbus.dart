@@ -50,13 +50,12 @@ class DBusRemoteObjectManager extends DBusRemoteObject {
   /// The stream will contain [DBusPropertiesChangedSignal] and [DBusSignal] for all other signals on these objects.
   late final Stream<DBusSignal> signals;
 
-  /// Creates an object that access accesses a remote D-Bus object manager at [destination], [path].
+  /// Creates an object that access accesses a remote D-Bus object manager using bus [name] with [path].
   /// Requires the remote object to implement the org.freedesktop.DBus.ObjectManager interface.
-  DBusRemoteObjectManager(
-      DBusClient client, String destination, DBusObjectPath path)
-      : super(client, destination, path) {
+  DBusRemoteObjectManager(DBusClient client, String name, DBusObjectPath path)
+      : super(client, name: name, path: path) {
     var rawSignals =
-        DBusSignalStream(client, sender: destination, pathNamespace: path);
+        DBusSignalStream(client, sender: name, pathNamespace: path);
     signals = rawSignals.map((signal) {
       if (signal.interface == 'org.freedesktop.DBus.ObjectManager' &&
           signal.name == 'InterfacesAdded' &&
@@ -81,7 +80,7 @@ class DBusRemoteObjectManager extends DBusRemoteObject {
   Future<Map<DBusObjectPath, Map<String, Map<String, DBusValue>>>>
       getManagedObjects() async {
     var result = await client.callMethod(
-        destination: destination,
+        destination: name,
         path: path,
         interface: 'org.freedesktop.DBus.ObjectManager',
         name: 'GetManagedObjects',
@@ -98,7 +97,7 @@ class DBusRemoteObjectManager extends DBusRemoteObject {
 
   @override
   String toString() {
-    return "DBusRemoteObjectManager(destination: '$destination', path: '${path.value}')";
+    return "DBusRemoteObjectManager(name: '$name', path: '${path.value}')";
   }
 }
 
