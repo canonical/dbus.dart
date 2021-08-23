@@ -2021,8 +2021,8 @@ void main() {
           'com.example.Interface2': {'value': DBusString('FOO')}
         }));
 
-    var remoteManagerObject = DBusRemoteObjectManager(
-        client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteManagerObject = DBusRemoteObjectManager(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     var objects = await remoteManagerObject.getManagedObjects();
     expect(
         objects,
@@ -2057,8 +2057,8 @@ void main() {
     await client1.registerObject(
         TestObject(path: DBusObjectPath('/com/example/Object')));
 
-    var remoteManagerObject = DBusRemoteObjectManager(
-        client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteManagerObject = DBusRemoteObjectManager(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     var objects = await remoteManagerObject.getManagedObjects();
     expect(
         objects,
@@ -2086,8 +2086,8 @@ void main() {
     await client1.registerObject(
         TestObject(path: DBusObjectPath('/com/example/Object')));
 
-    var remoteManagerObject = DBusRemoteObjectManager(
-        client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteManagerObject = DBusRemoteObjectManager(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     var objects = await remoteManagerObject.getManagedObjects();
     expect(
         objects,
@@ -2112,8 +2112,8 @@ void main() {
         TestObject(path: DBusObjectPath('/com/example/Object1')));
 
     // Subscribe to object manager signals.
-    var remoteManagerObject = DBusRemoteObjectManager(
-        client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteManagerObject = DBusRemoteObjectManager(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     remoteManagerObject.signals.listen(expectAsync1((signal) {
       expect(signal, TypeMatcher<DBusObjectManagerInterfacesAddedSignal>());
       var interfacesAdded = signal as DBusObjectManagerInterfacesAddedSignal;
@@ -2168,8 +2168,8 @@ void main() {
     await client1.registerObject(object2);
 
     // Subscribe to object manager signals.
-    var remoteManagerObject = DBusRemoteObjectManager(
-        client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteManagerObject = DBusRemoteObjectManager(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     remoteManagerObject.signals.listen(expectAsync1((signal) {
       expect(signal, TypeMatcher<DBusObjectManagerInterfacesRemovedSignal>());
       var interfacesRemoved =
@@ -2209,8 +2209,8 @@ void main() {
     await client1.registerObject(object);
 
     // Subscribe to object manager signals.
-    var remoteManagerObject = DBusRemoteObjectManager(
-        client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteManagerObject = DBusRemoteObjectManager(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     remoteManagerObject.signals.listen(expectAsync1((signal) {
       expect(signal, TypeMatcher<DBusObjectManagerInterfacesAddedSignal>());
       var interfacesAdded = signal as DBusObjectManagerInterfacesAddedSignal;
@@ -2258,8 +2258,8 @@ void main() {
     await client1.registerObject(object);
 
     // Subscribe to object manager signals.
-    var remoteManagerObject = DBusRemoteObjectManager(
-        client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteManagerObject = DBusRemoteObjectManager(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     remoteManagerObject.signals.listen(expectAsync1((signal) {
       expect(signal, TypeMatcher<DBusObjectManagerInterfacesRemovedSignal>());
       var interfacesRemoved =
@@ -2297,8 +2297,8 @@ void main() {
     await client1.registerObject(object);
 
     // Subscribe to object manager signals.
-    var remoteManagerObject = DBusRemoteObjectManager(
-        client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteManagerObject = DBusRemoteObjectManager(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     remoteManagerObject.signals.listen(expectAsync1((signal) {
       expect(signal, TypeMatcher<DBusPropertiesChangedSignal>());
       var propertiesChanged = signal as DBusPropertiesChangedSignal;
@@ -2334,8 +2334,8 @@ void main() {
     // Subscribe to object manager signals.
     // Check that the signal is recived before the method call response completes.
     var methodCallDone = false;
-    var remoteManagerObject = DBusRemoteObjectManager(
-        client2, client1.uniqueName, DBusObjectPath('/'));
+    var remoteManagerObject = DBusRemoteObjectManager(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
     remoteManagerObject.signals.listen(expectAsync1((signal) {
       expect(methodCallDone, isFalse);
       expect(signal, TypeMatcher<DBusObjectManagerInterfacesAddedSignal>());
