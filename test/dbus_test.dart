@@ -1616,8 +1616,8 @@ void main() {
     // Subscribe to the signal from another client.
     var remoteObject =
         DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
-    var signals =
-        DBusRemoteObjectSignalStream(remoteObject, 'com.example.Test', 'Ping');
+    var signals = DBusRemoteObjectSignalStream(
+        object: remoteObject, interface: 'com.example.Test', name: 'Ping');
     signals.listen(expectAsync1((signal) {
       expect(signal.sender, equals(client1.uniqueName));
       expect(signal.path, equals(DBusObjectPath('/')));
@@ -1649,7 +1649,9 @@ void main() {
     var remoteObject =
         DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
     var signals = DBusRemoteObjectSignalStream(
-        remoteObject, 'com.example.Test', 'Ping',
+        object: remoteObject,
+        interface: 'com.example.Test',
+        name: 'Ping',
         signature: DBusSignature('su'));
     expect(
         signals,
@@ -1688,8 +1690,8 @@ void main() {
     // Subscribe to the signal from another client.
     var remoteObject =
         DBusRemoteObject(client2, 'com.example.Test', DBusObjectPath('/'));
-    var signals =
-        DBusRemoteObjectSignalStream(remoteObject, 'com.example.Test', 'Ping');
+    var signals = DBusRemoteObjectSignalStream(
+        object: remoteObject, interface: 'com.example.Test', name: 'Ping');
     signals.listen(expectAsync1((signal) {
       expect(signal.sender, equals(client1.uniqueName));
       expect(signal.path, equals(DBusObjectPath('/')));
@@ -1722,8 +1724,8 @@ void main() {
     var methodCallDone = false;
     var remoteObject =
         DBusRemoteObject(client2, client1.uniqueName, DBusObjectPath('/'));
-    var signals =
-        DBusRemoteObjectSignalStream(remoteObject, 'com.example.Test', 'Event');
+    var signals = DBusRemoteObjectSignalStream(
+        object: remoteObject, interface: 'com.example.Test', name: 'Event');
     signals.listen(expectAsync1((signal) {
       expect(methodCallDone, isFalse);
     }));
