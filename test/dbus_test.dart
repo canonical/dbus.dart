@@ -1584,11 +1584,11 @@ void main() {
         signals,
         emitsInOrder([
           DBusSignal(
-              client1.uniqueName,
-              DBusObjectPath('/'),
-              'com.example.Test',
-              'Ping',
-              [DBusString('Hello'), DBusUint32(42)]),
+              sender: client1.uniqueName,
+              path: DBusObjectPath('/'),
+              interface: 'com.example.Test',
+              name: 'Ping',
+              values: [DBusString('Hello'), DBusUint32(42)]),
           emitsError(isA<DBusSignalSignatureException>())
         ]));
 
@@ -1655,11 +1655,11 @@ void main() {
         signals,
         emitsInOrder([
           DBusSignal(
-              client1.uniqueName,
-              DBusObjectPath('/'),
-              'com.example.Test',
-              'Ping',
-              [DBusString('Hello'), DBusUint32(42)]),
+              sender: client1.uniqueName,
+              path: DBusObjectPath('/'),
+              interface: 'com.example.Test',
+              name: 'Ping',
+              values: [DBusString('Hello'), DBusUint32(42)]),
           emitsError(isA<DBusSignalSignatureException>())
         ]));
 

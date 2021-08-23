@@ -23,7 +23,11 @@ class DBusSignal {
       .fold(DBusSignature(''), (a, b) => a + b);
 
   const DBusSignal(
-      this.sender, this.path, this.interface, this.name, this.values);
+      {required this.sender,
+      required this.path,
+      required this.interface,
+      required this.name,
+      this.values = const []});
 
   @override
   bool operator ==(other) =>

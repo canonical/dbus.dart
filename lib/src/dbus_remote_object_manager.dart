@@ -15,8 +15,12 @@ class DBusObjectManagerInterfacesAddedSignal extends DBusSignal {
       _decodeInterfacesAndProperties(values[1]);
 
   DBusObjectManagerInterfacesAddedSignal(DBusSignal signal)
-      : super(signal.sender, signal.path, signal.interface, signal.name,
-            signal.values);
+      : super(
+            sender: signal.sender,
+            path: signal.path,
+            interface: signal.interface,
+            name: signal.name,
+            values: signal.values);
 }
 
 /// Signal received when interfaces are removed.
@@ -31,8 +35,12 @@ class DBusObjectManagerInterfacesRemovedSignal extends DBusSignal {
       .toList();
 
   DBusObjectManagerInterfacesRemovedSignal(DBusSignal signal)
-      : super(signal.sender, signal.path, signal.interface, signal.name,
-            signal.values);
+      : super(
+            sender: signal.sender,
+            path: signal.path,
+            interface: signal.interface,
+            name: signal.name,
+            values: signal.values);
 }
 
 /// An object to simplify access to a D-Bus object manager.

@@ -1003,11 +1003,11 @@ class DBusClient {
       }
 
       var signal = DBusSignal(
-          message.sender?.value ?? '',
-          message.path ?? DBusObjectPath('/'),
-          message.interface?.value ?? '',
-          message.member?.value ?? '',
-          message.values);
+          sender: message.sender?.value ?? '',
+          path: message.path ?? DBusObjectPath('/'),
+          interface: message.interface?.value ?? '',
+          name: message.member?.value ?? '',
+          values: message.values);
       if (stream._signature != null && message.signature != stream._signature) {
         stream._controller.addError(DBusSignalSignatureException(
             '${message.interface?.value}.${message.member?.value}', signal));

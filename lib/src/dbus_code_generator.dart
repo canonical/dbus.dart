@@ -792,7 +792,7 @@ class DBusCodeGenerator {
       source += '\n';
     }
     source +=
-        '  $signalClassName(DBusSignal signal) : super(signal.sender, signal.path, signal.interface, signal.name, signal.values);\n';
+        '  $signalClassName(DBusSignal signal) : super(sender: signal.sender, path: signal.path, interface: signal.interface, name: signal.name, values: signal.values);\n';
     source += '}\n';
 
     return source;

@@ -19,7 +19,7 @@ class ComExampleTestEvent extends DBusSignal {
   List<int> get array_value => (values[14] as DBusArray).children.map((child) => (child as DBusByte).value).toList();
   Map<String, DBusValue> get dict_value => (values[15] as DBusDict).children.map((key, value) => MapEntry((key as DBusString).value, (value as DBusVariant).value));
 
-  ComExampleTestEvent(DBusSignal signal) : super(signal.sender, signal.path, signal.interface, signal.name, signal.values);
+  ComExampleTestEvent(DBusSignal signal) : super(sender: signal.sender, path: signal.path, interface: signal.interface, name: signal.name, values: signal.values);
 }
 
 class ComExampleTest extends DBusRemoteObject {
