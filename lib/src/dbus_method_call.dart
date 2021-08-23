@@ -28,8 +28,12 @@ class DBusMethodCall {
       .map((value) => value.signature)
       .fold(DBusSignature(''), (a, b) => a + b);
 
-  const DBusMethodCall(this.sender, this.interface, this.name, this.values,
-      {this.noReplyExpected = false,
+  const DBusMethodCall(
+      {required this.sender,
+      this.interface,
+      required this.name,
+      this.values = const [],
+      this.noReplyExpected = false,
       this.noAutoStart = false,
       this.allowInteractiveAuthorization = false});
 
