@@ -17,7 +17,7 @@ class DBusRemoteObjectSignalStream extends DBusSignalStream {
       required String name,
       DBusSignature? signature})
       : super(object.client,
-            sender: object.destination,
+            sender: object.name,
             path: object.path,
             interface: interface,
             name: name,
@@ -70,8 +70,8 @@ class DBusRemoteObject {
   /// The client this object is accessed from.
   final DBusClient client;
 
-  /// The address of the client providing this object.
-  final String destination;
+  /// The name of the client providing this object.
+  final String name;
 
   /// The path to the object.
   final DBusObjectPath path;
@@ -79,8 +79,8 @@ class DBusRemoteObject {
   /// Stream of signals when the remote object indicates a property has changed.
   late final Stream<DBusPropertiesChangedSignal> propertiesChanged;
 
-  /// Creates an object that access accesses a remote D-Bus object at [destination], [path].
-  DBusRemoteObject(this.client, this.destination, this.path) {
+  /// Creates an object that access accesses a remote D-Bus object using bus [name] with [path].
+  DBusRemoteObject(this.client, {required this.name, required this.path}) {
     var rawPropertiesChanged = DBusRemoteObjectSignalStream(
         object: this,
         interface: 'org.freedesktop.DBus.Properties',
@@ -97,7 +97,7 @@ class DBusRemoteObject {
   /// Gets the introspection data for this object.
   Future<DBusIntrospectNode> introspect() async {
     var result = await client.callMethod(
-        destination: destination,
+        destination: name,
         path: path,
         interface: 'org.freedesktop.DBus.Introspectable',
         name: 'Introspect',
@@ -114,7 +114,7 @@ class DBusRemoteObject {
   Future<DBusValue> getProperty(String interface, String name,
       {DBusSignature? signature}) async {
     var result = await client.callMethod(
-        destination: destination,
+        destination: this.name,
         path: path,
         interface: 'org.freedesktop.DBus.Properties',
         name: 'Get',
@@ -130,7 +130,7 @@ class DBusRemoteObject {
   /// Gets the values of all the properties on this object.
   Future<Map<String, DBusValue>> getAllProperties(String interface) async {
     var result = await client.callMethod(
-        destination: destination,
+        destination: name,
         path: path,
         interface: 'org.freedesktop.DBus.Properties',
         name: 'GetAll',
@@ -144,7 +144,7 @@ class DBusRemoteObject {
   Future<void> setProperty(
       String interface, String name, DBusValue value) async {
     await client.callMethod(
-        destination: destination,
+        destination: this.name,
         path: path,
         interface: 'org.freedesktop.DBus.Properties',
         name: 'Set',
@@ -165,7 +165,7 @@ class DBusRemoteObject {
       bool noAutoStart = false,
       bool allowInteractiveAuthorization = false}) async {
     return client.callMethod(
-        destination: destination,
+        destination: this.name,
         path: path,
         interface: interface,
         name: name,
@@ -178,6 +178,6 @@ class DBusRemoteObject {
 
   @override
   String toString() {
-    return "DBusRemoteObject(destination: '$destination', path: '${path.value}')";
+    return "DBusRemoteObject(name: '$name', path: '${path.value}')";
   }
 }
