@@ -914,8 +914,11 @@ class DBusClient {
     }
     var object = node?.object;
 
-    var methodCall = DBusMethodCall(message.sender?.value ?? '',
-        message.interface?.value, message.member?.value ?? '', message.values,
+    var methodCall = DBusMethodCall(
+        sender: message.sender?.value ?? '',
+        interface: message.interface?.value,
+        name: message.member?.value ?? '',
+        values: message.values,
         noReplyExpected:
             message.flags.contains(DBusMessageFlag.noReplyExpected),
         noAutoStart: message.flags.contains(DBusMessageFlag.noAutoStart),
