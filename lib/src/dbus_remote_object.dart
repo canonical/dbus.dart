@@ -6,14 +6,16 @@ import 'dbus_value.dart';
 
 /// A stream of signals from a remote object.
 class DBusRemoteObjectSignalStream extends DBusSignalStream {
-  /// Creates a stream of signals [interface.name] from [object].
+  /// Creates a stream of signals [interface].[name] from [object].
   ///
   /// If [signature] is provided this causes the stream to throw a
   /// [DBusSignalSignatureException] if a signal is received that does not
   /// match the provided signature.
   DBusRemoteObjectSignalStream(
-      DBusRemoteObject object, String interface, String name,
-      {DBusSignature? signature})
+      {required DBusRemoteObject object,
+      required String interface,
+      required String name,
+      DBusSignature? signature})
       : super(object.client,
             sender: object.destination,
             path: object.path,
@@ -80,7 +82,9 @@ class DBusRemoteObject {
   /// Creates an object that access accesses a remote D-Bus object at [destination], [path].
   DBusRemoteObject(this.client, this.destination, this.path) {
     var rawPropertiesChanged = DBusRemoteObjectSignalStream(
-        this, 'org.freedesktop.DBus.Properties', 'PropertiesChanged');
+        object: this,
+        interface: 'org.freedesktop.DBus.Properties',
+        name: 'PropertiesChanged');
     propertiesChanged = rawPropertiesChanged.map((signal) {
       if (signal.signature == DBusSignature('sa{sv}as')) {
         return DBusPropertiesChangedSignal(signal);
