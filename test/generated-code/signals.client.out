@@ -4,14 +4,14 @@ import 'package:dbus/dbus.dart';
 class ComExampleTestEvent1 extends DBusSignal {
   String get value => (values[0] as DBusString).value;
 
-  ComExampleTestEvent1(DBusSignal signal) : super(signal.sender, signal.path, signal.interface, signal.name, signal.values);
+  ComExampleTestEvent1(DBusSignal signal) : super(sender: signal.sender, path: signal.path, interface: signal.interface, name: signal.name, values: signal.values);
 }
 
 /// Signal data for com.example.Test.Event2.
 class ComExampleTestEvent2 extends DBusSignal {
   int get value => (values[0] as DBusInt32).value;
 
-  ComExampleTestEvent2(DBusSignal signal) : super(signal.sender, signal.path, signal.interface, signal.name, signal.values);
+  ComExampleTestEvent2(DBusSignal signal) : super(sender: signal.sender, path: signal.path, interface: signal.interface, name: signal.name, values: signal.values);
 }
 
 class ComExampleTest extends DBusRemoteObject {

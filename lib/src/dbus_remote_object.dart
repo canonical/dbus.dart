@@ -39,8 +39,12 @@ class DBusPropertiesChangedSignal extends DBusSignal {
       .toList();
 
   DBusPropertiesChangedSignal(DBusSignal signal)
-      : super(signal.sender, signal.path, signal.interface, signal.name,
-            signal.values);
+      : super(
+            sender: signal.sender,
+            path: signal.path,
+            interface: signal.interface,
+            name: signal.name,
+            values: signal.values);
 }
 
 /// Exception thrown when a D-Bus property returns a value that don't match the expected signature.
