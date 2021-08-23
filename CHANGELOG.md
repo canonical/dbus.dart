@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0
+
+* Make emitSignal async, fixing an issue where signals from a method call may be handled after the call completes.
+* Use named parameters in object constructors.
+
 ## 0.5.6
 
 * Fix default system bus address - it is /var/run, not /run.
