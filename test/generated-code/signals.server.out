@@ -5,13 +5,13 @@ class ComExampleTest extends DBusObject {
   ComExampleTest({DBusObjectPath path = const DBusObjectPath.unchecked('/')}) : super(path);
 
   /// Emits signal com.example.Test.Event1
-  void emitEvent1(String value) {
-     emitSignal('com.example.Test', 'Event1', [DBusString(value)]);
+  Future<void> emitEvent1(String value) async {
+     await emitSignal('com.example.Test', 'Event1', [DBusString(value)]);
   }
 
   /// Emits signal com.example.Test.Event2
-  void emitEvent2(int value) {
-     emitSignal('com.example.Test', 'Event2', [DBusInt32(value)]);
+  Future<void> emitEvent2(int value) async {
+     await emitSignal('com.example.Test', 'Event2', [DBusInt32(value)]);
   }
 
   @override

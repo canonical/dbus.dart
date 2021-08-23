@@ -595,8 +595,8 @@ class DBusClient {
       required String name,
       Iterable<DBusValue> values = const []}) async {
     await _connect();
-    await _sendSignal(destination != null ? DBusBusName(destination) : null,
-        path, DBusInterfaceName(interface), DBusMemberName(name), values);
+    _sendSignal(destination != null ? DBusBusName(destination) : null, path,
+        DBusInterfaceName(interface), DBusMemberName(name), values);
   }
 
   /// Searches for an object manager in [node] or any of its parents.
@@ -633,7 +633,8 @@ class DBusClient {
     if (objectManager != null) {
       var interfacesAndProperties = expandObjectInterfaceAndProperties(object,
           introspectable: introspectable);
-      objectManager.emitInterfacesAdded(object.path, interfacesAndProperties);
+      await objectManager.emitInterfacesAdded(
+          object.path, interfacesAndProperties);
     }
   }
 
@@ -656,7 +657,7 @@ class DBusClient {
     if (objectManager != null) {
       var interfacesAndProperties = expandObjectInterfaceAndProperties(object,
           introspectable: introspectable);
-      objectManager.emitInterfacesRemoved(
+      await objectManager.emitInterfacesRemoved(
           object.path, interfacesAndProperties.keys);
     }
   }
@@ -946,10 +947,10 @@ class DBusClient {
     }
 
     if (response is DBusMethodErrorResponse) {
-      await _sendError(
+      _sendError(
           message.serial, message.sender, response.errorName, response.values);
     } else if (response is DBusMethodSuccessResponse) {
-      await _sendReturn(message.serial, message.sender, response.values);
+      _sendReturn(message.serial, message.sender, response.values);
     }
   }
 
@@ -1056,7 +1057,7 @@ class DBusClient {
         member: name,
         values: values.toList(),
         flags: flags);
-    await _sendMessage(message);
+    _sendMessage(message);
 
     var r = await response;
     if (r is DBusMethodSuccessResponse) {
@@ -1076,7 +1077,7 @@ class DBusClient {
   }
 
   /// Sends a method return to the D-Bus server.
-  Future<void> _sendReturn(
+  void _sendReturn(
       int serial, DBusBusName? destination, Iterable<DBusValue> values) async {
     _lastSerial++;
     var message = DBusMessage(DBusMessageType.methodReturn,
@@ -1084,12 +1085,12 @@ class DBusClient {
         replySerial: serial,
         destination: destination,
         values: values.toList());
-    await _sendMessage(message);
+    _sendMessage(message);
   }
 
   /// Sends an error to the D-Bus server.
-  Future<void> _sendError(int serial, DBusBusName? destination,
-      String errorName, Iterable<DBusValue> values) async {
+  void _sendError(int serial, DBusBusName? destination, String errorName,
+      Iterable<DBusValue> values) async {
     _lastSerial++;
     var message = DBusMessage(DBusMessageType.error,
         serial: _lastSerial,
@@ -1097,11 +1098,11 @@ class DBusClient {
         replySerial: serial,
         destination: destination,
         values: values.toList());
-    await _sendMessage(message);
+    _sendMessage(message);
   }
 
   /// Sends a signal to the D-Bus server.
-  Future<void> _sendSignal(
+  void _sendSignal(
       DBusBusName? destination,
       DBusObjectPath path,
       DBusInterfaceName interface,
@@ -1115,11 +1116,11 @@ class DBusClient {
         interface: interface,
         member: name,
         values: values.toList());
-    await _sendMessage(message);
+    _sendMessage(message);
   }
 
   /// Sends a message (method call/return/error/signal) to the D-Bus server.
-  Future<void> _sendMessage(DBusMessage message) async {
+  void _sendMessage(DBusMessage message) {
     var buffer = DBusWriteBuffer();
     buffer.writeMessage(message);
     _socket?.add(buffer.data);
