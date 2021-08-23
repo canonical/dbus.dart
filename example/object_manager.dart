@@ -2,8 +2,9 @@ import 'package:dbus/dbus.dart';
 
 void main() async {
   var client = DBusClient.system();
-  var object = DBusRemoteObjectManager(client, 'org.freedesktop.NetworkManager',
-      DBusObjectPath('/org/freedesktop'));
+  var object = DBusRemoteObjectManager(client,
+      name: 'org.freedesktop.NetworkManager',
+      path: DBusObjectPath('/org/freedesktop'));
 
   object.signals.listen((signal) {
     if (signal is DBusObjectManagerInterfacesAddedSignal) {

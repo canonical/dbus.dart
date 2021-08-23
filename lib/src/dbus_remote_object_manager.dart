@@ -52,7 +52,8 @@ class DBusRemoteObjectManager extends DBusRemoteObject {
 
   /// Creates an object that access accesses a remote D-Bus object manager using bus [name] with [path].
   /// Requires the remote object to implement the org.freedesktop.DBus.ObjectManager interface.
-  DBusRemoteObjectManager(DBusClient client, String name, DBusObjectPath path)
+  DBusRemoteObjectManager(DBusClient client,
+      {required String name, required DBusObjectPath path})
       : super(client, name: name, path: path) {
     var rawSignals =
         DBusSignalStream(client, sender: name, pathNamespace: path);
