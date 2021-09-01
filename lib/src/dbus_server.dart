@@ -75,7 +75,7 @@ class _DBusRemoteClient {
   final matchRules = <DBusMatchRule>[];
 
   _DBusRemoteClient(this.serverSocket, this._socket, this.uniqueName)
-      : _authServer = DBusAuthServer(serverSocket.uuid) {
+      : _authServer = DBusAuthServer(serverSocket.uuid, unixFdSupported: true) {
     _authServer.responses
         .listen((message) => _socket.write(utf8.encode(message + '\r\n')));
     _socket.listen((event) {
@@ -113,7 +113,13 @@ class _DBusRemoteClient {
   void sendMessage(DBusMessage message) {
     var buffer = DBusWriteBuffer();
     buffer.writeMessage(message);
-    _socket.write(buffer.data);
+    var controlMessages = <SocketControlMessage>[];
+    if (buffer.resourceHandles.isNotEmpty) {
+      controlMessages
+          .add(SocketControlMessage.fromHandles(buffer.resourceHandles));
+    }
+
+    _socket.sendMessage(controlMessages, buffer.data);
   }
 
   Future<void> close() async {
@@ -122,11 +128,14 @@ class _DBusRemoteClient {
 
   /// Reads incoming data from this D-Bus client.
   void _readData() {
-    var data = _socket.read();
-    if (data == null) {
+    var message = _socket.readMessage();
+    if (message == null) {
       return;
     }
-    _readBuffer.writeBytes(data);
+    _readBuffer.writeBytes(message.data);
+    for (var message in message.controlMessages) {
+      _readBuffer.addResourceHandles(message.extractHandles());
+    }
 
     var complete = false;
     while (!complete) {

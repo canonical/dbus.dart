@@ -890,11 +890,14 @@ class DBusClient {
 
   /// Read incoming data from the D-Bus server.
   void _readData() {
-    var data = _socket?.read();
-    if (data == null) {
+    var message = _socket?.readMessage();
+    if (message == null) {
       return;
     }
-    _readBuffer.writeBytes(data);
+    _readBuffer.writeBytes(message.data);
+    for (var message in message.controlMessages) {
+      _readBuffer.addResourceHandles(message.extractHandles());
+    }
 
     var complete = false;
     while (!complete) {
@@ -1202,8 +1205,13 @@ class DBusClient {
 
     var buffer = DBusWriteBuffer();
     buffer.writeMessage(message);
+    var controlMessages = <SocketControlMessage>[];
+    if (buffer.resourceHandles.isNotEmpty) {
+      controlMessages
+          .add(SocketControlMessage.fromHandles(buffer.resourceHandles));
+    }
 
-    _socket?.write(buffer.data);
+    _socket?.sendMessage(controlMessages, buffer.data);
   }
 
   @override

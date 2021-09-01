@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'dbus_buffer.dart';
@@ -9,6 +10,10 @@ import 'dbus_value.dart';
 class DBusWriteBuffer extends DBusBuffer {
   /// Data generated.
   var data = <int>[];
+
+  // File descriptors to send with data.
+  List<ResourceHandle> get resourceHandles => _resourceHandles;
+  final _resourceHandles = <ResourceHandle>[];
 
   /// Writes a [DBusMessage] to the buffer.
   void writeMessage(DBusMessage message) {
@@ -67,9 +72,14 @@ class DBusWriteBuffer extends DBusBuffer {
       }
       headers.add(_makeHeader(8, DBusSignature(signature)));
     }
+    if (valueBuffer.resourceHandles.isNotEmpty) {
+      headers
+          .add(_makeHeader(9, DBusUint32(valueBuffer.resourceHandles.length)));
+    }
     writeValue(DBusArray(DBusSignature('(yv)'), headers));
     align(8);
     writeBytes(valueBuffer.data);
+    _resourceHandles.addAll(valueBuffer.resourceHandles);
   }
 
   /// Makes a new message header.
@@ -188,6 +198,9 @@ class DBusWriteBuffer extends DBusBuffer {
       writeValue(childValue);
     } else if (value is DBusMaybe) {
       throw UnsupportedError("D-Bus doesn't support reserved maybe type");
+    } else if (value is DBusUnixFd) {
+      writeUint32(_resourceHandles.length);
+      _resourceHandles.add(value.handle);
     } else if (value is DBusStruct) {
       align(structAlignment);
       var children = value.children;
