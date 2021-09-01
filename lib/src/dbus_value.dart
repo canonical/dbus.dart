@@ -1,3 +1,5 @@
+import 'dart:io';
+
 bool _listsEqual<T>(List<T> a, List<T> b) {
   if (a.length != b.length) {
     return false;
@@ -430,11 +432,10 @@ class DBusObjectPath extends DBusString {
 /// * `g` → [DBusSignature]
 /// * `v` → [DBusVariant]
 /// * `m` → [DBusMaybe]
+/// * 'h' → [DBusUnixFd]
 /// * `(xyz...)` → [DBusStruct] (`x`, `y`, `z` represent the child value signatures).
 /// * `av` → [DBusArray] (v represents the array value signature).
 /// * `a{kv}` → [DBusDict] (`k` and `v` represent the key and value signatures).
-///
-/// There is also a Unix file descriptor `h` which may be in a signature, but is not supported in Dart.
 class DBusSignature extends DBusValue {
   /// A D-Bus signature string.
   final String value;
@@ -654,6 +655,36 @@ class DBusMaybe extends DBusValue {
 
   @override
   String toString() => 'DBusMaybe($valueSignature, ${value?.toString()})';
+}
+
+/// D-Bus value that contains a Unix file descriptor.
+class DBusUnixFd extends DBusValue {
+  /// The resource handle containing this file descriptor.
+  final ResourceHandle handle;
+
+  /// Creates a new file descriptor containing [handle].
+  const DBusUnixFd(this.handle);
+
+  @override
+  DBusSignature get signature {
+    return DBusSignature('h');
+  }
+
+  @override
+  dynamic toNative() {
+    return this;
+  }
+
+  @override
+  bool operator ==(other) => other is DBusUnixFd && other.handle == handle;
+
+  @override
+  int get hashCode => handle.hashCode;
+
+  @override
+  String toString() {
+    return 'DBusUnixFd()';
+  }
 }
 
 /// D-Bus value that contains a fixed set of other values.

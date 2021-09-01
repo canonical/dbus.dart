@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'dbus_buffer.dart';
@@ -13,6 +14,9 @@ import 'dbus_value.dart';
 class DBusReadBuffer extends DBusBuffer {
   /// Data in the buffer.
   var _data = Uint8List(0);
+
+  /// Unix file descriptors available.
+  final _resourceHandles = <ResourceHandle>[];
 
   /// View of the buffer to allow accessing fixed width integers and floats.
   late ByteData _view;
@@ -32,6 +36,11 @@ class DBusReadBuffer extends DBusBuffer {
     builder.add(value);
     _data = builder.takeBytes();
     _view = ByteData.view(_data.buffer);
+  }
+
+  /// Add received resource handles (file descriptors).
+  void addResourceHandles(List<ResourceHandle> handles) {
+    _resourceHandles.addAll(handles);
   }
 
   /// Read a single byte from the buffer.
@@ -152,9 +161,6 @@ class DBusReadBuffer extends DBusBuffer {
         signature = value as DBusSignature;
       } else if (code == 9) {
         fdCount = (value as DBusUint32).value;
-        if (fdCount != 0) {
-          throw 'Message contains file descriptors, which are not supported';
-        }
       }
     }
     if (!align(8)) {
@@ -170,7 +176,7 @@ class DBusReadBuffer extends DBusBuffer {
     if (signature != null) {
       var signatures = signature.split();
       for (var s in signatures) {
-        var value = readDBusValue(s, endian);
+        var value = readDBusValue(s, endian, fdCount);
         if (value == null) {
           return null;
         }
@@ -187,6 +193,13 @@ class DBusReadBuffer extends DBusBuffer {
         throw 'Message has no signature but contains data of length $dataLength';
       }
     }
+
+    // Remove file descriptors that were part of this message.
+    // Note: This could remove descriptors added after the end of the message.
+    if (_resourceHandles.length < fdCount) {
+      throw 'Insufficient file descriptors received';
+    }
+    _resourceHandles.removeRange(0, fdCount);
 
     return DBusMessage(type,
         flags: flags,
@@ -378,13 +391,14 @@ class DBusReadBuffer extends DBusBuffer {
   }
 
   /// Reads a [DBusVariant] from the buffer or returns null if not enough data.
-  DBusVariant? readDBusVariant([Endian endian = Endian.little]) {
+  DBusVariant? readDBusVariant(
+      [Endian endian = Endian.little, int fdCount = 0]) {
     var signature = readDBusSignature();
     if (signature == null) {
       return null;
     }
 
-    var childValue = readDBusValue(signature, endian);
+    var childValue = readDBusValue(signature, endian, fdCount);
     if (childValue == null) {
       return null;
     }
@@ -392,16 +406,31 @@ class DBusReadBuffer extends DBusBuffer {
     return DBusVariant(childValue);
   }
 
+  /// Reads a [DBusUnixFd] from the buffer or returns null if not enough data.
+  DBusUnixFd? readDBusUnixFd(int fdCount, [Endian endian = Endian.little]) {
+    var index = readDBusUint32(endian)?.value;
+    if (index == null) {
+      return null;
+    }
+    if (index > fdCount) {
+      throw 'Unix fd index out of bounds';
+    }
+    if (index > _resourceHandles.length) {
+      throw 'Unix fd $index not yet received';
+    }
+    return DBusUnixFd(_resourceHandles[index]);
+  }
+
   /// Reads a [DBusStruct] from the buffer or returns null if not enough data.
   DBusStruct? readDBusStruct(Iterable<DBusSignature> childSignatures,
-      [Endian endian = Endian.little]) {
+      [Endian endian = Endian.little, int fdCount = 0]) {
     if (!align(structAlignment)) {
       return null;
     }
 
     var children = <DBusValue>[];
     for (var signature in childSignatures) {
-      var child = readDBusValue(signature, endian);
+      var child = readDBusValue(signature, endian, fdCount);
       if (child == null) {
         return null;
       }
@@ -413,7 +442,7 @@ class DBusReadBuffer extends DBusBuffer {
 
   /// Reads a [DBusArray] from the buffer or returns null if not enough data.
   DBusArray? readDBusArray(DBusSignature childSignature,
-      [Endian endian = Endian.little]) {
+      [Endian endian = Endian.little, int fdCount = 0]) {
     var length = readDBusUint32(endian);
     if (length == null || !align(getAlignment(childSignature))) {
       return null;
@@ -422,7 +451,7 @@ class DBusReadBuffer extends DBusBuffer {
     var end = readOffset + length.value;
     var children = <DBusValue>[];
     while (readOffset < end) {
-      var child = readDBusValue(childSignature, endian);
+      var child = readDBusValue(childSignature, endian, fdCount);
       if (child == null) {
         return null;
       }
@@ -434,7 +463,7 @@ class DBusReadBuffer extends DBusBuffer {
 
   DBusDict? readDBusDict(
       DBusSignature keySignature, DBusSignature valueSignature,
-      [Endian endian = Endian.little]) {
+      [Endian endian = Endian.little, int fdCount = 0]) {
     var length = readDBusUint32(endian);
     if (length == null || !align(dictEntryAlignment)) {
       return null;
@@ -444,7 +473,7 @@ class DBusReadBuffer extends DBusBuffer {
     var childSignatures = [keySignature, valueSignature];
     var children = <DBusValue, DBusValue>{};
     while (readOffset < end) {
-      var child = readDBusStruct(childSignatures);
+      var child = readDBusStruct(childSignatures, endian, fdCount);
       if (child == null) {
         return null;
       }
@@ -458,7 +487,7 @@ class DBusReadBuffer extends DBusBuffer {
 
   /// Reads a [DBusValue] with [signature].
   DBusValue? readDBusValue(DBusSignature signature,
-      [Endian endian = Endian.little]) {
+      [Endian endian = Endian.little, int fdCount = 0]) {
     var s = signature.value;
     if (s == 'y') {
       return readDBusByte();
@@ -485,9 +514,11 @@ class DBusReadBuffer extends DBusBuffer {
     } else if (s == 'g') {
       return readDBusSignature();
     } else if (s == 'v') {
-      return readDBusVariant(endian);
+      return readDBusVariant(endian, fdCount);
     } else if (s == 'm') {
       throw 'D-Bus reserved maybe type not valid';
+    } else if (s == 'h') {
+      return readDBusUnixFd(fdCount, endian);
     } else if (s.startsWith('a{') && s.endsWith('}')) {
       var childSignature = DBusSignature(s.substring(2, s.length - 1));
       var signatures = childSignature.split();
@@ -499,12 +530,13 @@ class DBusReadBuffer extends DBusBuffer {
       if (!keySignature.isBasic) {
         throw 'Invalid dict key signature ${keySignature.value}';
       }
-      return readDBusDict(keySignature, valueSignature, endian);
+      return readDBusDict(keySignature, valueSignature, endian, fdCount);
     } else if (s.startsWith('a')) {
-      return readDBusArray(DBusSignature(s.substring(1, s.length)), endian);
+      return readDBusArray(
+          DBusSignature(s.substring(1, s.length)), endian, fdCount);
     } else if (s.startsWith('(') && s.endsWith(')')) {
       return readDBusStruct(
-          DBusSignature(s.substring(1, s.length - 1)).split(), endian);
+          DBusSignature(s.substring(1, s.length - 1)).split(), endian, fdCount);
     } else {
       throw "Unknown D-Bus data type '$s'";
     }

@@ -574,6 +574,21 @@ void main() {
         equals("DBusMaybe(DBusSignature('s'), DBusString('one'))"));
   });
 
+  test('value - unix fd', () async {
+    var stdinHandle = ResourceHandle.fromStdin(stdin);
+    var stdoutHandle = ResourceHandle.fromStdout(stdout);
+    expect(DBusUnixFd(stdinHandle).handle, equals(stdinHandle));
+    expect(DBusUnixFd(stdinHandle).signature, equals(DBusSignature('h')));
+    expect(DBusUnixFd(stdinHandle).toNative(), equals(DBusUnixFd(stdinHandle)));
+    expect(DBusUnixFd(stdinHandle) == DBusUnixFd(stdinHandle), isTrue);
+    expect(DBusUnixFd(stdinHandle) == DBusUnixFd(stdoutHandle), isFalse);
+    expect(DBusUnixFd(stdinHandle).toString(), equals('DBusUnixFd()'));
+
+    // Check hash codes.
+    var map = {DBusUnixFd(stdinHandle): 0, DBusUnixFd(stdoutHandle): 1};
+    expect(map[DBusUnixFd(stdoutHandle)], equals(1));
+  });
+
   test('value - struct', () async {
     expect(DBusStruct([]).children, equals([]));
     expect(
@@ -2538,6 +2553,55 @@ void main() {
         name: 'Test',
         values: allTypes);
     expect(response.values, equals(allTypes));
+  });
+
+  test('call method - unix fd types', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    var unixFdTypes = [
+      DBusUnixFd(ResourceHandle.fromStdin(stdin)),
+      DBusStruct(
+          [DBusUint32(0), DBusUnixFd(ResourceHandle.fromStdout(stdout))]),
+      DBusVariant(DBusUnixFd(ResourceHandle.fromStdout(stdout))),
+      DBusArray(DBusSignature('h'), [
+        DBusUnixFd(ResourceHandle.fromStdin(stdin)),
+        DBusUnixFd(ResourceHandle.fromStdout(stdout))
+      ]),
+      DBusDict(DBusSignature('i'), DBusSignature('h'), {
+        DBusInt32(0): DBusUnixFd(ResourceHandle.fromStdin(stdin)),
+        DBusInt32(1): DBusUnixFd(ResourceHandle.fromStdout(stdout))
+      })
+    ];
+
+    // Create a client that exposes a method that takes and returns all the DBus unix fd data types.
+    await client1.registerObject(TestObject(
+        methodResponses: {'Test': DBusMethodSuccessResponse(unixFdTypes)}));
+
+    // Call the method from another client.
+    var response = await client2.callMethod(
+        destination: client1.uniqueName,
+        path: DBusObjectPath('/'),
+        name: 'Test',
+        values: unixFdTypes);
+    expect(response.values, hasLength(5));
+    expect(response.values[0], isA<DBusUnixFd>());
+    expect((response.values[1] as DBusStruct).children[1], isA<DBusUnixFd>());
+    expect((response.values[2] as DBusVariant).value, isA<DBusUnixFd>());
+    expect((response.values[3] as DBusArray).children[0], isA<DBusUnixFd>());
+    expect((response.values[3] as DBusArray).children[1], isA<DBusUnixFd>());
+    expect((response.values[4] as DBusDict).children[DBusInt32(0)],
+        isA<DBusUnixFd>());
+    expect((response.values[4] as DBusDict).children[DBusInt32(0)],
+        isA<DBusUnixFd>());
   });
 
   test('call method - no response', () async {
