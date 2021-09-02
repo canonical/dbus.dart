@@ -452,6 +452,9 @@ class DBusServer {
     for (var socket in _sockets) {
       await socket.close();
     }
+    for (var client in _clients) {
+      await client.close();
+    }
   }
 
   /// Get the client that is currently owning [name].
