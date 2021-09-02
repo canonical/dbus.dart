@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.1
+
+* Fix not everything being cleaned up when calling DBusServer.close().
+* Correctly clean up in tests.
+
 ## 0.6.0
 
 * Make emitSignal async, fixing an issue where signals from a method call may be handled after the call completes.
