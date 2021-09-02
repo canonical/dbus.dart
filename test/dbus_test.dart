@@ -582,11 +582,13 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Check can ping the server.
     await client.ping();
-    await client.close();
-    await server.close();
   });
 
   test('ping - abstract', () async {
@@ -594,11 +596,13 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(abstract: 'abstract'));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Check can ping the server.
     await client.ping();
-    await client.close();
-    await server.close();
   });
 
   test('ping - ipv4 tcp', () async {
@@ -606,11 +610,13 @@ void main() {
     var address = await server.listenAddress(
         DBusAddress.tcp('localhost', family: DBusAddressTcpFamily.ipv4));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Check can ping the server.
     await client.ping();
-    await client.close();
-    await server.close();
   });
 
   test('ping - ipv6 tcp', () async {
@@ -618,11 +624,13 @@ void main() {
     var address = await server.listenAddress(
         DBusAddress.tcp('localhost', family: DBusAddressTcpFamily.ipv6));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Check can ping the server.
     await client.ping();
-    await client.close();
-    await server.close();
   }, tags: ['ipv6']);
 
   test('list names', () async {
@@ -630,12 +638,14 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Check the server and this clients name is reported.
     var names = await client.listNames();
     expect(names, equals(['org.freedesktop.DBus', client.uniqueName]));
-    await client.close();
-    await server.close();
   });
 
   test('request name', () async {
@@ -643,6 +653,10 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Check name is currently unowned.
     var hasOwner = await client.nameHasOwner('com.example.Test');
@@ -672,9 +686,6 @@ void main() {
     expect(owner, equals(client.uniqueName));
     names = await client.listQueuedOwners('com.example.Test');
     expect(names, [client.uniqueName]);
-
-    await client.close();
-    await server.close();
   });
 
   test('request name - already owned', () async {
@@ -682,6 +693,10 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Request the name twice
     var reply = await client.requestName('com.example.Test');
@@ -696,9 +711,6 @@ void main() {
     expect(owner, equals(client.uniqueName));
     var names = await client.listQueuedOwners('com.example.Test');
     expect(names, [client.uniqueName]);
-
-    await client.close();
-    await server.close();
   });
 
   test('request name - queue', () async {
@@ -707,6 +719,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Own a name with one client.
     var reply = await client1.requestName('com.example.Test');
@@ -723,10 +740,6 @@ void main() {
     expect(owner, equals(client1.uniqueName));
     var names = await client1.listQueuedOwners('com.example.Test');
     expect(names, equals([client1.uniqueName, client2.uniqueName]));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('request name - do not queue', () async {
@@ -735,6 +748,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Own a name with one client.
     var reply = await client1.requestName('com.example.Test');
@@ -752,10 +770,6 @@ void main() {
     expect(owner, equals(client1.uniqueName));
     var names = await client1.listQueuedOwners('com.example.Test');
     expect(names, equals([client1.uniqueName]));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('request name - replace', () async {
@@ -764,6 +778,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Own a name with one client.
     var reply = await client1.requestName('com.example.Test',
@@ -782,10 +801,6 @@ void main() {
     expect(owner, equals(client2.uniqueName));
     var names = await client1.listQueuedOwners('com.example.Test');
     expect(names, equals([client2.uniqueName, client1.uniqueName]));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('request name - replace, do not queue', () async {
@@ -794,6 +809,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Own a name with one client.
     var reply = await client1.requestName('com.example.Test', flags: {
@@ -814,10 +834,6 @@ void main() {
     expect(owner, equals(client2.uniqueName));
     var names = await client1.listQueuedOwners('com.example.Test');
     expect(names, equals([client2.uniqueName]));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('request name - replace not allowed', () async {
@@ -826,6 +842,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Own a name with one client.
     var reply = await client1.requestName('com.example.Test');
@@ -843,10 +864,6 @@ void main() {
     expect(owner, equals(client1.uniqueName));
     var names = await client1.listQueuedOwners('com.example.Test');
     expect(names, equals([client1.uniqueName, client2.uniqueName]));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('request name - empty', () async {
@@ -854,6 +871,10 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Attempt to request an empty bus name
     try {
@@ -863,10 +884,6 @@ void main() {
       expect(e.response.errorName,
           equals('org.freedesktop.DBus.Error.InvalidArgs'));
     }
-
-    await client.close();
-    await server.close();
-    await server.close();
   });
 
   test('request name - unique', () async {
@@ -874,6 +891,10 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Attempt to request a unique bus name
     try {
@@ -883,9 +904,6 @@ void main() {
       expect(e.response.errorName,
           equals('org.freedesktop.DBus.Error.InvalidArgs'));
     }
-
-    await client.close();
-    await server.close();
   });
 
   test('request name - not enough elements', () async {
@@ -893,6 +911,10 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Attempt to request a unique bus name
     try {
@@ -902,9 +924,6 @@ void main() {
       expect(e.response.errorName,
           equals('org.freedesktop.DBus.Error.InvalidArgs'));
     }
-
-    await client.close();
-    await server.close();
   });
 
   test('request name - leading period', () async {
@@ -912,6 +931,10 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Attempt to request a unique bus name
     try {
@@ -921,9 +944,6 @@ void main() {
       expect(e.response.errorName,
           equals('org.freedesktop.DBus.Error.InvalidArgs'));
     }
-
-    await client.close();
-    await server.close();
   });
 
   test('request name - trailing period', () async {
@@ -931,6 +951,10 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Attempt to request a unique bus name
     try {
@@ -940,9 +964,6 @@ void main() {
       expect(e.response.errorName,
           equals('org.freedesktop.DBus.Error.InvalidArgs'));
     }
-
-    await client.close();
-    await server.close();
   });
 
   test('request name - empty element', () async {
@@ -950,6 +971,10 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Attempt to request a unique bus name
     try {
@@ -959,9 +984,6 @@ void main() {
       expect(e.response.errorName,
           equals('org.freedesktop.DBus.Error.InvalidArgs'));
     }
-
-    await client.close();
-    await server.close();
   });
 
   test('release name', () async {
@@ -969,6 +991,10 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Check get an event when acquired and lost
     client.nameAcquired.listen(expectAsync1((name) {
@@ -991,9 +1017,6 @@ void main() {
     expect(hasOwner, isFalse);
     var names = await client.listQueuedOwners('com.example.Test');
     expect(names, isEmpty);
-
-    await client.close();
-    await server.close();
   });
 
   test('release name - non existant', () async {
@@ -1001,13 +1024,14 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Release a name that's not in use.
     var releaseReply = await client.releaseName('com.example.Test');
     expect(releaseReply, equals(DBusReleaseNameReply.nonExistant));
-
-    await client.close();
-    await server.close();
   });
 
   test('release name - not owner', () async {
@@ -1016,6 +1040,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Own a name with one client.
     var requestReply = await client1.requestName('com.example.Test',
@@ -1025,10 +1054,6 @@ void main() {
     // Attempt to release that name from another client.
     var releaseReply = await client2.releaseName('com.example.Test');
     expect(releaseReply, equals(DBusReleaseNameReply.notOwner));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('release name - queue', () async {
@@ -1037,6 +1062,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Own a name with one client.
     var requestReply = await client1.requestName('com.example.Test');
@@ -1058,10 +1088,6 @@ void main() {
     expect(owner, equals(client2.uniqueName));
     var names = await client1.listQueuedOwners('com.example.Test');
     expect(names, equals([client2.uniqueName]));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('release name - empty', () async {
@@ -1069,6 +1095,10 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Attempt to release an empty bus name.
     try {
@@ -1078,9 +1108,6 @@ void main() {
       expect(e.response.errorName,
           equals('org.freedesktop.DBus.Error.InvalidArgs'));
     }
-
-    await client.close();
-    await server.close();
   });
 
   test('release name - unique name', () async {
@@ -1088,6 +1115,10 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Attempt to release the unique name of this client.
     try {
@@ -1097,9 +1128,6 @@ void main() {
       expect(e.response.errorName,
           equals('org.freedesktop.DBus.Error.InvalidArgs'));
     }
-
-    await client.close();
-    await server.close();
   });
 
   test('list activatable names', () async {
@@ -1107,13 +1135,14 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     // Only the bus service available by default.
     var names = await client.listActivatableNames();
     expect(names, equals(['org.freedesktop.DBus']));
-
-    await client.close();
-    await server.close();
   });
 
   test('start service by name', () async {
@@ -1121,6 +1150,10 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     var names = await client.listActivatableNames();
     expect(
@@ -1144,9 +1177,6 @@ void main() {
       expect(e.response.errorName,
           equals('org.freedesktop.DBus.Error.ServiceNotFound'));
     }
-
-    await client.close();
-    await server.close();
   });
 
   test('get unix user', () async {
@@ -1154,12 +1184,13 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     var uid = await client.getConnectionUnixUser('org.freedesktop.DBus');
     expect(uid, equals(getuid()));
-
-    await client.close();
-    await server.close();
   });
 
   test('get process id', () async {
@@ -1167,12 +1198,13 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     var pid_ = await client.getConnectionUnixProcessId('org.freedesktop.DBus');
     expect(pid_, equals(pid));
-
-    await client.close();
-    await server.close();
   });
 
   test('get credentials', () async {
@@ -1180,14 +1212,15 @@ void main() {
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
 
     var credentials =
         await client.getConnectionCredentials('org.freedesktop.DBus');
     expect(credentials.unixUserId, equals(getuid()));
     expect(credentials.processId, equals(pid));
-
-    await client.close();
-    await server.close();
   });
 
   test('call method', () async {
@@ -1196,6 +1229,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes a method.
     await client1.registerObject(
@@ -1213,10 +1251,6 @@ void main() {
         name: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)]);
     expect(response.values, equals([DBusString('World'), DBusUint32(99)]));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('call method - no response', () async {
@@ -1225,6 +1259,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes a method.
     await client1
@@ -1238,10 +1277,6 @@ void main() {
         values: [DBusString('Hello'), DBusUint32(42)],
         noReplyExpected: true);
     expect(response.values, equals([]));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('call method - registered name', () async {
@@ -1250,6 +1285,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes a method.
     await client1.requestName('com.example.Test');
@@ -1263,10 +1303,6 @@ void main() {
         name: 'Test',
         values: [DBusString('Hello'), DBusUint32(42)]);
     expect(response.values, equals([]));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('call method - dict container key', () async {
@@ -1275,6 +1311,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes a method.
     await client1.registerObject(TestObject(expectedMethodName: 'Test'));
@@ -1291,10 +1332,6 @@ void main() {
       expect(e.message,
           equals("D-Bus doesn't support dicts with non basic key types"));
     }
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('call method - maybe type', () async {
@@ -1303,6 +1340,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes a method.
     await client1.registerObject(TestObject(expectedMethodName: 'Test'));
@@ -1318,10 +1360,6 @@ void main() {
     } on UnsupportedError catch (e) {
       expect(e.message, equals("D-Bus doesn't support reserved maybe type"));
     }
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('call method - maybe signature', () async {
@@ -1330,6 +1368,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes a method.
     await client1.registerObject(TestObject(expectedMethodName: 'Test'));
@@ -1346,10 +1389,6 @@ void main() {
       expect(e.message,
           equals("D-Bus doesn't support reserved maybe type in signatures"));
     }
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('call method - expected signature', () async {
@@ -1358,6 +1397,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes a method.
     await client1.registerObject(TestObject(methodResponses: {
@@ -1371,10 +1415,6 @@ void main() {
         name: 'Test',
         replySignature: DBusSignature('su'));
     expect(response.values, equals([DBusString('Hello'), DBusUint32(42)]));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('call method - expected signature mismatch', () async {
@@ -1383,6 +1423,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes a method.
     await client1.registerObject(TestObject(methodResponses: {
@@ -1400,10 +1445,6 @@ void main() {
     } on DBusReplySignatureException catch (e) {
       expect(e.response.values, equals([DBusString('Hello'), DBusUint32(42)]));
     }
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('call method - no autostart', () async {
@@ -1412,6 +1453,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes a method.
     await client1.registerObject(TestObject(
@@ -1426,10 +1472,6 @@ void main() {
         values: [DBusString('Hello'), DBusUint32(42)],
         noAutoStart: true);
     expect(response.values, equals([]));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('call method - allow interactive authorization', () async {
@@ -1438,6 +1480,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes a method.
     await client1.registerObject(TestObject(
@@ -1452,10 +1499,6 @@ void main() {
         values: [DBusString('Hello'), DBusUint32(42)],
         allowInteractiveAuthorization: true);
     expect(response.values, equals([]));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('call method - error', () async {
@@ -1464,6 +1507,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes a method.
     await client1.registerObject(
@@ -1483,10 +1531,6 @@ void main() {
       expect(e.response.errorName, equals('com.example.Error'));
       expect(e.response.values, equals([DBusString('Count'), DBusUint32(42)]));
     }
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('call method - remote object', () async {
@@ -1495,6 +1539,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes a method.
     await client1.registerObject(TestObject(
@@ -1514,10 +1563,6 @@ void main() {
     var response = await remoteObject.callMethod(
         'com.example.Test', 'Foo', [DBusString('Hello'), DBusUint32(42)]);
     expect(response.values, equals([DBusString('World'), DBusUint32(99)]));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('call method - remote object - expected signature', () async {
@@ -1526,6 +1571,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes a method.
     await client1.registerObject(TestObject(
@@ -1541,10 +1591,6 @@ void main() {
     var response = await remoteObject.callMethod('com.example.Test', 'Foo', [],
         replySignature: DBusSignature('su'));
     expect(response.values, equals([DBusString('World'), DBusUint32(99)]));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('call method - remote object - expected signature mismatch', () async {
@@ -1553,6 +1599,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes a method.
     await client1.registerObject(TestObject(
@@ -1572,10 +1623,6 @@ void main() {
     } on DBusReplySignatureException catch (e) {
       expect(e.response.values, equals([DBusString('Hello'), DBusUint32(42)]));
     }
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('subscribe signal', () async {
@@ -1584,6 +1631,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client to emit a signal.
     var object = DBusObject(DBusObjectPath('/'));
@@ -1614,6 +1666,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client to emit a signal.
     var object = DBusObject(DBusObjectPath('/'));
@@ -1652,6 +1709,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client to emit a signal.
     var object = DBusObject(DBusObjectPath('/'));
@@ -1684,6 +1746,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client to emit a signal.
     var object = DBusObject(DBusObjectPath('/'));
@@ -1725,6 +1792,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client to emit a signal.
     var object = DBusObject(DBusObjectPath('/'));
@@ -1758,6 +1830,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client to emit a signal.
     var object = TestEmitObject();
@@ -1785,6 +1862,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes introspection data.
     await client1.registerObject(TestObject(introspectData: [
@@ -1835,10 +1917,6 @@ void main() {
             '<method name="Foo"/>'
             '</interface>'
             '</node>'));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('introspect - not introspectable', () async {
@@ -1847,6 +1925,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address, introspectable: false);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes introspection data.
     await client1.registerObject(TestObject(introspectData: [
@@ -1864,10 +1947,6 @@ void main() {
       expect(e.response.errorName,
           equals('org.freedesktop.DBus.Error.UnknownMethod'));
     }
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('get property', () async {
@@ -1876,6 +1955,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes an object with properties.
     var object = TestObject(propertyValues: {
@@ -1904,10 +1988,6 @@ void main() {
 
     expect(remoteObject.getProperty('com.example.Test', 'WriteOnly'),
         throwsException);
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('get property - match signature', () async {
@@ -1916,6 +1996,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes an object with properties.
     var object = TestObject(
@@ -1935,10 +2020,6 @@ void main() {
             'com.example.Test', 'Property',
             signature: DBusSignature('i')),
         throwsA(isA<DBusPropertySignatureException>()));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('set property', () async {
@@ -1947,6 +2028,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes an object with properties.
     var object = TestObject(propertyValues: {
@@ -1979,10 +2065,6 @@ void main() {
         'com.example.Test', 'WriteOnly', DBusString('WO'));
     expect(object.propertyValues['com.example.Test.WriteOnly'],
         equals(DBusString('WO')));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('get all properties', () async {
@@ -1991,6 +2073,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes an object with properties.
     var object = TestObject(propertyValues: {
@@ -2017,6 +2104,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Create a client that exposes an object with properties.
     var object = TestObject();
@@ -2054,6 +2146,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Register an object manager and a few objects with properties.
     await client1
@@ -2088,10 +2185,6 @@ void main() {
             'com.example.Interface2': {'value': DBusString('FOO')}
           }
         }));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('object manager - no interfaces', () async {
@@ -2100,6 +2193,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Register an object manager and an object without any interfaces other than the standard ones.
     await client1
@@ -2118,10 +2216,6 @@ void main() {
             'org.freedesktop.DBus.Properties': {}
           }
         }));
-
-    await client1.close();
-    await client2.close();
-    await server.close();
   });
 
   test('object manager - not introspectable', () async {
@@ -2130,6 +2224,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address, introspectable: false);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Register an object manager and one object. The client doesn't support introspection.
     await client1
@@ -2155,6 +2254,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Register an object manager with one object.
     var objectManager = DBusObject(DBusObjectPath('/'), isObjectManager: true);
@@ -2202,6 +2306,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Register an object manager with two objects.
     var objectManager = DBusObject(DBusObjectPath('/'), isObjectManager: true);
@@ -2250,6 +2359,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Register an object manager with one object.
     var objectManager = DBusObject(DBusObjectPath('/'), isObjectManager: true);
@@ -2296,6 +2410,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Register an object manager with one object.
     var objectManager = DBusObject(DBusObjectPath('/'), isObjectManager: true);
@@ -2335,6 +2454,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Register an object manager with one object.
     var objectManager = DBusObject(DBusObjectPath('/'), isObjectManager: true);
@@ -2378,6 +2502,11 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
 
     // Register an object manager that responds to a method call.
     await client1.registerObject(TestManagerObject());
