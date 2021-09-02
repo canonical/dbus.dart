@@ -94,7 +94,20 @@ class TestObject extends DBusObject {
         equals(expectedMethodAllowInteractiveAuthorization));
 
     var response = methodResponses[name];
-    return response ?? DBusMethodErrorResponse.unknownMethod();
+    if (response == null) {
+      if (methodCall.interface != null) {
+        for (var name in methodResponses.keys) {
+          if (name.startsWith('${methodCall.interface}.')) {
+            return DBusMethodErrorResponse.unknownMethod();
+          }
+        }
+        return DBusMethodErrorResponse.unknownInterface();
+      } else {
+        return DBusMethodErrorResponse.unknownMethod();
+      }
+    }
+
+    return response;
   }
 
   @override
@@ -1542,6 +1555,151 @@ void main() {
     }
   });
 
+  test('call method - failed', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Create a client that exposes a method.
+    await client1.registerObject(TestObject(methodResponses: {
+      'Test': DBusMethodErrorResponse.failed('Failure message')
+    }));
+
+    // Call the method from another client.
+    try {
+      await client2.callMethod(
+          destination: client1.uniqueName,
+          path: DBusObjectPath('/'),
+          name: 'Test');
+      fail('Expected DBusMethodResponseException');
+    } on DBusMethodResponseException catch (e) {
+      expect(e.response.errorName, equals('org.freedesktop.DBus.Error.Failed'));
+      expect(e.response.values, equals([DBusString('Failure message')]));
+    }
+  });
+
+  test('call method - unknown object', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Create a simple client.
+    await client1.registerObject(TestObject());
+
+    // Try and access an unknown object.
+    try {
+      await client2.callMethod(
+          destination: client1.uniqueName,
+          path: DBusObjectPath('/no/such/object'),
+          name: 'Test');
+    } on DBusMethodResponseException catch (e) {
+      expect(e.response.errorName,
+          equals('org.freedesktop.DBus.Error.UnknownObject'));
+    }
+  });
+
+  test('call method - unknown interface', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Create a simple client with an object.
+    await client1.registerObject(TestObject());
+
+    // Try and access an unknown interface on that object.
+    try {
+      await client2.callMethod(
+          destination: client1.uniqueName,
+          path: DBusObjectPath('/'),
+          interface: 'com.example.NoSuchInterface',
+          name: 'Test');
+      fail('Expected DBusMethodResponseException');
+    } on DBusMethodResponseException catch (e) {
+      expect(e.response.errorName,
+          equals('org.freedesktop.DBus.Error.UnknownInterface'));
+    }
+  });
+
+  test('call method - unknown method', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Create a simple client with an object.
+    await client1.registerObject(TestObject());
+
+    // Try and access an unknown interface on that object.
+    try {
+      await client2.callMethod(
+          destination: client1.uniqueName,
+          path: DBusObjectPath('/'),
+          name: 'NoSuchMethod');
+      fail('Expected DBusMethodResponseException');
+    } on DBusMethodResponseException catch (e) {
+      expect(e.response.errorName,
+          equals('org.freedesktop.DBus.Error.UnknownMethod'));
+    }
+  });
+
+  test('call method - access denied', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Create a client that exposes a method that generates an access denied error.
+    await client1.registerObject(TestObject(methodResponses: {
+      'Test': DBusMethodErrorResponse.accessDenied('Failure message')
+    }));
+
+    // Call the method from another client.
+    try {
+      await client2.callMethod(
+          destination: client1.uniqueName,
+          path: DBusObjectPath('/'),
+          name: 'Test');
+      fail('Expected DBusMethodResponseException');
+    } on DBusMethodResponseException catch (e) {
+      expect(e.response.errorName,
+          equals('org.freedesktop.DBus.Error.AccessDenied'));
+      expect(e.response.values, equals([DBusString('Failure message')]));
+    }
+  });
+
   test('call method - remote object', () async {
     var server = DBusServer();
     var address =
@@ -1954,7 +2112,7 @@ void main() {
       fail('Expected DBusMethodResponseException');
     } on DBusMethodResponseException catch (e) {
       expect(e.response.errorName,
-          equals('org.freedesktop.DBus.Error.UnknownMethod'));
+          equals('org.freedesktop.DBus.Error.UnknownInterface'));
     }
   });
 
@@ -1996,6 +2154,9 @@ void main() {
     expect(readOnlyValue, equals(DBusString('RO')));
 
     expect(remoteObject.getProperty('com.example.Test', 'WriteOnly'),
+        throwsException);
+
+    expect(remoteObject.getProperty('com.example.Test', 'Unknown'),
         throwsException);
   });
 
