@@ -29,4 +29,10 @@ jobs:
         run: dart analyze --fatal-infos --fatal-warnings .
 
       - name: Run regression tests
-        run: dart test
+        run: dart run test_cov
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v1
+        with:
+          file: coverage/lcov.info
+          token: ${{secrets.CODECOV_TOKEN}}

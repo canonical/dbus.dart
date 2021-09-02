@@ -1,3 +1,5 @@
 .dart_tool/
 .packages
 pubspec.lock
+test/.test_cov.dart
+coverage/
