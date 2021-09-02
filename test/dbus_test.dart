@@ -586,6 +586,7 @@ void main() {
     // Check can ping the server.
     await client.ping();
     await client.close();
+    await server.close();
   });
 
   test('ping - abstract', () async {
@@ -597,6 +598,7 @@ void main() {
     // Check can ping the server.
     await client.ping();
     await client.close();
+    await server.close();
   });
 
   test('ping - ipv4 tcp', () async {
@@ -608,6 +610,7 @@ void main() {
     // Check can ping the server.
     await client.ping();
     await client.close();
+    await server.close();
   });
 
   test('ping - ipv6 tcp', () async {
@@ -619,6 +622,7 @@ void main() {
     // Check can ping the server.
     await client.ping();
     await client.close();
+    await server.close();
   }, tags: ['ipv6']);
 
   test('list names', () async {
@@ -631,6 +635,7 @@ void main() {
     var names = await client.listNames();
     expect(names, equals(['org.freedesktop.DBus', client.uniqueName]));
     await client.close();
+    await server.close();
   });
 
   test('request name', () async {
@@ -669,6 +674,7 @@ void main() {
     expect(names, [client.uniqueName]);
 
     await client.close();
+    await server.close();
   });
 
   test('request name - already owned', () async {
@@ -692,6 +698,7 @@ void main() {
     expect(names, [client.uniqueName]);
 
     await client.close();
+    await server.close();
   });
 
   test('request name - queue', () async {
@@ -719,6 +726,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('request name - do not queue', () async {
@@ -747,6 +755,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('request name - replace', () async {
@@ -776,6 +785,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('request name - replace, do not queue', () async {
@@ -807,6 +817,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('request name - replace not allowed', () async {
@@ -835,6 +846,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('request name - empty', () async {
@@ -853,6 +865,8 @@ void main() {
     }
 
     await client.close();
+    await server.close();
+    await server.close();
   });
 
   test('request name - unique', () async {
@@ -871,6 +885,7 @@ void main() {
     }
 
     await client.close();
+    await server.close();
   });
 
   test('request name - not enough elements', () async {
@@ -889,6 +904,7 @@ void main() {
     }
 
     await client.close();
+    await server.close();
   });
 
   test('request name - leading period', () async {
@@ -907,6 +923,7 @@ void main() {
     }
 
     await client.close();
+    await server.close();
   });
 
   test('request name - trailing period', () async {
@@ -925,6 +942,7 @@ void main() {
     }
 
     await client.close();
+    await server.close();
   });
 
   test('request name - empty element', () async {
@@ -943,6 +961,7 @@ void main() {
     }
 
     await client.close();
+    await server.close();
   });
 
   test('release name', () async {
@@ -974,6 +993,7 @@ void main() {
     expect(names, isEmpty);
 
     await client.close();
+    await server.close();
   });
 
   test('release name - non existant', () async {
@@ -987,6 +1007,7 @@ void main() {
     expect(releaseReply, equals(DBusReleaseNameReply.nonExistant));
 
     await client.close();
+    await server.close();
   });
 
   test('release name - not owner', () async {
@@ -1007,6 +1028,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('release name - queue', () async {
@@ -1039,6 +1061,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('release name - empty', () async {
@@ -1057,6 +1080,7 @@ void main() {
     }
 
     await client.close();
+    await server.close();
   });
 
   test('release name - unique name', () async {
@@ -1075,6 +1099,7 @@ void main() {
     }
 
     await client.close();
+    await server.close();
   });
 
   test('list activatable names', () async {
@@ -1088,6 +1113,7 @@ void main() {
     expect(names, equals(['org.freedesktop.DBus']));
 
     await client.close();
+    await server.close();
   });
 
   test('start service by name', () async {
@@ -1120,6 +1146,7 @@ void main() {
     }
 
     await client.close();
+    await server.close();
   });
 
   test('get unix user', () async {
@@ -1132,6 +1159,7 @@ void main() {
     expect(uid, equals(getuid()));
 
     await client.close();
+    await server.close();
   });
 
   test('get process id', () async {
@@ -1144,6 +1172,7 @@ void main() {
     expect(pid_, equals(pid));
 
     await client.close();
+    await server.close();
   });
 
   test('get credentials', () async {
@@ -1158,6 +1187,7 @@ void main() {
     expect(credentials.processId, equals(pid));
 
     await client.close();
+    await server.close();
   });
 
   test('call method', () async {
@@ -1186,6 +1216,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('call method - no response', () async {
@@ -1210,6 +1241,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('call method - registered name', () async {
@@ -1234,6 +1266,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('call method - dict container key', () async {
@@ -1261,6 +1294,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('call method - maybe type', () async {
@@ -1287,6 +1321,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('call method - maybe signature', () async {
@@ -1314,6 +1349,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('call method - expected signature', () async {
@@ -1338,6 +1374,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('call method - expected signature mismatch', () async {
@@ -1366,6 +1403,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('call method - no autostart', () async {
@@ -1391,6 +1429,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('call method - allow interactive authorization', () async {
@@ -1416,6 +1455,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('call method - error', () async {
@@ -1446,6 +1486,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('call method - remote object', () async {
@@ -1476,6 +1517,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('call method - remote object - expected signature', () async {
@@ -1502,6 +1544,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('call method - remote object - expected signature mismatch', () async {
@@ -1532,6 +1575,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('subscribe signal', () async {
@@ -1794,6 +1838,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('introspect - not introspectable', () async {
@@ -1822,6 +1867,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('get property', () async {
@@ -1861,6 +1907,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('get property - match signature', () async {
@@ -1891,6 +1938,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('set property', () async {
@@ -1934,6 +1982,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('get all properties', () async {
@@ -2042,6 +2091,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('object manager - no interfaces', () async {
@@ -2071,6 +2121,7 @@ void main() {
 
     await client1.close();
     await client2.close();
+    await server.close();
   });
 
   test('object manager - not introspectable', () async {
