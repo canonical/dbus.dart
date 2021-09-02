@@ -201,11 +201,6 @@ class _DBusServerSocket {
 
   Future<void> close() async {
     await socket.close();
-
-    /// Delete the file used by Unix sockets.
-    if (socket.address.type == InternetAddressType.unix) {
-      await File(socket.address.host).delete();
-    }
   }
 }
 
