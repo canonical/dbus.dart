@@ -620,6 +620,15 @@ void main() {
   });
 
   test('ping - ipv6 tcp', () async {
+    // Check if IPv6 support is available on this host, otherwise skip the test.
+    try {
+      var socket = await ServerSocket.bind(InternetAddress.loopbackIPv6, 0);
+      await socket.close();
+    } on SocketException {
+      markTestSkipped('IPv6 support not available');
+      return;
+    }
+
     var server = DBusServer();
     var address = await server.listenAddress(
         DBusAddress.tcp('localhost', family: DBusAddressTcpFamily.ipv6));
@@ -631,7 +640,7 @@ void main() {
 
     // Check can ping the server.
     await client.ping();
-  }, tags: ['ipv6']);
+  });
 
   test('list names', () async {
     var server = DBusServer();
