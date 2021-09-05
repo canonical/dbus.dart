@@ -32,10 +32,6 @@ class _DBusServerErrorResponse extends DBusMethodErrorResponse {
       : super('org.freedesktop.DBus.Error.ServiceUnknown',
             message != null ? [DBusString(message)] : []);
 
-  _DBusServerErrorResponse.serviceNotFound([String? message])
-      : super('org.freedesktop.DBus.Error.ServiceNotFound',
-            message != null ? [DBusString(message)] : []);
-
   _DBusServerErrorResponse.nameHasNoOwner([String? message])
       : super('org.freedesktop.DBus.Error.NameHasNoOwner',
             message != null ? [DBusString(message)] : []);
@@ -863,7 +859,7 @@ class DBusServer {
       case DBusServerStartServiceResult.alreadyRunning:
         return DBusMethodSuccessResponse([DBusUint32(2)]);
       case DBusServerStartServiceResult.notFound:
-        return _DBusServerErrorResponse.serviceNotFound();
+        return _DBusServerErrorResponse.serviceUnknown();
     }
   }
 
