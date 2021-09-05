@@ -15,10 +15,14 @@ void main() async {
     DBusDict(DBusSignature('s'), DBusSignature('v')), // Hints
     DBusInt32(-1), // Expire timeout
   ];
-  var result = await object.callMethod(
-      'org.freedesktop.Notifications', 'Notify', values,
-      replySignature: DBusSignature('u'));
-  var id = result.returnValues[0];
-  print('notify ${id.toNative()}');
+  try {
+    var result = await object.callMethod(
+        'org.freedesktop.Notifications', 'Notify', values,
+        replySignature: DBusSignature('u'));
+    var id = result.returnValues[0];
+    print('notify ${id.toNative()}');
+  } on DBusServiceUnknownException {
+    print('Notification service not available');
+  }
   await client.close();
 }
