@@ -1,5 +1,8 @@
 import 'dbus_value.dart';
 
+// Namespace used for standard D-Bus errors.
+const _dbusErrorNamespacePrefix = 'org.freedesktop.DBus.Error.';
+
 /// A response to a method call.
 abstract class DBusMethodResponse {
   /// Gets the value returned from this method or throws a [DBusMethodResponseException] if an error received.
@@ -28,7 +31,10 @@ class DBusMethodSuccessResponse extends DBusMethodResponse {
 
 /// Exception when error received calling a D-Bus method on a remote object.
 class DBusMethodResponseException implements Exception {
-  /// The response that generated the exception
+  /// Name of the error.
+  String get errorName => response.errorName;
+
+  /// The response that generated the exception.
   final DBusMethodErrorResponse response;
 
   DBusMethodResponseException(this.response);
@@ -43,6 +49,83 @@ class DBusMethodResponseException implements Exception {
       return '${response.errorName}: ${response.values.map((value) => value.toNative())}';
     }
   }
+}
+
+/// Standard D-Bus exception in the org.freedesktop.DBus.Error namespace.
+class DBusErrorException extends DBusMethodResponseException {
+  /// Message passed with exception.
+  String get message => (response.values[0] as DBusString).value;
+
+  DBusErrorException(DBusMethodErrorResponse response) : super(response) {
+    assert(response.errorName.startsWith(_dbusErrorNamespacePrefix));
+  }
+}
+
+/// Exception when a general failure occurs.
+class DBusFailedException extends DBusErrorException {
+  DBusFailedException(DBusMethodErrorResponse response) : super(response);
+}
+
+/// Exception when there is no service providing the requested bus name.
+class DBusServiceUnknownException extends DBusErrorException {
+  DBusServiceUnknownException(DBusMethodErrorResponse response)
+      : super(response);
+}
+
+/// Exception when an unknown object was requested.
+class DBusUnknownObjectException extends DBusErrorException {
+  DBusUnknownObjectException(DBusMethodErrorResponse response)
+      : super(response);
+}
+
+/// Exception when an unknown interface was requested.
+class DBusUnknownInterfaceException extends DBusErrorException {
+  DBusUnknownInterfaceException(DBusMethodErrorResponse response)
+      : super(response);
+}
+
+/// Exception when an unknown method was requested.
+class DBusUnknownMethodException extends DBusErrorException {
+  DBusUnknownMethodException(DBusMethodErrorResponse response)
+      : super(response);
+}
+
+/// Exception when a request times out.
+class DBusTimeoutException extends DBusErrorException {
+  DBusTimeoutException(DBusMethodErrorResponse response) : super(response);
+}
+
+/// Exception when invalid arguments were provided to a method call.
+class DBusInvalidArgsException extends DBusErrorException {
+  DBusInvalidArgsException(DBusMethodErrorResponse response) : super(response);
+}
+
+/// Exception when an unknown property was requested.
+class DBusUnknownPropertyException extends DBusErrorException {
+  DBusUnknownPropertyException(DBusMethodErrorResponse response)
+      : super(response);
+}
+
+/// Exception when a read-only property was written to.
+class DBusPropertyReadOnlyException extends DBusErrorException {
+  DBusPropertyReadOnlyException(DBusMethodErrorResponse response)
+      : super(response);
+}
+
+/// Exception when a write-only property was read from.
+class DBusPropertyWriteOnlyException extends DBusErrorException {
+  DBusPropertyWriteOnlyException(DBusMethodErrorResponse response)
+      : super(response);
+}
+
+/// Exception when access was denied to the requested resource.
+class DBusAccessDeniedException extends DBusErrorException {
+  DBusAccessDeniedException(DBusMethodErrorResponse response) : super(response);
+}
+
+/// Exception when authentication failed accessing the requested resource.
+class DBusAuthFailedException extends DBusErrorException {
+  DBusAuthFailedException(DBusMethodErrorResponse response) : super(response);
 }
 
 /// An error response to a method call.
@@ -76,6 +159,11 @@ class DBusMethodErrorResponse extends DBusMethodResponse {
       : this('org.freedesktop.DBus.Error.UnknownMethod',
             message != null ? [DBusString(message)] : []);
 
+  /// Creates a new error response indicating the request timed out.
+  DBusMethodErrorResponse.timedOut([String? message])
+      : this('org.freedesktop.DBus.Error.<Timeout',
+            message != null ? [DBusString(message)] : []);
+
   /// Creates a new error response indicating the arguments passed were invalid.
   DBusMethodErrorResponse.invalidArgs([String? message])
       : this('org.freedesktop.DBus.Error.InvalidArgs',
@@ -99,6 +187,11 @@ class DBusMethodErrorResponse extends DBusMethodResponse {
   /// Creates a new error response indicating access was denied.
   DBusMethodErrorResponse.accessDenied([String? message])
       : this('org.freedesktop.DBus.Error.AccessDenied',
+            message != null ? [DBusString(message)] : []);
+
+  /// Creates a new error response indicating authentication failed.
+  DBusMethodErrorResponse.authFailed([String? message])
+      : this('org.freedesktop.DBus.Error.AuthFailed',
             message != null ? [DBusString(message)] : []);
 
   @override

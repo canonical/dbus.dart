@@ -550,6 +550,12 @@ class DBusClient {
   /// If [replySignature] is provided this causes this method to throw a
   /// [DBusReplySignatureException] if the result is successful but the returned
   /// values do not match the provided signature.
+  ///
+  /// Throws [DBusServiceUnknownException] if [destination] is not a provided service.
+  /// Throws [DBusUnknownObjectException] if no object is provided at [path].
+  /// Throws [DBusUnknownInterfaceException] if [interface] is not provided by this object.
+  /// Throws [DBusUnknownMethodException] if the method with [name] is not available.
+  /// Throws [DBusInvalidArgsException] if [values] aren't correct.
   Future<DBusMethodSuccessResponse> callMethod(
       {String? destination,
       required DBusObjectPath path,
@@ -1073,7 +1079,38 @@ class DBusClient {
 
       return r;
     } else if (r is DBusMethodErrorResponse) {
-      throw DBusMethodResponseException(r);
+      if (r.errorName.startsWith('org.freedesktop.DBus.Error.')) {
+        switch (r.errorName) {
+          case 'org.freedesktop.DBus.Error.Failed':
+            throw DBusFailedException(r);
+          case 'org.freedesktop.DBus.Error.ServiceUnknown':
+            throw DBusServiceUnknownException(r);
+          case 'org.freedesktop.DBus.Error.UnknownObject':
+            throw DBusUnknownObjectException(r);
+          case 'org.freedesktop.DBus.Error.UnknownInterface':
+            throw DBusUnknownInterfaceException(r);
+          case 'org.freedesktop.DBus.Error.UnknownMethod':
+            throw DBusUnknownMethodException(r);
+          case 'org.freedesktop.DBus.Error.Timeout':
+            throw DBusTimeoutException(r);
+          case 'org.freedesktop.DBus.Error.InvalidArgs':
+            throw DBusInvalidArgsException(r);
+          case 'org.freedesktop.DBus.Error.UnknownProperty':
+            throw DBusUnknownPropertyException(r);
+          case 'org.freedesktop.DBus.Error.PropertyReadOnly':
+            throw DBusPropertyReadOnlyException(r);
+          case 'org.freedesktop.DBus.Error.PropertyWriteOnly':
+            throw DBusPropertyWriteOnlyException(r);
+          case 'org.freedesktop.DBus.Error.AccessDenied':
+            throw DBusAccessDeniedException(r);
+          case 'org.freedesktop.DBus.Error.AuthFailed':
+            throw DBusAuthFailedException(r);
+          default:
+            throw DBusErrorException(r);
+        }
+      } else {
+        throw DBusMethodResponseException(r);
+      }
     } else {
       throw 'Unknown response type';
     }

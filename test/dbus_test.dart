@@ -899,13 +899,8 @@ void main() {
     });
 
     // Attempt to request an empty bus name
-    try {
-      await client.requestName('');
-      fail('Expected DBusMethodResponseException');
-    } on DBusMethodResponseException catch (e) {
-      expect(e.response.errorName,
-          equals('org.freedesktop.DBus.Error.InvalidArgs'));
-    }
+    expect(
+        () => client.requestName(''), throwsA(isA<DBusInvalidArgsException>()));
   });
 
   test('request name - unique', () async {
@@ -919,13 +914,8 @@ void main() {
     });
 
     // Attempt to request a unique bus name
-    try {
-      await client.requestName(':unique');
-      fail('Expected DBusMethodResponseException');
-    } on DBusMethodResponseException catch (e) {
-      expect(e.response.errorName,
-          equals('org.freedesktop.DBus.Error.InvalidArgs'));
-    }
+    expect(() => client.requestName(':unique'),
+        throwsA(isA<DBusInvalidArgsException>()));
   });
 
   test('request name - not enough elements', () async {
@@ -939,13 +929,8 @@ void main() {
     });
 
     // Attempt to request a unique bus name
-    try {
-      await client.requestName('foo');
-      fail('Expected DBusMethodResponseException');
-    } on DBusMethodResponseException catch (e) {
-      expect(e.response.errorName,
-          equals('org.freedesktop.DBus.Error.InvalidArgs'));
-    }
+    expect(() => client.requestName('foo'),
+        throwsA(isA<DBusInvalidArgsException>()));
   });
 
   test('request name - leading period', () async {
@@ -959,13 +944,8 @@ void main() {
     });
 
     // Attempt to request a unique bus name
-    try {
-      await client.requestName('.foo.bar');
-      fail('Expected DBusMethodResponseException');
-    } on DBusMethodResponseException catch (e) {
-      expect(e.response.errorName,
-          equals('org.freedesktop.DBus.Error.InvalidArgs'));
-    }
+    expect(() => client.requestName('.foo.bar'),
+        throwsA(isA<DBusInvalidArgsException>()));
   });
 
   test('request name - trailing period', () async {
@@ -979,13 +959,8 @@ void main() {
     });
 
     // Attempt to request a unique bus name
-    try {
-      await client.requestName('foo.bar.');
-      fail('Expected DBusMethodResponseException');
-    } on DBusMethodResponseException catch (e) {
-      expect(e.response.errorName,
-          equals('org.freedesktop.DBus.Error.InvalidArgs'));
-    }
+    expect(() => client.requestName('foo.bar.'),
+        throwsA(isA<DBusInvalidArgsException>()));
   });
 
   test('request name - empty element', () async {
@@ -999,13 +974,8 @@ void main() {
     });
 
     // Attempt to request a unique bus name
-    try {
-      await client.requestName('foo..bar');
-      fail('Expected DBusMethodResponseException');
-    } on DBusMethodResponseException catch (e) {
-      expect(e.response.errorName,
-          equals('org.freedesktop.DBus.Error.InvalidArgs'));
-    }
+    expect(() => client.requestName('foo..bar'),
+        throwsA(isA<DBusInvalidArgsException>()));
   });
 
   test('release name', () async {
@@ -1123,13 +1093,8 @@ void main() {
     });
 
     // Attempt to release an empty bus name.
-    try {
-      await client.releaseName('');
-      fail('Expected DBusMethodResponseException');
-    } on DBusMethodResponseException catch (e) {
-      expect(e.response.errorName,
-          equals('org.freedesktop.DBus.Error.InvalidArgs'));
-    }
+    expect(
+        () => client.releaseName(''), throwsA(isA<DBusInvalidArgsException>()));
   });
 
   test('release name - unique name', () async {
@@ -1143,13 +1108,8 @@ void main() {
     });
 
     // Attempt to release the unique name of this client.
-    try {
-      await client.releaseName(client.uniqueName);
-      fail('Expected DBusMethodResponseException');
-    } on DBusMethodResponseException catch (e) {
-      expect(e.response.errorName,
-          equals('org.freedesktop.DBus.Error.InvalidArgs'));
-    }
+    expect(() => client.releaseName(client.uniqueName),
+        throwsA(isA<DBusInvalidArgsException>()));
   });
 
   test('list activatable names', () async {
@@ -1192,13 +1152,8 @@ void main() {
     var result2 = await client.startServiceByName('com.example.AlreadyRunning');
     expect(result2, equals(DBusStartServiceByNameReply.alreadyRunning));
 
-    try {
-      await client.startServiceByName('com.example.DoesNotExist');
-      fail('Expected DBusMethodResponseException');
-    } on DBusMethodResponseException catch (e) {
-      expect(e.response.errorName,
-          equals('org.freedesktop.DBus.Error.ServiceUnknown'));
-    }
+    expect(() => client.startServiceByName('com.example.DoesNotExist'),
+        throwsA(isA<DBusServiceUnknownException>()));
   });
 
   test('get unix user', () async {
@@ -1579,9 +1534,8 @@ void main() {
           path: DBusObjectPath('/'),
           name: 'Test');
       fail('Expected DBusMethodResponseException');
-    } on DBusMethodResponseException catch (e) {
-      expect(e.response.errorName, equals('org.freedesktop.DBus.Error.Failed'));
-      expect(e.response.values, equals([DBusString('Failure message')]));
+    } on DBusFailedException catch (e) {
+      expect(e.message, equals('Failure message'));
     }
   });
 
@@ -1601,15 +1555,12 @@ void main() {
     await client1.registerObject(TestObject());
 
     // Try and access an unknown object.
-    try {
-      await client2.callMethod(
-          destination: client1.uniqueName,
-          path: DBusObjectPath('/no/such/object'),
-          name: 'Test');
-    } on DBusMethodResponseException catch (e) {
-      expect(e.response.errorName,
-          equals('org.freedesktop.DBus.Error.UnknownObject'));
-    }
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/no/such/object'),
+            name: 'Test'),
+        throwsA(isA<DBusUnknownObjectException>()));
   });
 
   test('call method - unknown interface', () async {
@@ -1628,17 +1579,13 @@ void main() {
     await client1.registerObject(TestObject());
 
     // Try and access an unknown interface on that object.
-    try {
-      await client2.callMethod(
-          destination: client1.uniqueName,
-          path: DBusObjectPath('/'),
-          interface: 'com.example.NoSuchInterface',
-          name: 'Test');
-      fail('Expected DBusMethodResponseException');
-    } on DBusMethodResponseException catch (e) {
-      expect(e.response.errorName,
-          equals('org.freedesktop.DBus.Error.UnknownInterface'));
-    }
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            interface: 'com.example.NoSuchInterface',
+            name: 'Test'),
+        throwsA(isA<DBusUnknownInterfaceException>()));
   });
 
   test('call method - unknown method', () async {
@@ -1657,16 +1604,12 @@ void main() {
     await client1.registerObject(TestObject());
 
     // Try and access an unknown interface on that object.
-    try {
-      await client2.callMethod(
-          destination: client1.uniqueName,
-          path: DBusObjectPath('/'),
-          name: 'NoSuchMethod');
-      fail('Expected DBusMethodResponseException');
-    } on DBusMethodResponseException catch (e) {
-      expect(e.response.errorName,
-          equals('org.freedesktop.DBus.Error.UnknownMethod'));
-    }
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            name: 'NoSuchMethod'),
+        throwsA(isA<DBusUnknownMethodException>()));
   });
 
   test('call method - access denied', () async {
@@ -1687,17 +1630,12 @@ void main() {
     }));
 
     // Call the method from another client.
-    try {
-      await client2.callMethod(
-          destination: client1.uniqueName,
-          path: DBusObjectPath('/'),
-          name: 'Test');
-      fail('Expected DBusMethodResponseException');
-    } on DBusMethodResponseException catch (e) {
-      expect(e.response.errorName,
-          equals('org.freedesktop.DBus.Error.AccessDenied'));
-      expect(e.response.values, equals([DBusString('Failure message')]));
-    }
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            name: 'Test'),
+        throwsA(isA<DBusAccessDeniedException>()));
   });
 
   test('call method - remote object', () async {
@@ -2107,13 +2045,8 @@ void main() {
     // Unable to read introspection data from the first client.
     var remoteObject = DBusRemoteObject(client2,
         name: client1.uniqueName, path: DBusObjectPath('/'));
-    try {
-      await remoteObject.introspect();
-      fail('Expected DBusMethodResponseException');
-    } on DBusMethodResponseException catch (e) {
-      expect(e.response.errorName,
-          equals('org.freedesktop.DBus.Error.UnknownInterface'));
-    }
+    expect(() => remoteObject.introspect(),
+        throwsA(isA<DBusUnknownInterfaceException>()));
   });
 
   test('get property', () async {

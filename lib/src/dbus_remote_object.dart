@@ -95,6 +95,10 @@ class DBusRemoteObject {
   }
 
   /// Gets the introspection data for this object.
+  ///
+  /// Throws [DBusServiceUnknownException] if there is the requested service is not available.
+  /// Throws [DBusUnknownObjectException] if this object is not available.
+  /// Throws [DBusUnknownInterfaceException] if introspection is not supported by this object.
   Future<DBusIntrospectNode> introspect() async {
     var result = await client.callMethod(
         destination: name,
@@ -111,6 +115,12 @@ class DBusRemoteObject {
   /// If [signature] is provided this causes this method to throw a
   /// [DBusPropertySignatureException] if a property is returned that does not
   /// match the provided signature.
+  ///
+  /// Throws [DBusServiceUnknownException] if there is the requested service is not available.
+  /// Throws [DBusUnknownObjectException] if this object is not available.
+  /// Throws [DBusUnknownInterfaceException] if properties are not supported by this object.
+  /// Throws [DBusUnknownPropertyException] if the property doesn't exist.
+  /// Throws [DBusPropertyWriteOnlyException] if the property can't be read.
   Future<DBusValue> getProperty(String interface, String name,
       {DBusSignature? signature}) async {
     var result = await client.callMethod(
@@ -128,6 +138,10 @@ class DBusRemoteObject {
   }
 
   /// Gets the values of all the properties on this object.
+  ///
+  /// Throws [DBusServiceUnknownException] if there is the requested service is not available.
+  /// Throws [DBusUnknownObjectException] if this object is not available.
+  /// Throws [DBusUnknownInterfaceException] if properties are not supported by this object.
   Future<Map<String, DBusValue>> getAllProperties(String interface) async {
     var result = await client.callMethod(
         destination: name,
@@ -141,6 +155,12 @@ class DBusRemoteObject {
   }
 
   /// Sets a property on this object.
+  ///
+  /// Throws [DBusServiceUnknownException] if there is the requested service is not available.
+  /// Throws [DBusUnknownObjectException] if this object is not available.
+  /// Throws [DBusUnknownInterfaceException] if properties are not supported by this object.
+  /// Throws [DBusUnknownPropertyException] if the property doesn't exist.
+  /// Throws [DBusPropertyReadOnlyException] if the property can't be written.
   Future<void> setProperty(
       String interface, String name, DBusValue value) async {
     await client.callMethod(
@@ -158,6 +178,12 @@ class DBusRemoteObject {
   /// If [replySignature] is provided this causes this method to throw a
   /// [DBusReplySignatureException] if the result is successful but the returned
   /// values do not match the provided signature.
+  ///
+  /// Throws [DBusServiceUnknownException] if there is the requested service is not available.
+  /// Throws [DBusUnknownObjectException] if this object is not available.
+  /// Throws [DBusUnknownInterfaceException] if [interface] is not provided by this object.
+  /// Throws [DBusUnknownMethodException] if the method with [name] is not available.
+  /// Throws [DBusInvalidArgsException] if [args] aren't correct.
   Future<DBusMethodSuccessResponse> callMethod(
       String? interface, String name, Iterable<DBusValue> values,
       {DBusSignature? replySignature,
