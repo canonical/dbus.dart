@@ -1197,7 +1197,7 @@ void main() {
       fail('Expected DBusMethodResponseException');
     } on DBusMethodResponseException catch (e) {
       expect(e.response.errorName,
-          equals('org.freedesktop.DBus.Error.ServiceNotFound'));
+          equals('org.freedesktop.DBus.Error.ServiceUnknown'));
     }
   });
 
