@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:pedantic/pedantic.dart';
+
 import 'dbus_address.dart';
 import 'dbus_auth_client.dart';
 import 'dbus_bus_name.dart';
@@ -172,10 +174,14 @@ class DBusSignalSignatureException implements Exception {
   }
 }
 
+/// Exception thrown when a request is sent and the connection to the D-Bus server is closed.
+class DBusClosedException implements Exception {}
+
 /// A client connection to a D-Bus server.
 class DBusClient {
   final DBusAddress _address;
   Socket? _socket;
+  var _socketClosed = false;
   final _readBuffer = DBusReadBuffer();
   final _authClient = DBusAuthClient();
   Completer? _connectCompleter;
@@ -728,6 +734,9 @@ class DBusClient {
     _socket = await Socket.connect(socketAddress, port);
     _socket?.listen(_processData,
         onError: (error) {}, onDone: () => _socket!.close());
+    unawaited(_socket?.done.then((value) {
+      _socketClosed = true;
+    }));
   }
 
   /// Performs authentication with D-Bus server.
@@ -853,13 +862,15 @@ class DBusClient {
     }
 
     if (count == 1) {
-      await callMethod(
-          destination: 'org.freedesktop.DBus',
-          path: DBusObjectPath('/org/freedesktop/DBus'),
-          interface: 'org.freedesktop.DBus',
-          name: 'RemoveMatch',
-          values: [DBusString(rule)],
-          replySignature: DBusSignature(''));
+      if (!_socketClosed) {
+        await callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/org/freedesktop/DBus'),
+            interface: 'org.freedesktop.DBus',
+            name: 'RemoveMatch',
+            values: [DBusString(rule)],
+            replySignature: DBusSignature(''));
+      }
       _matchRules.remove(rule);
     } else {
       _matchRules[rule] = count - 1;
@@ -953,6 +964,10 @@ class DBusClient {
     }
 
     if (message.flags.contains(DBusMessageFlag.noReplyExpected)) {
+      return;
+    }
+
+    if (_socketClosed) {
       return;
     }
 
@@ -1119,7 +1134,7 @@ class DBusClient {
 
   /// Sends a method return to the D-Bus server.
   void _sendReturn(
-      int serial, DBusBusName? destination, Iterable<DBusValue> values) async {
+      int serial, DBusBusName? destination, Iterable<DBusValue> values) {
     _lastSerial++;
     var message = DBusMessage(DBusMessageType.methodReturn,
         serial: _lastSerial,
@@ -1131,7 +1146,7 @@ class DBusClient {
 
   /// Sends an error to the D-Bus server.
   void _sendError(int serial, DBusBusName? destination, String errorName,
-      Iterable<DBusValue> values) async {
+      Iterable<DBusValue> values) {
     _lastSerial++;
     var message = DBusMessage(DBusMessageType.error,
         serial: _lastSerial,
@@ -1148,7 +1163,7 @@ class DBusClient {
       DBusObjectPath path,
       DBusInterfaceName interface,
       DBusMemberName name,
-      Iterable<DBusValue> values) async {
+      Iterable<DBusValue> values) {
     _lastSerial++;
     var message = DBusMessage(DBusMessageType.signal,
         serial: _lastSerial,
@@ -1162,6 +1177,10 @@ class DBusClient {
 
   /// Sends a message (method call/return/error/signal) to the D-Bus server.
   void _sendMessage(DBusMessage message) {
+    if (_socketClosed) {
+      throw DBusClosedException();
+    }
+
     var buffer = DBusWriteBuffer();
     buffer.writeMessage(message);
     _socket?.add(buffer.data);
