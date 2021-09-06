@@ -54,7 +54,12 @@ class DBusMethodResponseException implements Exception {
 /// Standard D-Bus exception in the org.freedesktop.DBus.Error namespace.
 class DBusErrorException extends DBusMethodResponseException {
   /// Message passed with exception.
-  String get message => (response.values[0] as DBusString).value;
+  String get message {
+    if (response.values.isNotEmpty && response.values.first is DBusString) {
+      return (response.values.first as DBusString).value;
+    }
+    return '';
+  }
 
   DBusErrorException(DBusMethodErrorResponse response) : super(response) {
     assert(response.errorName.startsWith(_dbusErrorNamespacePrefix));
