@@ -655,6 +655,25 @@ void main() {
     await client.ping();
   });
 
+  test('connection closed', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(abstract: 'abstract'));
+    var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+    });
+
+    // Connect to the server.
+    await client.ping();
+
+    // Stop the server.
+    await server.close();
+
+    // Check error trying to send message.
+    expect(() => client.ping(), throwsA(isA<DBusClosedException>()));
+  });
+
   test('list names', () async {
     var server = DBusServer();
     var address =
