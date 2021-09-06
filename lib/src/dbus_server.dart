@@ -1,7 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'dbus_address.dart';
 import 'dbus_auth_server.dart';
@@ -57,7 +57,7 @@ class _DBusRemoteClient {
   DBusServer get server => serverSocket.server;
 
   /// The socket this client is communicating on.
-  final Socket _socket;
+  final RawSocket _socket;
 
   /// Incoming data.
   final _readBuffer = DBusReadBuffer();
@@ -76,9 +76,17 @@ class _DBusRemoteClient {
 
   _DBusRemoteClient(this.serverSocket, this._socket, this.uniqueName)
       : _authServer = DBusAuthServer(serverSocket.uuid) {
-    _authServer.responses.listen((message) => _socket.write(message + '\r\n'));
-    _socket.listen(_processData,
-        onError: (error) {}, onDone: () => _socket.close());
+    _authServer.responses
+        .listen((message) => _socket.write(utf8.encode(message + '\r\n')));
+    _socket.listen((event) {
+      if (event == RawSocketEvent.read) {
+        _readData();
+      } else if (event == RawSocketEvent.closed ||
+          event == RawSocketEvent.readClosed) {
+        serverSocket._clientDisconnected(this);
+        _socket.close();
+      }
+    });
   }
 
   /// True if this client has a rule that matches [message].
@@ -105,15 +113,19 @@ class _DBusRemoteClient {
   void sendMessage(DBusMessage message) {
     var buffer = DBusWriteBuffer();
     buffer.writeMessage(message);
-    _socket.add(buffer.data);
+    _socket.write(buffer.data);
   }
 
   Future<void> close() async {
     await _socket.close();
   }
 
-  /// Processes incoming data from this D-Bus client.
-  void _processData(Uint8List data) {
+  /// Reads incoming data from this D-Bus client.
+  void _readData() {
+    var data = _socket.read();
+    if (data == null) {
+      return;
+    }
     _readBuffer.writeBytes(data);
 
     var complete = false;
@@ -173,7 +185,7 @@ class _DBusServerSocket {
   final DBusServer server;
 
   /// Socket being listened on.
-  final ServerSocket socket;
+  final RawServerSocket socket;
 
   /// Id for this connection.
   final int connectionId;
@@ -193,7 +205,6 @@ class _DBusServerSocket {
       _nextClientId++;
       var client = _DBusRemoteClient(this, clientSocket, uniqueName);
       _clients.add(client);
-      clientSocket.done.then((value) => _clientDisconnected(client));
     }, onError: (error) {}, onDone: () => socket.close());
   }
 
@@ -452,7 +463,7 @@ class DBusServer {
 
   Future<_DBusServerSocket> _addServerSocket(
       InternetAddress address, int port) async {
-    var socket = await ServerSocket.bind(address, port);
+    var socket = await RawServerSocket.bind(address, port);
     var serverSocket = _DBusServerSocket(this, socket, _nextConnectionId);
     _sockets.add(serverSocket);
     _nextConnectionId++;
