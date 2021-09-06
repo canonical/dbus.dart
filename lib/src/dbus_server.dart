@@ -78,7 +78,8 @@ class _DBusRemoteClient {
   _DBusRemoteClient(this.serverSocket, this._socket, this.uniqueName)
       : _authServer = DBusAuthServer(serverSocket.uuid) {
     _authServer.responses.listen((message) => _socket.write(message + '\r\n'));
-    _socket.listen(_processData);
+    _socket.listen(_processData,
+        onError: (error) {}, onDone: () => _socket.close());
   }
 
   /// True if this client has a rule that matches [message].
@@ -192,7 +193,7 @@ class _DBusServerSocket {
       var uniqueName = DBusBusName(':$connectionId.$_nextClientId');
       _nextClientId++;
       _clients.add(_DBusRemoteClient(this, clientSocket, uniqueName));
-    });
+    }, onError: (error) {}, onDone: () => socket.close());
   }
 
   Future<void> close() async {

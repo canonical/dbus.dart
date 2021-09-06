@@ -726,7 +726,8 @@ class DBusClient {
     }
 
     _socket = await Socket.connect(socketAddress, port);
-    _socket?.listen(_processData);
+    _socket?.listen(_processData,
+        onError: (error) {}, onDone: () => _socket!.close());
   }
 
   /// Performs authentication with D-Bus server.
