@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
@@ -192,11 +193,23 @@ class _DBusServerSocket {
     socket.listen((clientSocket) {
       var uniqueName = DBusBusName(':$connectionId.$_nextClientId');
       _nextClientId++;
-      _clients.add(_DBusRemoteClient(this, clientSocket, uniqueName));
+      var client = _DBusRemoteClient(this, clientSocket, uniqueName);
+      _clients.add(client);
+      clientSocket.done.then((value) => _clientDisconnected(client));
     }, onError: (error) {}, onDone: () => socket.close());
   }
 
+  /// Handle a client disconnecting.
+  void _clientDisconnected(_DBusRemoteClient client) {
+    _clients.remove(client);
+    server._releaseAllNames(client);
+  }
+
   Future<void> close() async {
+    // Note the client list is copied, as it might be modified as clients close.
+    for (var client in _clients.toList()) {
+      await client.close();
+    }
     await socket.close();
   }
 }
@@ -266,7 +279,7 @@ class _DBusNameQueue {
   bool hasRequest(_DBusRemoteClient client) => requests.containsKey(client);
 
   /// Remove a request from [client] for this name.
-  /// Returns true if there was a reuest to remove.
+  /// Returns true if there was a request to remove.
   bool removeRequest(_DBusRemoteClient client) {
     return requests.remove(client) != null;
   }
@@ -448,9 +461,6 @@ class DBusServer {
   Future<void> close() async {
     for (var socket in _sockets) {
       await socket.close();
-    }
-    for (var client in _clients) {
-      await client.close();
     }
   }
 
@@ -753,11 +763,7 @@ class DBusServer {
     int returnValue;
     if (queue == null) {
       returnValue = 2; // nonExistant
-    } else if (queue.removeRequest(client)) {
-      // Remove empty queues.
-      if (queue.requests.isEmpty) {
-        _nameQueues.remove(name_);
-      }
+    } else if (_removeRequest(name_, client)) {
       returnValue = 1; // released
     } else {
       returnValue = 3; // notOwned
@@ -766,6 +772,35 @@ class DBusServer {
     _emitNameSignals(name_, oldOwner);
 
     return DBusMethodSuccessResponse([DBusUint32(returnValue)]);
+  }
+
+  /// Release all names owned by [client].
+  void _releaseAllNames(_DBusRemoteClient client) {
+    var names = _nameQueues.keys.toList();
+    for (var name in names) {
+      var queue = _nameQueues[name]!;
+      var oldOwner = queue.owner;
+      _removeRequest(name, client);
+      _emitNameSignals(name, oldOwner);
+    }
+  }
+
+  /// Removes a request of [name] by [client].
+  /// Returns true if a request was removed.
+  bool _removeRequest(DBusBusName name, _DBusRemoteClient client) {
+    var queue = _nameQueues[name];
+    if (queue == null) {
+      return false;
+    }
+
+    var removed = queue.removeRequest(client);
+
+    // Remove empty queues.
+    if (queue.requests.isEmpty) {
+      _nameQueues.remove(name);
+    }
+
+    return removed;
   }
 
   /// Emit signals if [name] is no longer owned by [oldOwner].
