@@ -174,6 +174,31 @@ class DBusSignalSignatureException implements Exception {
   }
 }
 
+/// Event generated when a bus name ownership changes.
+class DBusNameOwnerChangedEvent {
+  /// The bus name that has changed ownership.
+  final String name;
+
+  /// The unique bus name of the owner of this name, or null if it was previously unowned.
+  final String? oldOwner;
+
+  /// The unique bus name of the new owner of this name, or null if it is no longer owned.
+  final String? newOwner;
+
+  const DBusNameOwnerChangedEvent(this.name, {this.oldOwner, this.newOwner});
+
+  @override
+  String toString() =>
+      'DBusNameOwnerChangedEvent($name, oldOwner: $oldOwner, newOwner: $newOwner)';
+
+  @override
+  bool operator ==(other) =>
+      other is DBusNameOwnerChangedEvent &&
+      other.name == name &&
+      other.oldOwner == oldOwner &&
+      other.newOwner == newOwner;
+}
+
 /// Exception thrown when a request is sent and the connection to the D-Bus server is closed.
 class DBusClosedException implements Exception {}
 
@@ -190,7 +215,7 @@ class DBusClient {
   final _signalStreams = <DBusSignalStream>[];
   StreamSubscription<String>? _nameAcquiredSubscription;
   StreamSubscription<String>? _nameLostSubscription;
-  StreamSubscription<DBusSignal>? _nameOwnerSubscription;
+  StreamSubscription<DBusNameOwnerChangedEvent>? _nameOwnerSubscription;
   final _objectTree = DBusObjectTree();
   final _matchRules = <String, int>{};
 
@@ -269,6 +294,22 @@ class DBusClient {
           name: 'NameLost',
           signature: DBusSignature('s'))
       .map((signal) => (signal.values[0] as DBusString).value);
+
+  /// Stream of name change events as this client loses them.
+  Stream<DBusNameOwnerChangedEvent> get nameOwnerChanged =>
+      DBusSignalStream(this,
+              sender: 'org.freedesktop.DBus',
+              interface: 'org.freedesktop.DBus',
+              name: 'NameOwnerChanged',
+              signature: DBusSignature('sss'))
+          .map((signal) {
+        var name = (signal.values[0] as DBusString).value;
+        var oldOwner = (signal.values[1] as DBusString).value;
+        var newOwner = (signal.values[2] as DBusString).value;
+        return DBusNameOwnerChangedEvent(name,
+            oldOwner: oldOwner != '' ? oldOwner : null,
+            newOwner: newOwner != '' ? newOwner : null);
+      });
 
   /// Requests usage of [name] as a D-Bus object name.
   Future<DBusRequestNameReply> requestName(String name,
@@ -794,16 +835,10 @@ class DBusClient {
       _nameOwners.remove(busName);
       _ownedNames.remove(busName);
     });
-    var nameOwnerChangedSignals = DBusSignalStream(this,
-        sender: 'org.freedesktop.DBus',
-        interface: 'org.freedesktop.DBus',
-        name: 'NameOwnerChanged',
-        signature: DBusSignature('sss'));
-    _nameOwnerSubscription = nameOwnerChangedSignals.listen((signal) {
-      var busName = DBusBusName((signal.values[0] as DBusString).value);
-      var newOwner = (signal.values[2] as DBusString).value;
-      if (newOwner != '') {
-        _nameOwners[busName] = DBusBusName(newOwner);
+    _nameOwnerSubscription = nameOwnerChanged.listen((event) {
+      var busName = DBusBusName(event.name);
+      if (event.newOwner != null) {
+        _nameOwners[busName] = DBusBusName(event.newOwner!);
       } else {
         _nameOwners.remove(busName);
       }
