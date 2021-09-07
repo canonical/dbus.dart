@@ -655,7 +655,7 @@ void main() {
     await client.ping();
   });
 
-  test('connection closed', () async {
+  test('server closed', () async {
     var server = DBusServer();
     var address =
         await server.listenAddress(DBusAddress.unix(abstract: 'abstract'));
@@ -672,6 +672,33 @@ void main() {
 
     // Check error trying to send message.
     expect(() => client.ping(), throwsA(isA<DBusClosedException>()));
+  });
+
+  test('client closed', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Connect to the server, then close.
+    await client1.ping();
+    var name1 = client1.uniqueName;
+
+    // Succesfully ping the first client.
+    await client2.ping(name1);
+
+    // Close the first client.
+    await client1.close();
+
+    // Try and ping the closed client.
+    expect(
+        () => client2.ping(name1), throwsA(isA<DBusServiceUnknownException>()));
   });
 
   test('list names', () async {
