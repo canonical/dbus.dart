@@ -732,8 +732,12 @@ void main() {
     var names = await client.listQueuedOwners('com.example.Test');
     expect(names, isEmpty);
 
-    // Check get an event when acquired.
+    // Check get events when acquired.
     expect(client.nameAcquired, emits('com.example.Test'));
+    expect(
+        client.nameOwnerChanged,
+        emits(DBusNameOwnerChangedEvent('com.example.Test',
+            oldOwner: null, newOwner: client.uniqueName)));
 
     // Request the name.
     var reply = await client.requestName('com.example.Test');
@@ -752,6 +756,40 @@ void main() {
     expect(owner, equals(client.uniqueName));
     names = await client.listQueuedOwners('com.example.Test');
     expect(names, [client.uniqueName]);
+  });
+
+  test('request name - client closed', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Connect client.
+    await client1.ping();
+
+    // Check name is released when client disconnects.
+    expect(
+        client2.nameOwnerChanged,
+        emitsInOrder([
+          DBusNameOwnerChangedEvent('com.example.Test',
+              oldOwner: null, newOwner: client1.uniqueName),
+          DBusNameOwnerChangedEvent('com.example.Test',
+              oldOwner: client1.uniqueName, newOwner: null)
+        ]));
+    await client2.ping();
+
+    // Request the name.
+    var reply = await client1.requestName('com.example.Test');
+    expect(reply, equals(DBusRequestNameReply.primaryOwner));
+
+    // Close the client (name will be released).
+    await client1.close();
   });
 
   test('request name - already owned', () async {
@@ -785,11 +823,22 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    var client3 = DBusClient(address);
     addTearDown(() async {
       await client1.close();
       await client2.close();
+      await client3.close();
       await server.close();
     });
+
+    // Connect client.
+    await client1.ping();
+
+    expect(
+        client3.nameOwnerChanged,
+        emits(DBusNameOwnerChangedEvent('com.example.Test',
+            oldOwner: null, newOwner: client1.uniqueName)));
+    await client3.ping();
 
     // Own a name with one client.
     var reply = await client1.requestName('com.example.Test');
@@ -808,17 +857,69 @@ void main() {
     expect(names, equals([client1.uniqueName, client2.uniqueName]));
   });
 
+  test('request name - queue, client closed', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    var client3 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await client3.close();
+      await server.close();
+    });
+
+    // Connect clients.
+    await client1.ping();
+    await client2.ping();
+
+    // Check name is transferred when the first client quits.
+    expect(
+        client3.nameOwnerChanged,
+        emitsInOrder([
+          DBusNameOwnerChangedEvent('com.example.Test',
+              oldOwner: null, newOwner: client1.uniqueName),
+          DBusNameOwnerChangedEvent('com.example.Test',
+              oldOwner: client1.uniqueName, newOwner: client2.uniqueName)
+        ]));
+    await client3.ping();
+
+    // Own a name with one client.
+    var reply = await client1.requestName('com.example.Test');
+    expect(reply, equals(DBusRequestNameReply.primaryOwner));
+
+    // Attempt to replace the name with another client.
+    reply = await client2.requestName('com.example.Test');
+    expect(reply, equals(DBusRequestNameReply.inQueue));
+
+    // Close first client (name will be transferred to second one).
+    await client1.close();
+  });
+
   test('request name - do not queue', () async {
     var server = DBusServer();
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    var client3 = DBusClient(address);
     addTearDown(() async {
       await client1.close();
       await client2.close();
+      await client3.close();
       await server.close();
     });
+
+    // Connect client.
+    await client1.ping();
+
+    expect(
+        client3.nameOwnerChanged,
+        emits(DBusNameOwnerChangedEvent('com.example.Test',
+            oldOwner: null, newOwner: client1.uniqueName)));
+    await client3.ping();
 
     // Own a name with one client.
     var reply = await client1.requestName('com.example.Test');
@@ -844,11 +945,28 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    var client3 = DBusClient(address);
     addTearDown(() async {
       await client1.close();
       await client2.close();
+      await client3.close();
       await server.close();
     });
+
+    // Connect clients.
+    await client1.ping();
+    await client2.ping();
+
+    // Check name is transferred to the second client.
+    expect(
+        client3.nameOwnerChanged,
+        emitsInOrder([
+          DBusNameOwnerChangedEvent('com.example.Test',
+              oldOwner: null, newOwner: client1.uniqueName),
+          DBusNameOwnerChangedEvent('com.example.Test',
+              oldOwner: client1.uniqueName, newOwner: client2.uniqueName)
+        ]));
+    await client3.ping();
 
     // Own a name with one client.
     var reply = await client1.requestName('com.example.Test',
@@ -875,11 +993,28 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    var client3 = DBusClient(address);
     addTearDown(() async {
       await client1.close();
       await client2.close();
+      await client3.close();
       await server.close();
     });
+
+    // Connect clients.
+    await client1.ping();
+    await client2.ping();
+
+    // Check name is transferred to the second client.
+    expect(
+        client3.nameOwnerChanged,
+        emitsInOrder([
+          DBusNameOwnerChangedEvent('com.example.Test',
+              oldOwner: null, newOwner: client1.uniqueName),
+          DBusNameOwnerChangedEvent('com.example.Test',
+              oldOwner: client1.uniqueName, newOwner: client2.uniqueName)
+        ]));
+    await client3.ping();
 
     // Own a name with one client.
     var reply = await client1.requestName('com.example.Test', flags: {
@@ -908,11 +1043,22 @@ void main() {
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
     var client1 = DBusClient(address);
     var client2 = DBusClient(address);
+    var client3 = DBusClient(address);
     addTearDown(() async {
       await client1.close();
       await client2.close();
+      await client3.close();
       await server.close();
     });
+
+    // Connect client.
+    await client1.ping();
+
+    expect(
+        client3.nameOwnerChanged,
+        emits(DBusNameOwnerChangedEvent('com.example.Test',
+            oldOwner: null, newOwner: client1.uniqueName)));
+    await client3.ping();
 
     // Own a name with one client.
     var reply = await client1.requestName('com.example.Test');
@@ -1032,9 +1178,20 @@ void main() {
       await server.close();
     });
 
-    // Check get an event when acquired and lost
+    // Connect client.
+    await client.ping();
+
+    // Check events when name acquired and lost
     expect(client.nameAcquired, emits('com.example.Test'));
     expect(client.nameLost, emits('com.example.Test'));
+    expect(
+        client.nameOwnerChanged,
+        emitsInOrder([
+          DBusNameOwnerChangedEvent('com.example.Test',
+              oldOwner: null, newOwner: client.uniqueName),
+          DBusNameOwnerChangedEvent('com.example.Test',
+              oldOwner: client.uniqueName, newOwner: null)
+        ]));
 
     // Request the name.
     var requestReply = await client.requestName('com.example.Test');
