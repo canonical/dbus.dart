@@ -2440,6 +2440,32 @@ void main() {
     ]);
   });
 
+  test('properties - unknown method', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Create a client that exposes an object with properties.
+    var object = TestObject();
+    await client1.registerObject(object);
+
+    // Try and access an unknown method on the properties interface.
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus.Properties',
+            name: 'NoSuchMethod'),
+        throwsA(isA<DBusUnknownMethodException>()));
+  });
+
   test('object manager', () async {
     var server = DBusServer();
     var address =
