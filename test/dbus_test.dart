@@ -2294,7 +2294,131 @@ void main() {
     methodCallDone = true;
   });
 
-  test('introspect', () async {
+  test('introspect - server', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    // Read introspection data from the server.
+    var remoteObject = DBusRemoteObject(client,
+        name: 'org.freedesktop.DBus', path: DBusObjectPath('/'));
+    var node = await remoteObject.introspect();
+    expect(
+        node.toXml().toXmlString(),
+        equals('<node>'
+            '<interface name="org.freedesktop.DBus">'
+            '<method name="Hello">'
+            '<arg name="unique_name" type="s" direction="out"/>'
+            '</method>'
+            '<method name="RequestName">'
+            '<arg name="name" type="s" direction="in"/>'
+            '<arg name="flags" type="u" direction="in"/>'
+            '<arg name="result" type="u" direction="out"/>'
+            '</method>'
+            '<method name="ReleaseName">'
+            '<arg name="name" type="s" direction="in"/>'
+            '<arg name="result" type="u" direction="out"/>'
+            '</method>'
+            '<method name="ListQueuedOwners">'
+            '<arg name="name" type="s" direction="in"/>'
+            '<arg name="names" type="as" direction="out"/>'
+            '</method>'
+            '<method name="ListNames">'
+            '<arg name="names" type="as" direction="out"/>'
+            '</method>'
+            '<method name="ListActivatableNames">'
+            '<arg name="names" type="as" direction="out"/>'
+            '</method>'
+            '<method name="NameHasOwner">'
+            '<arg name="name" type="s" direction="in"/>'
+            '<arg name="result" type="b" direction="out"/>'
+            '</method>'
+            '<method name="StartServiceByName">'
+            '<arg name="name" type="s" direction="in"/>'
+            '<arg name="flags" type="u" direction="in"/>'
+            '<arg name="result" type="u" direction="out"/>'
+            '</method>'
+            '<method name="GetNameOwner">'
+            '<arg name="name" type="s" direction="in"/>'
+            '<arg name="owner" type="s" direction="out"/>'
+            '</method>'
+            '<method name="GetConnectionUnixUser">'
+            '<arg name="name" type="s" direction="in"/>'
+            '<arg name="unix_user_id" type="u" direction="out"/>'
+            '</method>'
+            '<method name="GetConnectionUnixProcessID">'
+            '<arg name="name" type="s" direction="in"/>'
+            '<arg name="unix_process_id" type="u" direction="out"/>'
+            '</method>'
+            '<method name="GetConnectionCredentials">'
+            '<arg name="name" type="s" direction="in"/>'
+            '<arg name="credentials" type="a{sv}" direction="out"/>'
+            '</method>'
+            '<method name="AddMatch">'
+            '<arg name="rule" type="s" direction="in"/>'
+            '</method>'
+            '<method name="RemoveMatch">'
+            '<arg name="rule" type="s" direction="in"/>'
+            '</method>'
+            '<method name="GetId">'
+            '<arg name="id" type="s" direction="out"/>'
+            '</method>'
+            '<signal name="NameOwnerChanged">'
+            '<arg name="name" type="s"/>'
+            '<arg name="old_owner" type="s"/>'
+            '<arg name="new_owner" type="s"/>'
+            '</signal>'
+            '<signal name="NameLost">'
+            '<arg name="name" type="s"/>'
+            '</signal>'
+            '<signal name="NameAcquired">'
+            '<arg name="name" type="s"/>'
+            '</signal>'
+            '<property name="Features" type="as" access="read"/>'
+            '<property name="Interfaces" type="as" access="read"/>'
+            '</interface>'
+            '<interface name="org.freedesktop.DBus.Introspectable">'
+            '<method name="Introspect">'
+            '<arg name="xml_data" type="s" direction="out"/>'
+            '</method>'
+            '</interface>'
+            '<interface name="org.freedesktop.DBus.Peer">'
+            '<method name="GetMachineId">'
+            '<arg name="machine_uuid" type="s" direction="out"/>'
+            '</method>'
+            '<method name="Ping"/>'
+            '</interface>'
+            '<interface name="org.freedesktop.DBus.Properties">'
+            '<method name="Get">'
+            '<arg name="interface_name" type="s" direction="in"/>'
+            '<arg name="property_name" type="s" direction="in"/>'
+            '<arg name="value" type="v" direction="out"/>'
+            '</method>'
+            '<method name="Set">'
+            '<arg name="interface_name" type="s" direction="in"/>'
+            '<arg name="property_name" type="s" direction="in"/>'
+            '<arg name="value" type="v" direction="in"/>'
+            '</method>'
+            '<method name="GetAll">'
+            '<arg name="interface_name" type="s" direction="in"/>'
+            '<arg name="props" type="a{sv}" direction="out"/>'
+            '</method>'
+            '<signal name="PropertiesChanged">'
+            '<arg name="interface_name" type="s"/>'
+            '<arg name="changed_properties" type="a{sv}"/>'
+            '<arg name="invalidated_properties" type="as"/>'
+            '</signal>'
+            '</interface>'
+            '<node name="org/freedesktop/DBus"/>'
+            '</node>'));
+  });
+
+  test('introspect - client', () async {
     var server = DBusServer();
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
