@@ -188,8 +188,8 @@ class DBusClient {
   var _lastSerial = 0;
   final _methodCalls = <int, Completer<DBusMethodResponse>>{};
   final _signalStreams = <DBusSignalStream>[];
-  StreamSubscription<DBusSignal>? _nameAcquiredSubscription;
-  StreamSubscription<DBusSignal>? _nameLostSubscription;
+  StreamSubscription<String>? _nameAcquiredSubscription;
+  StreamSubscription<String>? _nameLostSubscription;
   StreamSubscription<DBusSignal>? _nameOwnerSubscription;
   final _objectTree = DBusObjectTree();
   final _matchRules = <String, int>{};
@@ -202,8 +202,6 @@ class DBusClient {
 
   // Unique name of this client, e.g. ':42'.
   DBusBusName? _uniqueName;
-  final _nameAcquiredController = StreamController<String>();
-  final _nameLostController = StreamController<String>();
 
   /// True if this client allows other clients to introspect it.
   final bool introspectable;
@@ -257,10 +255,20 @@ class DBusClient {
   Iterable<String> get ownedNames => _ownedNames.map((name) => name.value);
 
   /// Stream of names as they are acquired by this client.
-  Stream<String> get nameAcquired => _nameAcquiredController.stream;
+  Stream<String> get nameAcquired => DBusSignalStream(this,
+          sender: 'org.freedesktop.DBus',
+          interface: 'org.freedesktop.DBus',
+          name: 'NameAcquired',
+          signature: DBusSignature('s'))
+      .map((signal) => (signal.values[0] as DBusString).value);
 
   /// Stream of names as this client loses them.
-  Stream<String> get nameLost => _nameLostController.stream;
+  Stream<String> get nameLost => DBusSignalStream(this,
+          sender: 'org.freedesktop.DBus',
+          interface: 'org.freedesktop.DBus',
+          name: 'NameLost',
+          signature: DBusSignature('s'))
+      .map((signal) => (signal.values[0] as DBusString).value);
 
   /// Requests usage of [name] as a D-Bus object name.
   Future<DBusRequestNameReply> requestName(String name,
@@ -776,65 +784,30 @@ class DBusClient {
     _connectCompleter?.complete();
 
     // Monitor name ownership so we know what names we have, and can match incoming signals from other clients.
-    var nameAcquiredSignals = DBusSignalStream(this,
-        sender: 'org.freedesktop.DBus',
-        interface: 'org.freedesktop.DBus',
-        name: 'NameAcquired');
-    _nameAcquiredSubscription = nameAcquiredSignals.listen(_handleNameAcquired);
-    var nameLostSignals = DBusSignalStream(this,
-        sender: 'org.freedesktop.DBus',
-        interface: 'org.freedesktop.DBus',
-        name: 'NameLost');
-    _nameLostSubscription = nameLostSignals.listen(_handleNameLost);
+    _nameAcquiredSubscription = nameAcquired.listen((name) {
+      var busName = DBusBusName(name);
+      _nameOwners[busName] = _uniqueName!;
+      _ownedNames.add(busName);
+    });
+    _nameLostSubscription = nameLost.listen((name) {
+      var busName = DBusBusName(name);
+      _nameOwners.remove(busName);
+      _ownedNames.remove(busName);
+    });
     var nameOwnerChangedSignals = DBusSignalStream(this,
         sender: 'org.freedesktop.DBus',
         interface: 'org.freedesktop.DBus',
-        name: 'NameOwnerChanged');
-    _nameOwnerSubscription =
-        nameOwnerChangedSignals.listen(_handleNameOwnerChanged);
-  }
-
-  /// Handles the org.freedesktop.DBus.NameAcquired signal.
-  void _handleNameAcquired(DBusSignal signal) {
-    if (signal.signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.NameAcquired received with invalid arguments: ${signal.values}';
-    }
-
-    var name = DBusBusName((signal.values[0] as DBusString).value);
-
-    _nameOwners[name] = _uniqueName!;
-    _ownedNames.add(name);
-
-    _nameAcquiredController.add(name.value);
-  }
-
-  /// Handles the org.freedesktop.DBus.NameLost signal.
-  void _handleNameLost(DBusSignal signal) {
-    if (signal.signature != DBusSignature('s')) {
-      throw 'org.freedesktop.DBus.NameLost received with invalid arguments: ${signal.values}';
-    }
-
-    var name = (signal.values[0] as DBusString).value;
-
-    _nameOwners.remove(name);
-    _ownedNames.remove(name);
-
-    _nameLostController.add(name);
-  }
-
-  /// Handles the org.freedesktop.DBus.NameOwnerChanged signal and updates the table of known names.
-  void _handleNameOwnerChanged(DBusSignal signal) {
-    if (signal.signature != DBusSignature('sss')) {
-      throw 'org.freedesktop.DBus.NameOwnerChanged received with invalid arguments: ${signal.values}';
-    }
-
-    var name = DBusBusName((signal.values[0] as DBusString).value);
-    var newOwner = (signal.values[2] as DBusString).value;
-    if (newOwner != '') {
-      _nameOwners[name] = DBusBusName(newOwner);
-    } else {
-      _nameOwners.remove(name);
-    }
+        name: 'NameOwnerChanged',
+        signature: DBusSignature('sss'));
+    _nameOwnerSubscription = nameOwnerChangedSignals.listen((signal) {
+      var busName = DBusBusName((signal.values[0] as DBusString).value);
+      var newOwner = (signal.values[2] as DBusString).value;
+      if (newOwner != '') {
+        _nameOwners[busName] = DBusBusName(newOwner);
+      } else {
+        _nameOwners.remove(busName);
+      }
+    });
   }
 
   /// Adds a rule to match which messages to receive.
