@@ -1997,6 +1997,72 @@ void main() {
     }
   });
 
+  test('call method - invalid name', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Create a client with an object.
+    await client1.registerObject(TestObject());
+
+    // Method name empty.
+    expect(
+        client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            name: '',
+            values: []),
+        throwsFormatException);
+
+    // Method name too long.
+    expect(
+        client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            name: 'x' * 256,
+            values: []),
+        throwsFormatException);
+
+    // Method name contains invalid characters.
+    expect(
+        client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            name: 'Test!',
+            values: []),
+        throwsFormatException);
+    expect(
+        client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            name: 'Test-Method',
+            values: []),
+        throwsFormatException);
+    expect(
+        client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            name: '🤪',
+            values: []),
+        throwsFormatException);
+
+    // Must not begin with a digit.
+    expect(
+        client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            name: '0Test',
+            values: []),
+        throwsFormatException);
+  });
+
   test('subscribe signal', () async {
     var server = DBusServer();
     var address =
