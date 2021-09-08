@@ -1,5 +1,5 @@
 [![Pub Package](https://img.shields.io/pub/v/dbus.svg)](https://pub.dev/packages/dbus)
-[![codecov](https://codecov.io/gh/canonical/dbus.dart/branch/master/graph/badge.svg?token=rk7NBXldfn)](https://codecov.io/gh/canonical/dbus.dart)
+[![codecov](https://codecov.io/gh/canonical/dbus.dart/branch/main/graph/badge.svg?token=rk7NBXldfn)](https://codecov.io/gh/canonical/dbus.dart)
 
 A native Dart client implementation of [D-Bus](https://www.freedesktop.org/wiki/Software/dbus/).
 
