@@ -23,7 +23,8 @@ class DBusAddress {
     // Addresses are in the form 'transport:key1=value1,key2=value2'
     var index = address.indexOf(':');
     if (index < 0) {
-      throw 'Unable to determine transport of D-Bus address: $address';
+      throw FormatException(
+          'Unable to determine transport of D-Bus address: $address');
     }
 
     var transport = address.substring(0, index);
