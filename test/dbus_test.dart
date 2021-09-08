@@ -733,9 +733,7 @@ void main() {
     expect(names, isEmpty);
 
     // Check get an event when acquired.
-    client.nameAcquired.listen(expectAsync1((name) {
-      expect(name, equals('com.example.Test'));
-    }));
+    expect(client.nameAcquired, emits('com.example.Test'));
 
     // Request the name.
     var reply = await client.requestName('com.example.Test');
@@ -1035,12 +1033,8 @@ void main() {
     });
 
     // Check get an event when acquired and lost
-    client.nameAcquired.listen(expectAsync1((name) {
-      expect(name, equals('com.example.Test'));
-    }));
-    client.nameLost.listen(expectAsync1((name) {
-      expect(name, equals('com.example.Test'));
-    }));
+    expect(client.nameAcquired, emits('com.example.Test'));
+    expect(client.nameLost, emits('com.example.Test'));
 
     // Request the name.
     var requestReply = await client.requestName('com.example.Test');
