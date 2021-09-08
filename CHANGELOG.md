@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.2
+
+* Make classes for standard D-Bus exceptions.
+* Handle exceptions on socket read/writes.
+* Add DBusClient.nameOwnerChanged signal stream.
+* D-Bus server now cleans up when clients disconnect from it.
+* Fix wrong error returned from D-Bus server when accessing unknown service.
+
 ## 0.6.1
 
 * Fix not everything being cleaned up when calling DBusServer.close().
