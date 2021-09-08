@@ -590,6 +590,76 @@ void main() {
         isFalse);
   });
 
+  test('address', () async {
+    // No transport.
+    expect(() => DBusAddress(''), throwsException);
+
+    // Missing divider.
+    expect(() => DBusAddress('foo'), throwsException);
+
+    // Key missing value.
+    expect(() => DBusAddress('foo:key'), throwsException);
+
+    // Duplicate key.
+    expect(() => DBusAddress('foo:key=value,key=value'), throwsException);
+
+    // Address created from string.
+    var address = DBusAddress('transport:key1=value1,key2=value2');
+    expect(address.transport, equals('transport'));
+    expect(address.properties, equals({'key1': 'value1', 'key2': 'value2'}));
+    expect(address.value, equals('transport:key1=value1,key2=value2'));
+
+    // No properties.
+    address = DBusAddress('transport:');
+    expect(address.transport, equals('transport'));
+    expect(address.properties, isEmpty);
+
+    // Properties with escaped values.
+    address = DBusAddress('transport:key=Hello%20World');
+    expect(address.properties, equals({'key': 'Hello World'}));
+    address = DBusAddress('transport:key=%2c%40%3d%09');
+    expect(address.properties, equals({'key': ',@=\t'}));
+    address = DBusAddress('transport:key=%f0%9f%98%84');
+    expect(address.properties, equals({'key': '😄'}));
+
+    // Address created from raw values.
+    address = DBusAddress.withTransport(
+        'transport', {'key1': 'value1', 'key2': 'value2'});
+    expect(address.value, equals('transport:key1=value1,key2=value2'));
+
+    // Properties with escaped values.
+    address = DBusAddress.withTransport('transport', {'key': 'Hello World'});
+    expect(address.value, equals('transport:key=Hello%20World'));
+    address = DBusAddress.withTransport('transport', {'key': ',@=\t'});
+    expect(address.value, equals('transport:key=%2c%40%3d%09'));
+    address = DBusAddress.withTransport('transport', {'key': '😄'});
+    expect(address.value, equals('transport:key=%f0%9f%98%84'));
+
+    // Unix addresses.
+    address = DBusAddress.unix();
+    expect(address.value, equals('unix:'));
+    address = DBusAddress.unix(
+        path: '/path',
+        dir: Directory('/dir'),
+        tmpdir: Directory('/tmp'),
+        abstract: 'foo',
+        runtime: true);
+    expect(
+        address.value,
+        equals(
+            'unix:path=/path,dir=/dir,tmpdir=/tmp,abstract=foo,runtime=yes'));
+
+    // TCP addresses.
+    address = DBusAddress.tcp('example.com');
+    expect(address.value, equals('tcp:host=example.com'));
+    address = DBusAddress.tcp('example.com',
+        bind: '192.168.1.1', port: 42, family: DBusAddressTcpFamily.ipv4);
+    expect(address.value,
+        equals('tcp:host=example.com,bind=192.168.1.1,port=42,family=ipv4'));
+    address = DBusAddress.tcp('example.com', family: DBusAddressTcpFamily.ipv6);
+    expect(address.value, equals('tcp:host=example.com,family=ipv6'));
+  });
+
   test('ping', () async {
     var server = DBusServer();
     var address =
