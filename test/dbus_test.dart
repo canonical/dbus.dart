@@ -2246,6 +2246,34 @@ void main() {
         throwsA(isA<DBusUnknownInterfaceException>()));
   });
 
+  test('introspect - unknown method', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Create a client that exposes introspection data.
+    await client1.registerObject(TestObject(introspectData: [
+      DBusIntrospectInterface('com.example.Test',
+          methods: [DBusIntrospectMethod('Foo')])
+    ]));
+
+    // Try and access an unknown method on the properties interface.
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus.Introspectable',
+            name: 'NoSuchMethod'),
+        throwsA(isA<DBusUnknownMethodException>()));
+  });
+
   test('get property', () async {
     var server = DBusServer();
     var address =
