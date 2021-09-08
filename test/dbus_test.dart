@@ -2754,6 +2754,43 @@ void main() {
         throwsA(isA<DBusUnknownMethodException>()));
   });
 
+  test('server properties', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    var remoteObject = DBusRemoteObject(client,
+        name: 'org.freedesktop.DBus', path: DBusObjectPath('/'));
+
+    expect(await remoteObject.getProperty('org.freedesktop.DBus', 'Features'),
+        equals(DBusArray.string([])));
+    expect(
+        remoteObject.setProperty(
+            'org.freedesktop.DBus', 'Features', DBusArray.string(['abc'])),
+        throwsException);
+
+    expect(await remoteObject.getProperty('org.freedesktop.DBus', 'Interfaces'),
+        equals(DBusArray.string([])));
+    expect(
+        remoteObject.setProperty(
+            'org.freedesktop.DBus', 'Interfaces', DBusArray.string(['abc'])),
+        throwsException);
+
+    var properties =
+        await remoteObject.getAllProperties('org.freedesktop.DBus');
+    expect(
+        properties,
+        equals({
+          'Features': DBusArray.string([]),
+          'Interfaces': DBusArray.string([])
+        }));
+  });
+
   test('object manager', () async {
     var server = DBusServer();
     var address =
