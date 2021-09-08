@@ -1800,7 +1800,7 @@ void main() {
     // Create a simple client with an object.
     await client1.registerObject(TestObject());
 
-    // Try and access an unknown interface on that object.
+    // Try and access an unknown method on that object.
     expect(
         () => client2.callMethod(
             destination: client1.uniqueName,
@@ -2903,6 +2903,32 @@ void main() {
         name: client1.uniqueName, path: DBusObjectPath('/'));
     await remoteObject.callMethod('com.example.Test', 'AddObject', []);
     methodCallDone = true;
+  });
+
+  test('object manager - unknown method', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Register an object manager.
+    var objectManager = DBusObject(DBusObjectPath('/'), isObjectManager: true);
+    await client1.registerObject(objectManager);
+
+    // Try and access an unknown method on the object manager interface.
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus.ObjectManager',
+            name: 'NoSuchMethod'),
+        throwsA(isA<DBusUnknownMethodException>()));
   });
 
   test('intropect xml - empty', () {
