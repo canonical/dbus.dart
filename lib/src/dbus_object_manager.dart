@@ -44,7 +44,7 @@ DBusIntrospectInterface introspectObjectManager() {
         name: 'interfaces')
   ]);
   final introspectable = DBusIntrospectInterface(
-      'org.freedesktop.DBus.Introspectable',
+      'org.freedesktop.DBus.ObjectManager',
       methods: [introspectMethod],
       signals: [interfacesAddedSignal, interfacesRemovedSignal]);
   return introspectable;

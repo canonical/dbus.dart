@@ -2518,6 +2518,80 @@ void main() {
         }));
   });
 
+  test('object manager - introspect', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Register an object manager and an object without any interfaces other than the standard ones.
+    await client1
+        .registerObject(DBusObject(DBusObjectPath('/'), isObjectManager: true));
+    await client1.registerObject(
+        TestObject(path: DBusObjectPath('/com/example/Object')));
+
+    // Read introspection data from the first client.
+    var remoteObject = DBusRemoteObject(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
+    var node = await remoteObject.introspect();
+    expect(
+        node.toXml().toXmlString(),
+        equals('<node>'
+            '<interface name="org.freedesktop.DBus.Introspectable">'
+            '<method name="Introspect">'
+            '<arg name="xml_data" type="s" direction="out"/>'
+            '</method>'
+            '</interface>'
+            '<interface name="org.freedesktop.DBus.Peer">'
+            '<method name="GetMachineId">'
+            '<arg name="machine_uuid" type="s" direction="out"/>'
+            '</method>'
+            '<method name="Ping"/>'
+            '</interface>'
+            '<interface name="org.freedesktop.DBus.Properties">'
+            '<method name="Get">'
+            '<arg name="interface_name" type="s" direction="in"/>'
+            '<arg name="property_name" type="s" direction="in"/>'
+            '<arg name="value" type="v" direction="out"/>'
+            '</method>'
+            '<method name="Set">'
+            '<arg name="interface_name" type="s" direction="in"/>'
+            '<arg name="property_name" type="s" direction="in"/>'
+            '<arg name="value" type="v" direction="in"/>'
+            '</method>'
+            '<method name="GetAll">'
+            '<arg name="interface_name" type="s" direction="in"/>'
+            '<arg name="props" type="a{sv}" direction="out"/>'
+            '</method>'
+            '<signal name="PropertiesChanged">'
+            '<arg name="interface_name" type="s"/>'
+            '<arg name="changed_properties" type="a{sv}"/>'
+            '<arg name="invalidated_properties" type="as"/>'
+            '</signal>'
+            '</interface>'
+            '<interface name="org.freedesktop.DBus.ObjectManager">'
+            '<method name="GetManagedObjects">'
+            '<arg name="objpath_interfaces_and_properties" type="a{oa{sa{sv}}}" direction="out"/>'
+            '</method>'
+            '<signal name="InterfacesAdded">'
+            '<arg name="object_path" type="o"/>'
+            '<arg name="interfaces_and_properties" type="a{sa{sv}}"/>'
+            '</signal>'
+            '<signal name="InterfacesRemoved">'
+            '<arg name="object_path" type="o"/>'
+            '<arg name="interfaces" type="as"/>'
+            '</signal>'
+            '</interface>'
+            '<node name="com"/>'
+            '</node>'));
+  });
+
   test('object manager - not introspectable', () async {
     var server = DBusServer();
     var address =
