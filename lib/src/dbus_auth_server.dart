@@ -4,10 +4,12 @@ import 'dbus_uuid.dart';
 
 /// A server for D-Bus authentication.
 class DBusAuthServer {
+  final bool _unixFdSupported;
   final _responsesController = StreamController<String>();
   bool _readSocketControlMessage = false;
-  var _externalDone = false;
+  var _sentOk = false;
   var _isAuthenticated = false;
+  var _negotiatedUnixFd = false;
 
   /// Unique ID for this connection.
   final DBusUUID uuid;
@@ -18,8 +20,12 @@ class DBusAuthServer {
   /// True if was successfully authenticated.
   bool get isAuthenticated => _isAuthenticated;
 
+  /// True if the client negotiated the use of Unix file descriptors.
+  bool get negotiatedUnixFd => _negotiatedUnixFd;
+
   /// Creates a new authentication server.
-  DBusAuthServer(this.uuid);
+  DBusAuthServer(this.uuid, {bool unixFdSupported = false})
+      : _unixFdSupported = unixFdSupported;
 
   /// Process a request [message] received from the client.
   void processRequest(String message) {
@@ -63,7 +69,7 @@ class DBusAuthServer {
         _reject('Cancelled');
         break;
       case 'BEGIN':
-        if (_externalDone) {
+        if (_sentOk) {
           _isAuthenticated = true;
         }
         break;
@@ -74,7 +80,16 @@ class DBusAuthServer {
         _reject('Received error');
         break;
       case 'NEGOTIATE_UNIX_FD':
-        _error('Unix fd not supported');
+        if (_sentOk) {
+          if (_unixFdSupported) {
+            _negotiatedUnixFd = true;
+            _send('AGREE_UNIX_FD');
+          } else {
+            _error('Unix fd not supported');
+          }
+        } else {
+          _error('Not authenticated');
+        }
         break;
       default:
         _error("Unknown command '$command'");
@@ -100,7 +115,7 @@ class DBusAuthServer {
   /// Do authentication using the EXTERNAL mechanism.
   void _authenticateExternal(String uid) {
     // Note uid isn't checked.
-    _externalDone = true;
+    _sentOk = true;
     _send('OK ${uuid.toHexString()}');
   }
 

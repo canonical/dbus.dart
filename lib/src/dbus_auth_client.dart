@@ -11,6 +11,7 @@ class DBusAuthClient {
   final _requestsController = StreamController<String>();
   var _attemptedExternal = false;
   var _isAuthenticated = false;
+  final bool _requestUnixFd;
   var _unixFdSupported = false;
   DBusUUID? _uuid;
   String? _errorMessage;
@@ -34,7 +35,7 @@ class DBusAuthClient {
   String? get errorMessage => _errorMessage;
 
   /// Creates a new authentication client.
-  DBusAuthClient() {
+  DBusAuthClient({bool requestUnixFd = true}) : _requestUnixFd = requestUnixFd {
     // On start, end an empty byte, as this is required if sending the credentials as a socket control message.
     // We rely on the server using SO_PEERCRED to check out credentials.
     // Then request the supported mechanisms.
@@ -83,18 +84,27 @@ class DBusAuthClient {
           return;
         }
         _isAuthenticated = true;
-        _send('BEGIN');
-        _doneCompleter.complete();
+        if (_requestUnixFd) {
+          _send('NEGOTIATE_UNIX_FD');
+        } else {
+          _begin();
+        }
         break;
       case 'DATA':
         _fail('Unable to handle DATA command');
         break;
       case 'ERROR':
-        _errorMessage = args;
-        _doneCompleter.complete();
+        if (isAuthenticated) {
+          // Error was from NEGOTIATE_UNIX_FD, can continue without this.
+          _begin();
+        } else {
+          _errorMessage = args;
+          _doneCompleter.complete();
+        }
         break;
       case 'AGREE_UNIX_FD':
         _unixFdSupported = true;
+        _begin();
         break;
       default:
         _fail("Unknown command '$command'");
@@ -129,5 +139,11 @@ class DBusAuthClient {
       authIdHex += c.toRadixString(16).padLeft(2, '0');
     }
     _send('AUTH EXTERNAL $authIdHex');
+  }
+
+  /// Complete authentication.
+  void _begin() {
+    _send('BEGIN');
+    _doneCompleter.complete();
   }
 }
