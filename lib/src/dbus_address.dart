@@ -15,7 +15,9 @@ class DBusAddress {
   /// Gets this address in string format.
   String get value {
     return '$transport:' +
-        properties.keys.map((key) => '$key=${properties[key]}').join(',');
+        properties.keys
+            .map((key) => '$key=${_encodeValue(properties[key]!)}')
+            .join(',');
   }
 
   /// Creates a new address from the given [address] string, e.g. 'unix:path=/run/user/1000/bus'.
@@ -94,8 +96,10 @@ class DBusAddress {
       }
 
       var key = property.substring(0, index);
-      var value = _decodeValue(property.substring(index + 1));
-      if (value == null) {
+      String value;
+      try {
+        value = _decodeValue(property.substring(index + 1));
+      } on FormatException {
         throw FormatException(
             'Invalid value in D-Bus address property: $property');
       }
@@ -110,7 +114,7 @@ class DBusAddress {
   }
 
   /// Decode an escaped value, e.g. 'Hello%20World' -> 'Hello World'.
-  static String? _decodeValue(String encodedValue) {
+  static String _decodeValue(String encodedValue) {
     var escapedValue = utf8.encode(encodedValue);
     var binaryValue = <int>[];
     for (var i = 0; i < escapedValue.length; i++) {
@@ -118,14 +122,10 @@ class DBusAddress {
       // Values can escape bytes using %nn
       if (escapedValue[i] == percent) {
         if (i + 3 > escapedValue.length) {
-          return null;
+          throw FormatException('Insufficient space for escape sequence');
         }
-        var nibble0 = _hexCharToDecimal(escapedValue[i + 1]);
-        var nibble1 = _hexCharToDecimal(escapedValue[i + 2]);
-        if (nibble0 < 0 || nibble1 < 0) {
-          return null;
-        }
-        binaryValue.add(nibble0 << 4 + nibble1);
+        var hex = utf8.decode([escapedValue[i + 1], escapedValue[i + 2]]);
+        binaryValue.add(int.parse(hex, radix: 16));
         i += 2;
       } else {
         binaryValue.add(escapedValue[i]);
@@ -134,23 +134,25 @@ class DBusAddress {
     return utf8.decode(binaryValue);
   }
 
-  /// Decode a hex ASCII code to its decimal value. e.g. 'D' -> 13.
-  static int _hexCharToDecimal(int value) {
-    final zero = 48; // '0'
-    final nine = 57; // '9'
-    final A = 65; // 'A'
-    final F = 80; // 'F'
-    final a = 97; // 'a'
-    final f = 112; // 'f'
-    if (value >= zero && value <= nine) {
-      return value - zero;
-    } else if (value >= A && value <= F) {
-      return value - A + 10;
-    } else if (value >= a && value <= f) {
-      return value - a + 10;
-    } else {
-      return -1;
+  /// Encode an value, e.g. 'Hello World' -> 'Hello%20World'.
+  static String? _encodeValue(String value) {
+    var escapedValue = '';
+    for (var byte in utf8.encode(value)) {
+      if (byte == 45 || // '-'
+          (byte >= 48 && byte <= 57) || // '0' - '9'
+          (byte >= 65 && byte <= 90) || // 'A' - 'Z'
+          (byte >= 97 && byte <= 122) || // 'a' - 'z'
+          byte == 95 || // '_'
+          byte == 47 || // '/'
+          byte == 46 || // '.'
+          byte == 92) // '\'
+      {
+        escapedValue += utf8.decode([byte]);
+      } else {
+        escapedValue += '%' + byte.toRadixString(16).padLeft(2, '0');
+      }
     }
+    return escapedValue;
   }
 
   @override
