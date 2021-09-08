@@ -209,6 +209,7 @@ class DBusClient {
   var _socketClosed = false;
   final _readBuffer = DBusReadBuffer();
   final _authClient = DBusAuthClient();
+  var _authComplete = false;
   Completer? _connectCompleter;
   var _lastSerial = 0;
   final _methodCalls = <int, Completer<DBusMethodResponse>>{};
@@ -788,14 +789,6 @@ class DBusClient {
     }));
   }
 
-  /// Performs authentication with D-Bus server.
-  Future<bool> _authenticate() async {
-    _authClient.requests.listen((message) => _socket?.write(message + '\r\n'));
-    await _authClient.done;
-
-    return _authClient.isAuthenticated;
-  }
-
   /// Connects to the D-Bus server.
   Future<void> _connect() async {
     // If already connecting, wait for that to complete.
@@ -805,7 +798,10 @@ class DBusClient {
     _connectCompleter = Completer();
 
     await _openSocket();
-    if (!await _authenticate()) {
+    _authClient.requests.listen((message) => _socket?.write(message + '\r\n'));
+    await _authClient.done;
+    _authComplete = true;
+    if (!_authClient.isAuthenticated) {
       await _socket?.close();
       return;
     }
@@ -891,7 +887,7 @@ class DBusClient {
 
     var complete = false;
     while (!complete) {
-      if (!_authClient.isAuthenticated) {
+      if (!_authComplete) {
         complete = _processAuth();
       } else {
         complete = _processMessages();
