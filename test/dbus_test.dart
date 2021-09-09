@@ -1481,6 +1481,22 @@ void main() {
     expect(id, equals(server.uuid.toHexString()));
   });
 
+  test('get machine id', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    var machineId = (await File('/etc/machine-id').readAsLines()).first;
+
+    var id = await client.getMachineId();
+    expect(id, equals(machineId));
+  });
+
   test('call method', () async {
     var server = DBusServer();
     var address =
