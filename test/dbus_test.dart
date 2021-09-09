@@ -302,6 +302,9 @@ void main() {
     expect(DBusObjectPath('/com').value, equals('/com'));
     expect(
         DBusObjectPath('/com/example/Test').value, equals('/com/example/Test'));
+    // Unchecked constructor equivalent to standard constructor.
+    expect(DBusObjectPath.unchecked('/com/example/Test'),
+        equals(DBusObjectPath('/com/example/Test')));
     // Empty.
     expect(() => DBusObjectPath(''), throwsArgumentError);
     // Empty element.
@@ -537,6 +540,12 @@ void main() {
           DBusString('three')
         ]).children,
         equals([DBusString('one'), DBusString('two'), DBusString('three')]));
+    // Unchecked constructor equivalent to standard constructor.
+    expect(
+        DBusArray.unchecked(DBusSignature('s'),
+            [DBusString('one'), DBusString('two'), DBusString('three')]),
+        equals(DBusArray(DBusSignature('s'),
+            [DBusString('one'), DBusString('two'), DBusString('three')])));
     expect(
         () => DBusArray(DBusSignature('s'),
             [DBusString('one'), DBusUint32(2), DBusDouble(3.0)]),
@@ -674,6 +683,29 @@ void main() {
           DBusInt32(2): DBusString('two'),
           DBusInt32(3): DBusString('three')
         }));
+    expect(
+        DBusDict(DBusSignature('i'), DBusSignature('s'), {
+          DBusInt32(1): DBusString('one'),
+          DBusInt32(2): DBusString('two'),
+          DBusInt32(3): DBusString('three')
+        }).children,
+        equals({
+          DBusInt32(1): DBusString('one'),
+          DBusInt32(2): DBusString('two'),
+          DBusInt32(3): DBusString('three')
+        }));
+    // Unchecked constructor equivalent to standard constructor.
+    expect(
+        DBusDict.unchecked(DBusSignature('i'), DBusSignature('s'), {
+          DBusInt32(1): DBusString('one'),
+          DBusInt32(2): DBusString('two'),
+          DBusInt32(3): DBusString('three')
+        }),
+        equals(DBusDict(DBusSignature('i'), DBusSignature('s'), {
+          DBusInt32(1): DBusString('one'),
+          DBusInt32(2): DBusString('two'),
+          DBusInt32(3): DBusString('three')
+        })));
     // Keys that don't match signature.
     expect(
         () => DBusDict(DBusSignature('i'), DBusSignature('s'), {
