@@ -513,6 +513,63 @@ void main() {
             DBusArray(DBusSignature('s'),
                 [DBusString('three'), DBusString('two'), DBusString('one')]),
         isFalse);
+
+    // Check factory constructors are equivalent to their full expansions.
+    expect(
+        DBusArray.byte([1, 2, 3]),
+        equals(DBusArray(
+            DBusSignature('y'), [DBusByte(1), DBusByte(2), DBusByte(3)])));
+    expect(
+        DBusArray.int16([1, 2, -3]),
+        equals(DBusArray(
+            DBusSignature('n'), [DBusInt16(1), DBusInt16(2), DBusInt16(-3)])));
+    expect(
+        DBusArray.uint16([1, 2, 3]),
+        equals(DBusArray(DBusSignature('q'),
+            [DBusUint16(1), DBusUint16(2), DBusUint16(3)])));
+    expect(
+        DBusArray.int32([1, 2, -3]),
+        equals(DBusArray(
+            DBusSignature('i'), [DBusInt32(1), DBusInt32(2), DBusInt32(-3)])));
+    expect(
+        DBusArray.uint32([1, 2, 3]),
+        equals(DBusArray(DBusSignature('u'),
+            [DBusUint32(1), DBusUint32(2), DBusUint32(3)])));
+    expect(
+        DBusArray.int64([1, 2, -3]),
+        equals(DBusArray(
+            DBusSignature('x'), [DBusInt64(1), DBusInt64(2), DBusInt64(-3)])));
+    expect(
+        DBusArray.uint64([1, 2, 3]),
+        equals(DBusArray(DBusSignature('t'),
+            [DBusUint64(1), DBusUint64(2), DBusUint64(3)])));
+    expect(
+        DBusArray.double([1.1, 2.1, 3.1]),
+        equals(DBusArray(DBusSignature('d'),
+            [DBusDouble(1.1), DBusDouble(2.1), DBusDouble(3.1)])));
+    expect(
+        DBusArray.string(['one', 'two', 'three']),
+        equals(DBusArray(DBusSignature('s'),
+            [DBusString('one'), DBusString('two'), DBusString('three')])));
+    expect(
+        DBusArray.objectPath([
+          DBusObjectPath('/one'),
+          DBusObjectPath('/two'),
+          DBusObjectPath('/three')
+        ]),
+        equals(DBusArray(DBusSignature('o'), [
+          DBusObjectPath('/one'),
+          DBusObjectPath('/two'),
+          DBusObjectPath('/three')
+        ])));
+    expect(
+        DBusArray.variant(
+            [DBusInt32(1), DBusString('two'), DBusDouble(3.14159)]),
+        equals(DBusArray(DBusSignature('v'), [
+          DBusVariant(DBusInt32(1)),
+          DBusVariant(DBusString('two')),
+          DBusVariant(DBusDouble(3.14159))
+        ])));
   });
 
   test('value - dict', () async {
