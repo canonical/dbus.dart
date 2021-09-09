@@ -733,6 +733,13 @@ void main() {
               DBusInt32(3): DBusString('one')
             }),
         isFalse);
+    // Check factory constructors are equivalent to their full expansions.
+    expect(
+        DBusDict.stringVariant({'one': DBusInt32(1), 'two': DBusDouble(2)}),
+        equals(DBusDict(DBusSignature('s'), DBusSignature('v'), {
+          DBusString('one'): DBusVariant(DBusInt32(1)),
+          DBusString('two'): DBusVariant(DBusDouble(2))
+        })));
     expect(
         DBusDict(DBusSignature('i'), DBusSignature('s'), {
           DBusInt32(1): DBusString('one'),
@@ -741,6 +748,12 @@ void main() {
         }).toString(),
         equals(
             "DBusDict(DBusSignature('i'), DBusSignature('s'), {DBusInt32(1): DBusString('one'), DBusInt32(2): DBusString('two'), DBusInt32(3): DBusString('three')})"));
+    expect(
+        DBusDict.stringVariant({'one': DBusInt32(1), 'two': DBusDouble(2)})
+            .toString(),
+        equals(
+            "DBusDict.stringVariant({'one': DBusInt32(1), 'two': DBusDouble(2.0)})"));
+    ;
   });
 
   test('address', () async {
