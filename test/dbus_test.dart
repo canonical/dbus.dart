@@ -995,6 +995,8 @@ void main() {
     });
 
     // Check name is currently unowned.
+    var owner = await client.getNameOwner('com.example.Test');
+    expect(owner, isNull);
     var hasOwner = await client.nameHasOwner('com.example.Test');
     expect(hasOwner, isFalse);
     var names = await client.listQueuedOwners('com.example.Test');
@@ -1020,7 +1022,7 @@ void main() {
             ['org.freedesktop.DBus', client.uniqueName, 'com.example.Test']));
     hasOwner = await client.nameHasOwner('com.example.Test');
     expect(hasOwner, isTrue);
-    var owner = await client.getNameOwner('com.example.Test');
+    owner = await client.getNameOwner('com.example.Test');
     expect(owner, equals(client.uniqueName));
     names = await client.listQueuedOwners('com.example.Test');
     expect(names, [client.uniqueName]);
