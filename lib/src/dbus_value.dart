@@ -67,9 +67,7 @@ class DBusByte extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() {
-    return 'DBusByte($value)';
-  }
+  String toString() => 'DBusByte($value)';
 }
 
 /// D-Bus representation of a boolean value.
@@ -97,9 +95,7 @@ class DBusBoolean extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() {
-    return 'DBusBoolean($value)';
-  }
+  String toString() => 'DBusBoolean($value)';
 }
 
 /// D-Bus representation of a signed 16 bit integer.
@@ -132,9 +128,7 @@ class DBusInt16 extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() {
-    return 'DBusInt16($value)';
-  }
+  String toString() => 'DBusInt16($value)';
 }
 
 /// D-Bus representation of an unsigned 16 bit integer.
@@ -167,9 +161,7 @@ class DBusUint16 extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() {
-    return 'DBusUint16($value)';
-  }
+  String toString() => 'DBusUint16($value)';
 }
 
 /// D-Bus representation of a signed 32 bit integer.
@@ -202,9 +194,7 @@ class DBusInt32 extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() {
-    return 'DBusInt32($value)';
-  }
+  String toString() => 'DBusInt32($value)';
 }
 
 /// D-Bus representation of an unsigned 32 bit integer.
@@ -237,9 +227,7 @@ class DBusUint32 extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() {
-    return 'DBusUint32($value)';
-  }
+  String toString() => 'DBusUint32($value)';
 }
 
 /// D-Bus representation of a signed 64 bit integer.
@@ -272,9 +260,7 @@ class DBusInt64 extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() {
-    return 'DBusInt64($value)';
-  }
+  String toString() => 'DBusInt64($value)';
 }
 
 /// D-Bus representation of an unsigned 64 bit integer.
@@ -302,9 +288,7 @@ class DBusUint64 extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() {
-    return 'DBusUint64($value)';
-  }
+  String toString() => 'DBusUint64($value)';
 }
 
 /// D-Bus representation of a 64 bit floating point value.
@@ -332,9 +316,7 @@ class DBusDouble extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() {
-    return 'DBusDouble($value)';
-  }
+  String toString() => 'DBusDouble($value)';
 }
 
 /// D-Bus representation of an Unicode text string.
@@ -362,9 +344,7 @@ class DBusString extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() {
-    return "DBusString('$value')";
-  }
+  String toString() => "DBusString('$value')";
 }
 
 /// A D-Bus object path.
@@ -427,9 +407,7 @@ class DBusObjectPath extends DBusString {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() {
-    return "DBusObjectPath('$value')";
-  }
+  String toString() => "DBusObjectPath('$value')";
 }
 
 /// D-Bus value that indicates a set of D-Bus types.
@@ -603,9 +581,7 @@ class DBusSignature extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() {
-    return "DBusSignature('$value')";
-  }
+  String toString() => "DBusSignature('$value')";
 }
 
 /// D-Bus value that contains any D-Bus type.
@@ -633,9 +609,7 @@ class DBusVariant extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() {
-    return 'DBusVariant(${value.toString()})';
-  }
+  String toString() => 'DBusVariant(${value.toString()})';
 }
 
 /// D-Bus value that contains a D-Bus type or null.
@@ -680,9 +654,7 @@ class DBusMaybe extends DBusValue {
   int get hashCode => valueSignature.hashCode | value.hashCode;
 
   @override
-  String toString() {
-    return 'DBusMaybe($valueSignature, ${value?.toString()})';
-  }
+  String toString() => 'DBusMaybe($valueSignature, ${value?.toString()})';
 }
 
 /// D-Bus value that contains a fixed set of other values.
