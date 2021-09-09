@@ -860,7 +860,7 @@ class DBusArray extends DBusValue {
       case 'o':
         return 'DBusArray.objectPath([' +
             children
-                .map((child) => (child as DBusObjectPath).value)
+                .map((child) => (child as DBusObjectPath).toString())
                 .join(', ') +
             '])';
       case 'v':
