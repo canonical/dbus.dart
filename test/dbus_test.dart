@@ -3304,6 +3304,17 @@ void main() {
 
     // Remove an object.
     await client1.unregisterObject(object2);
+
+    // Check object is removed.
+    var objects = await remoteManagerObject.getManagedObjects();
+    expect(
+        objects,
+        equals({
+          DBusObjectPath('/com/example/Object1'): {
+            'org.freedesktop.DBus.Introspectable': {},
+            'org.freedesktop.DBus.Properties': {}
+          }
+        }));
   });
 
   test('object manager - interface added', () async {

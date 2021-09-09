@@ -713,6 +713,7 @@ class DBusClient {
     if (node == null) {
       return;
     }
+    _objectTree.remove(object.path);
 
     // If has an object manager as a parent, emit a signal to indicate this was removed.
     var objectManager = _findObjectManager(node.parent);
