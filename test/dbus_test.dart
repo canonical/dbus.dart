@@ -315,6 +315,33 @@ void main() {
         DBusObjectPath('/com/example/Test') ==
             DBusObjectPath('/com/example/Test2'),
         isFalse);
+    expect(
+        DBusObjectPath('/com/example/Test')
+            .isInNamespace(DBusObjectPath('/com/example/Test')),
+        isTrue);
+    expect(
+        DBusObjectPath('/com/example/Test')
+            .isInNamespace(DBusObjectPath('/com/example')),
+        isTrue);
+    expect(
+        DBusObjectPath('/com/example/Test')
+            .isInNamespace(DBusObjectPath('/com')),
+        isTrue);
+    expect(
+        DBusObjectPath('/com/example/Test').isInNamespace(DBusObjectPath('/')),
+        isTrue);
+    expect(
+        DBusObjectPath('/com/example/Test')
+            .isInNamespace(DBusObjectPath('/com/example/Test2')),
+        isFalse);
+    expect(
+        DBusObjectPath('/com/example/Test')
+            .isInNamespace(DBusObjectPath('/com/example2')),
+        isFalse);
+    expect(
+        DBusObjectPath('/com/example/Test')
+            .isInNamespace(DBusObjectPath('/com2/example')),
+        isFalse);
   });
 
   test('value - signature', () async {
