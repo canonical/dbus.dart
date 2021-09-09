@@ -1784,6 +1784,54 @@ void main() {
     expect(response.values, equals([DBusString('World'), DBusUint32(99)]));
   });
 
+  test('call method - all types', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    var allTypes = [
+      DBusByte(1),
+      DBusInt16(2),
+      DBusUint16(3),
+      DBusInt32(4),
+      DBusUint32(5),
+      DBusInt64(6),
+      DBusUint64(7),
+      DBusDouble(8.0),
+      DBusString('nine'),
+      DBusObjectPath('/ten'),
+      DBusSignature('dog'),
+      DBusVariant(DBusString('variant')),
+      DBusStruct([]),
+      DBusArray.byte([1, 2, 3]),
+      DBusDict(DBusSignature('i'), DBusSignature('s'), {
+        DBusInt32(1): DBusString('one'),
+        DBusInt32(2): DBusString('two'),
+        DBusInt32(3): DBusString('three')
+      })
+    ];
+
+    // Create a client that exposes a method that takes and returns all the DBus data types.
+    await client1.registerObject(TestObject(
+        expectedMethodValues: allTypes,
+        methodResponses: {'Test': DBusMethodSuccessResponse(allTypes)}));
+
+    // Call the method from another client.
+    var response = await client2.callMethod(
+        destination: client1.uniqueName,
+        path: DBusObjectPath('/'),
+        name: 'Test',
+        values: allTypes);
+    expect(response.values, equals(allTypes));
+  });
+
   test('call method - no response', () async {
     var server = DBusServer();
     var address =
