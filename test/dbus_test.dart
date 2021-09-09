@@ -1478,7 +1478,7 @@ void main() {
     });
 
     var id = await client.getId();
-    expect(id, equals(server.uuid.toHexString()));
+    expect(id, equals(server.uuid));
   });
 
   test('get machine id', () async {
