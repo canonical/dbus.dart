@@ -1122,6 +1122,8 @@ class DBusClient {
             throw DBusPropertyReadOnlyException(r);
           case 'org.freedesktop.DBus.Error.PropertyWriteOnly':
             throw DBusPropertyWriteOnlyException(r);
+          case 'org.freedesktop.DBus.Error.NotSupported':
+            throw DBusNotSupportedException(r);
           case 'org.freedesktop.DBus.Error.AccessDenied':
             throw DBusAccessDeniedException(r);
           case 'org.freedesktop.DBus.Error.AuthFailed':

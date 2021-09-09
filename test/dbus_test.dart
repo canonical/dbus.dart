@@ -1621,7 +1621,7 @@ void main() {
         throwsA(isA<DBusServiceUnknownException>()));
   });
 
-  test('get unix user', () async {
+  test('get unix user - server', () async {
     var server = DBusServer();
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
@@ -1635,7 +1635,26 @@ void main() {
     expect(uid, equals(getuid()));
   });
 
-  test('get process id', () async {
+  test('get unix user - client', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Connect client.
+    await client1.ping();
+
+    expect(() => client2.getConnectionUnixUser(client1.uniqueName),
+        throwsA(isA<DBusNotSupportedException>()));
+  });
+
+  test('get process id - server', () async {
     var server = DBusServer();
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
@@ -1649,7 +1668,26 @@ void main() {
     expect(pid_, equals(pid));
   });
 
-  test('get credentials', () async {
+  test('get process id - client', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Connect client.
+    await client1.ping();
+
+    expect(() => client2.getConnectionUnixProcessId(client1.uniqueName),
+        throwsA(isA<DBusNotSupportedException>()));
+  });
+
+  test('get credentials - server', () async {
     var server = DBusServer();
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
@@ -1663,6 +1701,25 @@ void main() {
         await client.getConnectionCredentials('org.freedesktop.DBus');
     expect(credentials.unixUserId, equals(getuid()));
     expect(credentials.processId, equals(pid));
+  });
+
+  test('get credentials - client', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Connect client.
+    await client1.ping();
+
+    expect(() => client2.getConnectionCredentials(client1.uniqueName),
+        throwsA(isA<DBusNotSupportedException>()));
   });
 
   test('get id', () async {

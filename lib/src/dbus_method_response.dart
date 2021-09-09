@@ -123,6 +123,11 @@ class DBusPropertyWriteOnlyException extends DBusErrorException {
       : super(response);
 }
 
+/// Exception when accessing a feature that is not supported.
+class DBusNotSupportedException extends DBusErrorException {
+  DBusNotSupportedException(DBusMethodErrorResponse response) : super(response);
+}
+
 /// Exception when access was denied to the requested resource.
 class DBusAccessDeniedException extends DBusErrorException {
   DBusAccessDeniedException(DBusMethodErrorResponse response) : super(response);
@@ -187,6 +192,11 @@ class DBusMethodErrorResponse extends DBusMethodResponse {
   /// Creates a new error response when attempting to read to a write-only property.
   DBusMethodErrorResponse.propertyWriteOnly([String? message])
       : this('org.freedesktop.DBus.Error.PropertyWriteOnly',
+            message != null ? [DBusString(message)] : []);
+
+  /// Creates a new error response when accessing an unsupported feature.
+  DBusMethodErrorResponse.notSupported([String? message])
+      : this('org.freedesktop.DBus.Error.NotSupported',
             message != null ? [DBusString(message)] : []);
 
   /// Creates a new error response indicating access was denied.
