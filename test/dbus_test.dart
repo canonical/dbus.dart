@@ -1467,6 +1467,20 @@ void main() {
     expect(credentials.processId, equals(pid));
   });
 
+  test('get id', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    var id = await client.getId();
+    expect(id, equals(server.uuid.toHexString()));
+  });
+
   test('call method', () async {
     var server = DBusServer();
     var address =

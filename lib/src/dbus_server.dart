@@ -287,6 +287,9 @@ class _DBusNameQueue {
 
 /// A D-Bus server.
 class DBusServer {
+  /// Unique ID for this server;
+  final uuid = DBusUUID();
+
   /// Names of services that can be activated.
   /// Override this property to enable this feature.
   List<String> get activatableNames => [];
@@ -1027,8 +1030,7 @@ class DBusServer {
 
   // Implementation of org.freedesktop.DBus.GetId
   DBusMethodResponse _getId(_DBusRemoteClient client) {
-    return DBusMethodSuccessResponse(
-        [DBusString(client.serverSocket.uuid.toHexString())]);
+    return DBusMethodSuccessResponse([DBusString(uuid.toHexString())]);
   }
 
   // Implementation of org.freedesktop.DBus.Introspectable.Introspect
