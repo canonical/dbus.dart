@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.3
+
+* Fix ObjectManager still reporting unregistered objects.
+* Fix incorrect introspection data for ObjectManager.
+* Use FormatException for DBusAddress invalid format strings.
+* Improvements to DBus address string escaping.
+* Fix wrong ID returned from getId in DBusServer.
+
 ## 0.6.2
 
 * Make classes for standard D-Bus exceptions.
