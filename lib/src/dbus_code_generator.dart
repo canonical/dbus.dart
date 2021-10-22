@@ -582,7 +582,7 @@ class DBusCodeGenerator {
     }
 
     var constructor =
-        '  $className(DBusClient client, String destination, $pathArg) : super(client, destination, path)';
+        '  $className(DBusClient client, String destination, $pathArg) : super(client, name: destination, path: path)';
     if (variableConstructors.isEmpty) {
       constructor += ';\n';
     } else {
