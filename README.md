@@ -68,7 +68,7 @@ class TestObject extends DBusObject {
   }
 
   @override
-  Future<MethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
+  Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
     if (methodCall.interface == 'com.example.Test') {
       if (methodCall.name == 'Test') {
         return DBusMethodSuccessResponse([DBusString('Hello World!')]);
