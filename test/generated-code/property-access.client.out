@@ -1,7 +1,7 @@
 import 'package:dbus/dbus.dart';
 
 class ComExampleTest extends DBusRemoteObject {
-  ComExampleTest(DBusClient client, String destination, DBusObjectPath path) : super(client, destination, path);
+  ComExampleTest(DBusClient client, String destination, DBusObjectPath path) : super(client, name: destination, path: path);
 
   /// Gets com.example.Test.ReadProperty
   Future<int> getReadProperty() async {

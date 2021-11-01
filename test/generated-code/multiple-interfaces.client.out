@@ -1,7 +1,7 @@
 import 'package:dbus/dbus.dart';
 
 class ComExampleTest1 extends DBusRemoteObject {
-  ComExampleTest1(DBusClient client, String destination, DBusObjectPath path) : super(client, destination, path);
+  ComExampleTest1(DBusClient client, String destination, DBusObjectPath path) : super(client, name: destination, path: path);
 
   /// Invokes com.example.Test1.Hello()
   Future<void> callHello({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
