@@ -3,8 +3,6 @@ import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:pedantic/pedantic.dart';
-
 import 'dbus_address.dart';
 import 'dbus_auth_server.dart';
 import 'dbus_bus_name.dart';
