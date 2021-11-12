@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:pedantic/pedantic.dart';
-
 import 'dbus_address.dart';
 import 'dbus_auth_client.dart';
 import 'dbus_bus_name.dart';
