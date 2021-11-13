@@ -62,13 +62,10 @@ await client.close();
 import 'package:dbus/dbus.dart';
 
 class TestObject extends DBusObject {
-  @override
-  DBusObjectPath get path {
-    return DBusObjectPath('/com/example/Test');
-  }
+  TestObject() : super(DBusObjectPath('/com/example/Test'));
 
   @override
-  Future<MethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
+  Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {
     if (methodCall.interface == 'com.example.Test') {
       if (methodCall.name == 'Test') {
         return DBusMethodSuccessResponse([DBusString('Hello World!')]);
