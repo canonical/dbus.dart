@@ -39,6 +39,14 @@ class DBusSignal {
       _listsEqual(other.values, values);
 
   @override
+  int get hashCode =>
+      sender.hashCode |
+      path.hashCode |
+      interface.hashCode |
+      name.hashCode |
+      values.hashCode;
+
+  @override
   String toString() =>
       "DBusSignal(sender: '$sender', path: $path, interface: '$interface', name: '$name', values: $values)";
 }

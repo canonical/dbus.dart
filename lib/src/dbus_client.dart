@@ -197,6 +197,10 @@ class DBusNameOwnerChangedEvent {
       other.name == name &&
       other.oldOwner == oldOwner &&
       other.newOwner == newOwner;
+
+  @override
+  int get hashCode =>
+      name.hashCode | (oldOwner?.hashCode ?? 0) | (newOwner?.hashCode ?? 0);
 }
 
 /// Exception thrown when a request is sent and the connection to the D-Bus server is closed.
