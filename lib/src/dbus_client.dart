@@ -787,11 +787,13 @@ class DBusClient {
     }
 
     _socket = await Socket.connect(socketAddress, port);
-    _socket?.listen(_processData,
-        onError: (error) {}, onDone: () => _socket!.close());
-    unawaited(_socket?.done.then((value) {
-      _socketClosed = true;
-    }));
+    if (_socket != null) {
+      _socket!.listen(_processData,
+          onError: (error) {}, onDone: () => _socket!.close());
+      unawaited(_socket!.done.then((value) {
+        _socketClosed = true;
+      }));
+    }
   }
 
   /// Connects to the D-Bus server.
