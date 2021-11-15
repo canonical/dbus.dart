@@ -79,7 +79,9 @@ DBusMethodResponse handleObjectManagerMethodCall(
                 object,
                 introspectable: introspectable));
       }
-      node.children.values.forEach((n) => addObjects(n));
+      for (var childNode in node.children.values) {
+        addObjects(childNode);
+      }
     }
 
     addObjects(objectTree.root);
