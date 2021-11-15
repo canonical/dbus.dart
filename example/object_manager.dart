@@ -8,14 +8,14 @@ void main() async {
 
   object.signals.listen((signal) {
     if (signal is DBusObjectManagerInterfacesAddedSignal) {
-      print('${signal.changedPath.value}');
+      print(signal.changedPath.value);
       printInterfacesAndProperties(signal.interfacesAndProperties);
     } else if (signal is DBusObjectManagerInterfacesRemovedSignal) {
       for (var interface in signal.interfaces) {
         print('${signal.changedPath.value} removed interfaces $interface');
       }
     } else if (signal is DBusPropertiesChangedSignal) {
-      print('${signal.path.value}');
+      print(signal.path.value);
       printInterfacesAndProperties(
           {signal.propertiesInterface: signal.changedProperties});
     }
@@ -23,7 +23,7 @@ void main() async {
 
   var objects = await object.getManagedObjects();
   objects.forEach((objectPath, interfacesAndProperties) {
-    print('${objectPath.value}');
+    print(objectPath.value);
     printInterfacesAndProperties(interfacesAndProperties);
   });
 }
