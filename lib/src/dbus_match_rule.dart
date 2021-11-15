@@ -187,6 +187,15 @@ class DBusMatchRule {
       other.pathNamespace == pathNamespace;
 
   @override
+  int get hashCode =>
+      (type?.hashCode ?? 0) |
+      (sender?.hashCode ?? 0) |
+      (interface?.hashCode ?? 0) |
+      (member?.hashCode ?? 0) |
+      (path?.hashCode ?? 0) |
+      (pathNamespace?.hashCode ?? 0);
+
+  @override
   String toString() {
     var parameters = <String, String?>{
       'type': type?.toString(),
