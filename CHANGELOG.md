@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.4
+
+* Fix generated code not using named constructor args.
+* Make generated signal streams broadcast.
+* Fix README.md example to use current API.
+* Drop dependency on deprecated pedantic plugin.
+
 ## 0.6.3
 
 * Fix ObjectManager still reporting unregistered objects.
