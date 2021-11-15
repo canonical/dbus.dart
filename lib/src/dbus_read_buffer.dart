@@ -267,7 +267,7 @@ class DBusReadBuffer extends DBusBuffer {
 
   /// Reads a [DBusBoolean] from the buffer or returns null if not enough data.
   DBusBoolean? readDBusBoolean([Endian endian = Endian.little]) {
-    if (!align(BOOLEAN_ALIGNMENT) || remaining < 4) {
+    if (!align(booleanAlignment) || remaining < 4) {
       return null;
     }
     return DBusBoolean(readUint32(endian) != 0);
@@ -275,7 +275,7 @@ class DBusReadBuffer extends DBusBuffer {
 
   /// Reads a [DBusInt16] from the buffer or returns null if not enough data.
   DBusInt16? readDBusInt16([Endian endian = Endian.little]) {
-    if (!align(INT16_ALIGNMENT) || remaining < 2) {
+    if (!align(int16Alignment) || remaining < 2) {
       return null;
     }
     return DBusInt16(readInt16(endian));
@@ -283,7 +283,7 @@ class DBusReadBuffer extends DBusBuffer {
 
   /// Reads a [DBusUint16] from the buffer or returns null if not enough data.
   DBusUint16? readDBusUint16([Endian endian = Endian.little]) {
-    if (!align(UINT16_ALIGNMENT) || remaining < 2) {
+    if (!align(uint16Alignment) || remaining < 2) {
       return null;
     }
     return DBusUint16(readUint16(endian));
@@ -291,7 +291,7 @@ class DBusReadBuffer extends DBusBuffer {
 
   /// Reads a [DBusInt32] from the buffer or returns null if not enough data.
   DBusInt32? readDBusInt32([Endian endian = Endian.little]) {
-    if (!align(INT32_ALIGNMENT) || remaining < 4) {
+    if (!align(int32Alignment) || remaining < 4) {
       return null;
     }
     return DBusInt32(readInt32(endian));
@@ -299,7 +299,7 @@ class DBusReadBuffer extends DBusBuffer {
 
   /// Reads a [DBusUint32] from the buffer or returns null if not enough data.
   DBusUint32? readDBusUint32([Endian endian = Endian.little]) {
-    if (!align(UINT32_ALIGNMENT) || remaining < 4) {
+    if (!align(uint32Alignment) || remaining < 4) {
       return null;
     }
     return DBusUint32(readUint32(endian));
@@ -307,7 +307,7 @@ class DBusReadBuffer extends DBusBuffer {
 
   /// Reads a [DBusInt64] from the buffer or returns null if not enough data.
   DBusInt64? readDBusInt64([Endian endian = Endian.little]) {
-    if (!align(INT64_ALIGNMENT) || remaining < 8) {
+    if (!align(int64Alignment) || remaining < 8) {
       return null;
     }
     return DBusInt64(readInt64(endian));
@@ -315,7 +315,7 @@ class DBusReadBuffer extends DBusBuffer {
 
   /// Reads a [DBusUint64] from the buffer or returns null if not enough data.
   DBusUint64? readDBusUint64([Endian endian = Endian.little]) {
-    if (!align(UINT64_ALIGNMENT) || remaining < 8) {
+    if (!align(uint64Alignment) || remaining < 8) {
       return null;
     }
     return DBusUint64(readUint64(endian));
@@ -323,7 +323,7 @@ class DBusReadBuffer extends DBusBuffer {
 
   /// Reads a [DBusDouble] from the buffer or returns null if not enough data.
   DBusDouble? readDBusDouble([Endian endian = Endian.little]) {
-    if (!align(DOUBLE_ALIGNMENT) || remaining < 8) {
+    if (!align(doubleAlignment) || remaining < 8) {
       return null;
     }
     return DBusDouble(readFloat64(endian));
@@ -395,7 +395,7 @@ class DBusReadBuffer extends DBusBuffer {
   /// Reads a [DBusStruct] from the buffer or returns null if not enough data.
   DBusStruct? readDBusStruct(Iterable<DBusSignature> childSignatures,
       [Endian endian = Endian.little]) {
-    if (!align(STRUCT_ALIGNMENT)) {
+    if (!align(structAlignment)) {
       return null;
     }
 
@@ -436,7 +436,7 @@ class DBusReadBuffer extends DBusBuffer {
       DBusSignature keySignature, DBusSignature valueSignature,
       [Endian endian = Endian.little]) {
     var length = readDBusUint32(endian);
-    if (length == null || !align(DICT_ENTRY_ALIGNMENT)) {
+    if (length == null || !align(dictEntryAlignment)) {
       return null;
     }
 

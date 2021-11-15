@@ -141,28 +141,28 @@ class DBusWriteBuffer extends DBusBuffer {
     if (value is DBusByte) {
       writeByte(value.value);
     } else if (value is DBusBoolean) {
-      align(BOOLEAN_ALIGNMENT);
+      align(booleanAlignment);
       writeUint32(value.value ? 1 : 0);
     } else if (value is DBusInt16) {
-      align(INT16_ALIGNMENT);
+      align(int16Alignment);
       writeInt16(value.value);
     } else if (value is DBusUint16) {
-      align(UINT16_ALIGNMENT);
+      align(uint16Alignment);
       writeUint16(value.value);
     } else if (value is DBusInt32) {
-      align(INT32_ALIGNMENT);
+      align(int32Alignment);
       writeInt32(value.value);
     } else if (value is DBusUint32) {
-      align(UINT32_ALIGNMENT);
+      align(uint32Alignment);
       writeUint32(value.value);
     } else if (value is DBusInt64) {
-      align(INT64_ALIGNMENT);
+      align(int64Alignment);
       writeInt64(value.value);
     } else if (value is DBusUint64) {
-      align(UINT64_ALIGNMENT);
+      align(uint64Alignment);
       writeUint64(value.value);
     } else if (value is DBusDouble) {
-      align(DOUBLE_ALIGNMENT);
+      align(doubleAlignment);
       writeFloat64(value.value);
     } else if (value is DBusString) {
       var data = utf8.encode(value.value);
@@ -189,7 +189,7 @@ class DBusWriteBuffer extends DBusBuffer {
     } else if (value is DBusMaybe) {
       throw UnsupportedError("D-Bus doesn't support reserved maybe type");
     } else if (value is DBusStruct) {
-      align(STRUCT_ALIGNMENT);
+      align(structAlignment);
       var children = value.children;
       for (var child in children) {
         writeValue(child);
@@ -221,7 +221,7 @@ class DBusWriteBuffer extends DBusBuffer {
       writeValue(DBusUint32(0));
       var lengthOffset = data.length - 4;
 
-      align(DICT_ENTRY_ALIGNMENT);
+      align(dictEntryAlignment);
       var startOffset = data.length;
       value.children.forEach((key, value) {
         writeValue(DBusStruct([key, value]));
