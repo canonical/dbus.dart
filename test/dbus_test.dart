@@ -785,7 +785,6 @@ void main() {
             .toString(),
         equals(
             "DBusDict.stringVariant({'one': DBusInt32(1), 'two': DBusDouble(2.0)})"));
-    ;
   });
 
   test('address', () async {
