@@ -466,7 +466,7 @@ class DBusIntrospectAnnotation {
   }
 
   XmlNode toXml() {
-    return XmlElement(XmlName('method'), [
+    return XmlElement(XmlName('annotation'), [
       XmlAttribute(XmlName('name'), name),
       XmlAttribute(XmlName('value'), value)
     ]);
