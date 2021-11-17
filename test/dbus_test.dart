@@ -3627,25 +3627,25 @@ void main() {
         throwsA(isA<DBusUnknownMethodException>()));
   });
 
-  test('intropect xml - empty', () {
+  test('introspect xml - empty', () {
     expect(() => parseDBusIntrospectXml(''), throwsFormatException);
   });
 
-  test('intropect xml - unknown tag', () {
+  test('introspect xml - unknown tag', () {
     expect(() => parseDBusIntrospectXml('<foo/>'), throwsFormatException);
   });
 
-  test('intropect xml - empty node', () {
+  test('introspect xml - empty node', () {
     var node = parseDBusIntrospectXml('<node/>');
     expect(node, equals(DBusIntrospectNode()));
   });
 
-  test('intropect xml - named node', () {
+  test('introspect xml - named node', () {
     var node = parseDBusIntrospectXml('<node name="/com/example/Test"/>');
     expect(node, equals(DBusIntrospectNode(name: '/com/example/Test')));
   });
 
-  test('intropect xml - interface annotation', () {
+  test('introspect xml - interface annotation', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"><annotation name="com.example.Test.Name" value="AnnotationValue"/></interface></node>');
     expect(
@@ -3657,7 +3657,7 @@ void main() {
         ])));
   });
 
-  test('intropect xml - empty interface', () {
+  test('introspect xml - empty interface', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"/></node>');
     expect(
@@ -3666,12 +3666,12 @@ void main() {
             interfaces: [DBusIntrospectInterface('com.example.Test')])));
   });
 
-  test('intropect xml - missing interface name', () {
+  test('introspect xml - missing interface name', () {
     expect(() => parseDBusIntrospectXml('<node><interface/></node>'),
         throwsFormatException);
   });
 
-  test('intropect xml - method no args', () {
+  test('introspect xml - method no args', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"><method name="Hello"/></interface></node>');
     expect(
@@ -3682,7 +3682,7 @@ void main() {
         ])));
   });
 
-  test('intropect xml - method input arg', () {
+  test('introspect xml - method input arg', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"><method name="Hello"><arg type="s"/></method></interface></node>');
     expect(
@@ -3697,7 +3697,7 @@ void main() {
         ])));
   });
 
-  test('intropect xml - method named arg', () {
+  test('introspect xml - method named arg', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"><method name="Hello"><arg name="text" type="s"/></method></interface></node>');
     expect(
@@ -3713,7 +3713,7 @@ void main() {
         ])));
   });
 
-  test('intropect xml - method input arg', () {
+  test('introspect xml - method input arg', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"><method name="Hello"><arg type="s" direction="in"/></method></interface></node>');
     expect(
@@ -3728,7 +3728,7 @@ void main() {
         ])));
   });
 
-  test('intropect xml - method output arg', () {
+  test('introspect xml - method output arg', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"><method name="Hello"><arg type="s" direction="out"/></method></interface></node>');
     expect(
@@ -3743,7 +3743,7 @@ void main() {
         ])));
   });
 
-  test('intropect xml - method arg annotation', () {
+  test('introspect xml - method arg annotation', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"><method name="Hello"><arg type="s"><annotation name="com.example.Test.Name" value="AnnotationValue"/></arg></method></interface></node>');
     expect(
@@ -3761,7 +3761,7 @@ void main() {
         ])));
   });
 
-  test('intropect xml - method annotation', () {
+  test('introspect xml - method annotation', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"><method name="Hello"><annotation name="com.example.Test.Name" value="AnnotationValue"/></method></interface></node>');
     expect(
@@ -3776,28 +3776,28 @@ void main() {
         ])));
   });
 
-  test('intropect xml - missing method name', () {
+  test('introspect xml - missing method name', () {
     expect(
         () => parseDBusIntrospectXml(
             '<node><interface name="com.example.Test"><method/></interface></node>'),
         throwsFormatException);
   });
 
-  test('intropect xml - missing argument type', () {
+  test('introspect xml - missing argument type', () {
     expect(
         () => parseDBusIntrospectXml(
             '<node><interface name="com.example.Test"><method name="Hello"><arg/></method></interface></node>'),
         throwsFormatException);
   });
 
-  test('intropect xml - unknown argument direction', () {
+  test('introspect xml - unknown argument direction', () {
     expect(
         () => parseDBusIntrospectXml(
             '<node><interface name="com.example.Test"><method name="Hello"><arg type="s" direction="down"/></method></interface></node>'),
         throwsFormatException);
   });
 
-  test('intropect xml - signal', () {
+  test('introspect xml - signal', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"><signal name="CountChanged"/></interface></node>');
     expect(
@@ -3808,7 +3808,7 @@ void main() {
         ])));
   });
 
-  test('intropect xml - signal argument', () {
+  test('introspect xml - signal argument', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"><signal name="CountChanged"><arg type="u"/></signal></interface></node>');
     expect(
@@ -3823,7 +3823,7 @@ void main() {
         ])));
   });
 
-  test('intropect xml - signal output argument', () {
+  test('introspect xml - signal output argument', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"><signal name="CountChanged"><arg type="u" direction="out"/></signal></interface></node>');
     expect(
@@ -3838,7 +3838,7 @@ void main() {
         ])));
   });
 
-  test('intropect xml - signal annotation', () {
+  test('introspect xml - signal annotation', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"><signal name="CountChanged"><annotation name="com.example.Test.Name" value="AnnotationValue"/></signal></interface></node>');
     expect(
@@ -3853,21 +3853,21 @@ void main() {
         ])));
   });
 
-  test('intropect xml - signal no name', () {
+  test('introspect xml - signal no name', () {
     expect(
         () => parseDBusIntrospectXml(
             '<node><interface name="com.example.Test"><signal/></interface></node>'),
         throwsFormatException);
   });
 
-  test('intropect xml - signal input argument', () {
+  test('introspect xml - signal input argument', () {
     expect(
         () => parseDBusIntrospectXml(
             '<node><interface name="com.example.Test"><signal><arg type="u" direction="in"/></signal></interface></node>'),
         throwsFormatException);
   });
 
-  test('intropect xml - property', () {
+  test('introspect xml - property', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"><property name="Count" type="u"/></interface></node>');
     expect(
@@ -3878,7 +3878,7 @@ void main() {
         ])));
   });
 
-  test('intropect xml - property - read access', () {
+  test('introspect xml - property - read access', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"><property name="Count" type="u" access="read"/></interface></node>');
     expect(
@@ -3891,7 +3891,7 @@ void main() {
         ])));
   });
 
-  test('intropect xml - property - write access', () {
+  test('introspect xml - property - write access', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"><property name="Count" type="u" access="write"/></interface></node>');
     expect(
@@ -3904,7 +3904,7 @@ void main() {
         ])));
   });
 
-  test('intropect xml - property - readwrite access', () {
+  test('introspect xml - property - readwrite access', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"><property name="Count" type="u" access="readwrite"/></interface></node>');
     expect(
@@ -3917,7 +3917,7 @@ void main() {
         ])));
   });
 
-  test('intropect xml - property annotation', () {
+  test('introspect xml - property annotation', () {
     var node = parseDBusIntrospectXml(
         '<node><interface name="com.example.Test"><property name="Count" type="u"><annotation name="com.example.Test.Name" value="AnnotationValue"/></property></interface></node>');
     expect(
@@ -3932,32 +3932,269 @@ void main() {
         ])));
   });
 
-  test('intropect xml - property no name or type', () {
+  test('introspect xml - property no name or type', () {
     expect(
         () => parseDBusIntrospectXml(
             '<node><interface name="com.example.Test"><property/></interface></node>'),
         throwsFormatException);
   });
 
-  test('intropect xml - property no name', () {
+  test('introspect xml - property no name', () {
     expect(
         () => parseDBusIntrospectXml(
             '<node><interface name="com.example.Test"><property type="u"/></interface></node>'),
         throwsFormatException);
   });
 
-  test('intropect xml - property no type', () {
+  test('introspect xml - property no type', () {
     expect(
         () => parseDBusIntrospectXml(
             '<node><interface name="com.example.Test"><property name="Count"/></interface></node>'),
         throwsFormatException);
   });
 
-  test('intropect xml - property unknown access', () {
+  test('introspect xml - property unknown access', () {
     expect(
         () => parseDBusIntrospectXml(
             '<node><interface name="com.example.Test"><property name="Count" type="u" access="cook"/></interface></node>'),
         throwsFormatException);
+  });
+
+  test('introspect xml - node', () {
+    var noInterfaceNode = DBusIntrospectNode();
+    expect(noInterfaceNode.toXml().toXmlString(), equals('<node/>'));
+
+    var interfaceNode =
+        DBusIntrospectNode(name: '/com/example/Object', interfaces: [
+      DBusIntrospectInterface('com.example.Interface1'),
+      DBusIntrospectInterface('com.example.Interface2')
+    ]);
+    expect(
+        interfaceNode.toXml().toXmlString(),
+        equals('<node name="/com/example/Object">'
+            '<interface name="com.example.Interface1"/>'
+            '<interface name="com.example.Interface2"/>'
+            '</node>'));
+
+    var treeNode = DBusIntrospectNode(name: '/com/example/Object', interfaces: [
+      DBusIntrospectInterface('com.example.Interface1')
+    ], children: [
+      DBusIntrospectNode(name: 'Subobject1'),
+      DBusIntrospectNode(name: 'Subobject2')
+    ]);
+    expect(
+        treeNode.toXml().toXmlString(),
+        equals('<node name="/com/example/Object">'
+            '<interface name="com.example.Interface1"/>'
+            '<node name="Subobject1"/>'
+            '<node name="Subobject2"/>'
+            '</node>'));
+  });
+
+  test('introspect xml - interface', () {
+    var emptyInterface = DBusIntrospectInterface('com.example.Interface1');
+    expect(emptyInterface.toXml().toXmlString(),
+        equals('<interface name="com.example.Interface1"/>'));
+
+    var methodInterface = DBusIntrospectInterface('com.example.Interface1',
+        methods: [
+          DBusIntrospectMethod('Method1'),
+          DBusIntrospectMethod('Method2')
+        ]);
+    expect(
+        methodInterface.toXml().toXmlString(),
+        equals('<interface name="com.example.Interface1">'
+            '<method name="Method1"/>'
+            '<method name="Method2"/>'
+            '</interface>'));
+
+    var signalInterface = DBusIntrospectInterface('com.example.Interface1',
+        signals: [
+          DBusIntrospectSignal('Signal1'),
+          DBusIntrospectSignal('Signal2')
+        ]);
+    expect(
+        signalInterface.toXml().toXmlString(),
+        equals('<interface name="com.example.Interface1">'
+            '<signal name="Signal1"/>'
+            '<signal name="Signal2"/>'
+            '</interface>'));
+
+    var propertyInterface =
+        DBusIntrospectInterface('com.example.Interface1', properties: [
+      DBusIntrospectProperty('Property1', DBusSignature('s')),
+      DBusIntrospectProperty('Property2', DBusSignature('i'))
+    ]);
+    expect(
+        propertyInterface.toXml().toXmlString(),
+        equals('<interface name="com.example.Interface1">'
+            '<property name="Property1" type="s" access="readwrite"/>'
+            '<property name="Property2" type="i" access="readwrite"/>'
+            '</interface>'));
+
+    var annotatedInterface =
+        DBusIntrospectInterface('com.example.Interface1', methods: [
+      DBusIntrospectMethod('Method1')
+    ], signals: [
+      DBusIntrospectSignal('Signal1')
+    ], properties: [
+      DBusIntrospectProperty('Property1', DBusSignature('s'))
+    ], annotations: [
+      DBusIntrospectAnnotation('com.example.Annotation1', 'value1'),
+      DBusIntrospectAnnotation('com.example.Annotation2', 'value2')
+    ]);
+    expect(
+        annotatedInterface.toXml().toXmlString(),
+        equals('<interface name="com.example.Interface1">'
+            '<method name="Method1"/>'
+            '<signal name="Signal1"/>'
+            '<property name="Property1" type="s" access="readwrite"/>'
+            '<annotation name="com.example.Annotation1" value="value1"/>'
+            '<annotation name="com.example.Annotation2" value="value2"/>'
+            '</interface>'));
+  });
+
+  test('introspect xml - method', () {
+    var noArgMethod = DBusIntrospectMethod('Method1');
+    expect(
+        noArgMethod.toXml().toXmlString(), equals('<method name="Method1"/>'));
+
+    var argMethod = DBusIntrospectMethod('Method1', args: [
+      DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_),
+      DBusIntrospectArgument(DBusSignature('as'), DBusArgumentDirection.in_,
+          name: 'named_arg'),
+      DBusIntrospectArgument(DBusSignature('i'), DBusArgumentDirection.out)
+    ]);
+    expect(
+        argMethod.toXml().toXmlString(),
+        equals('<method name="Method1">'
+            '<arg type="s" direction="in"/>'
+            '<arg name="named_arg" type="as" direction="in"/>'
+            '<arg type="i" direction="out"/>'
+            '</method>'));
+
+    var annotatedMethod = DBusIntrospectMethod('Method1', args: [
+      DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.in_),
+    ], annotations: [
+      DBusIntrospectAnnotation('com.example.Annotation1', 'value1'),
+      DBusIntrospectAnnotation('com.example.Annotation2', 'value2')
+    ]);
+    expect(
+        annotatedMethod.toXml().toXmlString(),
+        equals('<method name="Method1">'
+            '<arg type="s" direction="in"/>'
+            '<annotation name="com.example.Annotation1" value="value1"/>'
+            '<annotation name="com.example.Annotation2" value="value2"/>'
+            '</method>'));
+  });
+
+  test('introspect xml - signal', () {
+    var noArgSignal = DBusIntrospectSignal('Signal1');
+    expect(
+        noArgSignal.toXml().toXmlString(), equals('<signal name="Signal1"/>'));
+
+    var argSignal = DBusIntrospectSignal('Signal1', args: [
+      DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out),
+      DBusIntrospectArgument(DBusSignature('i'), DBusArgumentDirection.out,
+          name: 'named_arg')
+    ]);
+    expect(
+        argSignal.toXml().toXmlString(),
+        equals('<signal name="Signal1">'
+            '<arg type="s"/>'
+            '<arg name="named_arg" type="i"/>'
+            '</signal>'));
+
+    var annotatedSignal = DBusIntrospectSignal('Signal1', args: [
+      DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out),
+    ], annotations: [
+      DBusIntrospectAnnotation('com.example.Annotation1', 'value1'),
+      DBusIntrospectAnnotation('com.example.Annotation2', 'value2')
+    ]);
+    expect(
+        annotatedSignal.toXml().toXmlString(),
+        equals('<signal name="Signal1">'
+            '<arg type="s"/>'
+            '<annotation name="com.example.Annotation1" value="value1"/>'
+            '<annotation name="com.example.Annotation2" value="value2"/>'
+            '</signal>'));
+  });
+
+  test('introspect xml - property', () {
+    var property = DBusIntrospectProperty('Property1', DBusSignature('s'));
+    expect(property.toXml().toXmlString(),
+        equals('<property name="Property1" type="s" access="readwrite"/>'));
+
+    var readProperty = DBusIntrospectProperty(
+        'ReadProperty', DBusSignature('s'),
+        access: DBusPropertyAccess.read);
+    expect(readProperty.toXml().toXmlString(),
+        equals('<property name="ReadProperty" type="s" access="read"/>'));
+
+    var writeProperty = DBusIntrospectProperty(
+        'WriteProperty', DBusSignature('i'),
+        access: DBusPropertyAccess.write);
+    expect(writeProperty.toXml().toXmlString(),
+        equals('<property name="WriteProperty" type="i" access="write"/>'));
+
+    var readWriteProperty = DBusIntrospectProperty(
+        'ReadWriteProperty', DBusSignature('ay'),
+        access: DBusPropertyAccess.readwrite);
+    expect(
+        readWriteProperty.toXml().toXmlString(),
+        equals(
+            '<property name="ReadWriteProperty" type="ay" access="readwrite"/>'));
+
+    var annotatedProperty = DBusIntrospectProperty(
+        'Property1', DBusSignature('a{sv}'),
+        annotations: [
+          DBusIntrospectAnnotation('com.example.Annotation1', 'value1'),
+          DBusIntrospectAnnotation('com.example.Annotation2', 'value2')
+        ]);
+    expect(
+        annotatedProperty.toXml().toXmlString(),
+        equals('<property name="Property1" type="a{sv}" access="readwrite">'
+            '<annotation name="com.example.Annotation1" value="value1"/>'
+            '<annotation name="com.example.Annotation2" value="value2"/>'
+            '</property>'));
+  });
+
+  test('introspect xml - argument', () {
+    var inArgument =
+        DBusIntrospectArgument(DBusSignature('i'), DBusArgumentDirection.in_);
+    expect(inArgument.toXml().toXmlString(),
+        equals('<arg type="i" direction="in"/>'));
+
+    var outArgument =
+        DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out);
+    expect(outArgument.toXml().toXmlString(),
+        equals('<arg type="s" direction="out"/>'));
+
+    var namedArgument = DBusIntrospectArgument(
+        DBusSignature('s'), DBusArgumentDirection.in_,
+        name: 'named_arg');
+    expect(namedArgument.toXml().toXmlString(),
+        equals('<arg name="named_arg" type="s" direction="in"/>'));
+
+    var annotatedArgument = DBusIntrospectArgument(
+        DBusSignature('s'), DBusArgumentDirection.out,
+        annotations: [
+          DBusIntrospectAnnotation('com.example.Annotation1', 'value1'),
+          DBusIntrospectAnnotation('com.example.Annotation2', 'value2')
+        ]);
+    expect(
+        annotatedArgument.toXml().toXmlString(),
+        equals('<arg type="s" direction="out">'
+            '<annotation name="com.example.Annotation1" value="value1"/>'
+            '<annotation name="com.example.Annotation2" value="value2"/>'
+            '</arg>'));
+  });
+
+  test('introspect xml - annotation', () {
+    var annotation =
+        DBusIntrospectAnnotation('com.example.Annotation1', 'value1');
+    expect(annotation.toXml().toXmlString(),
+        equals('<annotation name="com.example.Annotation1" value="value1"/>'));
   });
 
   for (var name in [
