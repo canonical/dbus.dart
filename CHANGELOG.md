@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.5
+
+* Fix invalid introspection generation for annotations.
+
 ## 0.6.4
 
 * Fix generated code not using named constructor args.
