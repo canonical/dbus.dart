@@ -788,9 +788,10 @@ class DBusClient {
     if (_socket != null) {
       _socket!.listen(_processData,
           onError: (error) {}, onDone: () => _socket!.close());
-      unawaited(_socket!.done.then((value) {
+      // ignore: unawaited_futures
+      _socket!.done.then((value) {
         _socketClosed = true;
-      }));
+      });
     }
   }
 
