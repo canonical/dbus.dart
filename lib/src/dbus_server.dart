@@ -534,7 +534,8 @@ class DBusServer {
           sender: DBusBusName('org.freedesktop.DBus'),
           values: values);
       _nextSerial++;
-      unawaited(_processMessage(null, responseMessage));
+      // ignore: unawaited_futures
+      _processMessage(null, responseMessage);
     }
   }
 
@@ -1254,7 +1255,7 @@ class DBusServer {
         sender: DBusBusName('org.freedesktop.DBus'),
         values: values.toList());
     _nextSerial++;
-    unawaited(_processMessage(null, message));
+    _processMessage(null, message);
   }
 
   @override
