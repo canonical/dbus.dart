@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.6
+
+* Remove unawaited calls that were making a depdendency on dart:async 2.14.
+  This occurred after dropping pedantic in 0.6.4
+
 ## 0.6.5
 
 * Fix invalid introspection generation for annotations.
