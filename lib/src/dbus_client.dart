@@ -872,6 +872,7 @@ class DBusClient {
     }
 
     if (count == 1) {
+      _matchRules.remove(rule);
       if (!_socketClosed) {
         await callMethod(
             destination: 'org.freedesktop.DBus',
@@ -881,7 +882,6 @@ class DBusClient {
             values: [DBusString(rule)],
             replySignature: DBusSignature(''));
       }
-      _matchRules.remove(rule);
     } else {
       _matchRules[rule] = count - 1;
     }
