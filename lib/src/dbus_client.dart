@@ -89,7 +89,7 @@ class DBusSignalStream extends Stream<DBusSignal> {
   final DBusClient _client;
   final DBusMatchRule _rule;
   final DBusSignature? _signature;
-  final _controller = StreamController<DBusSignal>();
+  final _controller = StreamController<DBusSignal>.broadcast();
 
   /// Creates a stream of signals that match [sender], [interface], [name], [path] and/or [pathNamespace].
   ///
