@@ -104,6 +104,11 @@ class DBusMatchRule {
       }
     }
 
+    if (values['path'] != null && values['path_namespace'] != null) {
+      throw DBusMatchRuleException(
+          "Match rule can't contain both path and path_namespace");
+    }
+
     return DBusMatchRule(
       type: type,
       sender: values['sender'] != null ? DBusBusName(values['sender']!) : null,
@@ -113,8 +118,8 @@ class DBusMatchRule {
       member:
           values['member'] != null ? DBusMemberName(values['member']!) : null,
       path: values['path'] != null ? DBusObjectPath(values['path']!) : null,
-      pathNamespace: values['pathNamespace'] != null
-          ? DBusObjectPath(values['pathNamespace']!)
+      pathNamespace: values['path_namespace'] != null
+          ? DBusObjectPath(values['path_namespace']!)
           : null,
     );
   }
