@@ -63,6 +63,6 @@ class ComExampleTest extends DBusObject {
     if (interface == 'com.example.Test') {
       properties[DBusString('Value')] = (await getValue()).returnValues[0];
     }
-    return DBusMethodSuccessResponse([DBusDict(DBusSignature('s'), DBusSignature('v'), properties)]);
+    return DBusMethodSuccessResponse([DBusDict.stringVariant(properties)]);
   }
 }

@@ -85,6 +85,6 @@ class ComExampleTest extends DBusObject {
       properties[DBusString('ReadProperty')] = (await getReadProperty()).returnValues[0];
       properties[DBusString('ReadWriteProperty')] = (await getReadWriteProperty()).returnValues[0];
     }
-    return DBusMethodSuccessResponse([DBusDict(DBusSignature('s'), DBusSignature('v'), properties)]);
+    return DBusMethodSuccessResponse([DBusDict.stringVariant(properties)]);
   }
 }

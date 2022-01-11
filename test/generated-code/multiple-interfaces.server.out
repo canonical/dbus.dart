@@ -69,6 +69,6 @@ class ComExampleTest1 extends DBusObject {
   @override
   Future<DBusMethodResponse> getAllProperties(String interface) async {
     var properties = <DBusValue, DBusValue>{};
-    return DBusMethodSuccessResponse([DBusDict(DBusSignature('s'), DBusSignature('v'), properties)]);
+    return DBusMethodSuccessResponse([DBusDict.stringVariant(properties)]);
   }
 }
