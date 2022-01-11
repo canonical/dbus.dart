@@ -1119,6 +1119,8 @@ class DBusClient {
             throw DBusUnknownMethodException(r);
           case 'org.freedesktop.DBus.Error.Timeout':
             throw DBusTimeoutException(r);
+          case 'org.freedesktop.DBus.Error.TimedOut':
+            throw DBusTimedOutException(r);
           case 'org.freedesktop.DBus.Error.InvalidArgs':
             throw DBusInvalidArgsException(r);
           case 'org.freedesktop.DBus.Error.UnknownProperty':
