@@ -878,6 +878,8 @@ void main() {
     expect(
         () => DBusBusName('com.example.' + 'X' * 244), throwsFormatException);
     expect(() => DBusBusName('com.example.Test~1'), throwsFormatException);
+    expect(DBusBusName('com.example.Test').toString(),
+        equals("DBusBusName('com.example.Test')"));
   });
 
   test('interface name', () async {
@@ -892,6 +894,8 @@ void main() {
         throwsFormatException);
     expect(
         () => DBusInterfaceName('com.example.Test~1'), throwsFormatException);
+    expect(DBusInterfaceName('com.example.Test').toString(),
+        equals("DBusInterfaceName('com.example.Test')"));
   });
 
   test('error name', () async {
@@ -905,6 +909,8 @@ void main() {
     expect(
         () => DBusErrorName('com.example.' + 'X' * 244), throwsFormatException);
     expect(() => DBusErrorName('com.example.Test~1'), throwsFormatException);
+    expect(DBusErrorName('com.example.Test').toString(),
+        equals("DBusErrorName('com.example.Test')"));
   });
 
   test('member name', () async {
@@ -913,6 +919,8 @@ void main() {
     expect(DBusMemberName('X' * 255).value, equals('X' * 255));
     expect(() => DBusMemberName('X' * 256), throwsFormatException);
     expect(() => DBusMemberName('Member~1'), throwsFormatException);
+    expect(DBusMemberName('Member').toString(),
+        equals("DBusMemberName('Member')"));
   });
 
   test('match rule', () async {
@@ -924,6 +932,7 @@ void main() {
     expect(rule1.member, isNull);
     expect(rule1.path, isNull);
     expect(rule1.pathNamespace, isNull);
+    expect(rule1.toString(), equals('DBusMatchRule()'));
 
     // Basic fields.
     var rule2 = DBusMatchRule.fromDBusString(
@@ -934,6 +943,10 @@ void main() {
         equals(DBusInterfaceName('com.example.Test.Interface1')));
     expect(rule2.member, equals(DBusMemberName('HelloWorld')));
     expect(rule2.path, equals(DBusObjectPath('/com/example/Test/Object1')));
+    expect(
+        rule2.toString(),
+        equals(
+            "DBusMatchRule(type=DBusMessageType.methodCall, sender=DBusBusName('com.example.Test'), interface=DBusInterfaceName('com.example.Test.Interface1'), member=DBusMemberName('HelloWorld'), path=DBusObjectPath('/com/example/Test/Object1'))"));
 
     // Comma between fields.
     expect(
