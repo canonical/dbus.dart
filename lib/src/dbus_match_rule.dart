@@ -75,6 +75,9 @@ class DBusMatchRule {
         value += rule[offset];
         offset++;
       }
+      if (inQuotes) {
+        throw DBusMatchRuleException('Missing closing quote');
+      }
 
       values[key] = value;
 
