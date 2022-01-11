@@ -46,11 +46,12 @@ class DBusMatchRule {
     var offset = 0;
     while (offset < rule.length) {
       var keyStart = offset;
-      while (offset < rule.length && rule[offset] != '=') {
+      while (
+          offset < rule.length && rule[offset] != '=' && rule[offset] != ',') {
         offset++;
       }
       var key = rule.substring(keyStart, offset);
-      if (offset >= rule.length) {
+      if (offset >= rule.length || rule[offset] != '=') {
         throw DBusMatchRuleException(
             'Invalid D-Bus rule, key $key missing value');
       }
