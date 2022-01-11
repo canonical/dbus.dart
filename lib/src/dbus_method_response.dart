@@ -223,7 +223,7 @@ class DBusMethodErrorResponse extends DBusMethodResponse {
   List<DBusValue> get returnValues => throw DBusMethodResponseException(this);
 
   @override
-  String toString() => 'DBusMethodSuccessResponse($errorName, $values)';
+  String toString() => 'DBusMethodErrorResponse($errorName, $values)';
 }
 
 /// A successful response to [DBusObject.getProperty].
