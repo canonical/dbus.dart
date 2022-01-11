@@ -2,6 +2,11 @@ import 'dart:io';
 
 import 'package:dbus/code_generator.dart';
 import 'package:dbus/dbus.dart';
+import 'package:dbus/src/dbus_bus_name.dart';
+import 'package:dbus/src/dbus_interface_name.dart';
+import 'package:dbus/src/dbus_match_rule.dart';
+import 'package:dbus/src/dbus_member_name.dart';
+import 'package:dbus/src/dbus_message.dart';
 import 'package:dbus/src/getuid.dart';
 import 'package:test/test.dart';
 
@@ -855,6 +860,88 @@ void main() {
         equals('tcp:host=example.com,bind=192.168.1.1,port=42,family=ipv4'));
     address = DBusAddress.tcp('example.com', family: DBusAddressTcpFamily.ipv6);
     expect(address.value, equals('tcp:host=example.com,family=ipv6'));
+  });
+
+  test('match rule', () async {
+    // Empty rule.
+    var rule1 = DBusMatchRule.fromDBusString('');
+    expect(rule1.type, isNull);
+    expect(rule1.sender, isNull);
+    expect(rule1.interface, isNull);
+    expect(rule1.member, isNull);
+    expect(rule1.path, isNull);
+    expect(rule1.pathNamespace, isNull);
+
+    // Basic fields.
+    var rule2 = DBusMatchRule.fromDBusString(
+        'type=method_call,sender=com.example.Test,interface=com.example.Test.Interface1,member=HelloWorld,path=/com/example/Test/Object1');
+    expect(rule2.type, equals(DBusMessageType.methodCall));
+    expect(rule2.sender, equals(DBusBusName('com.example.Test')));
+    expect(rule2.interface,
+        equals(DBusInterfaceName('com.example.Test.Interface1')));
+    expect(rule2.member, equals(DBusMemberName('HelloWorld')));
+    expect(rule2.path, equals(DBusObjectPath('/com/example/Test/Object1')));
+
+    // Comma between fields.
+    expect(
+        () => DBusMatchRule.fromDBusString(
+            "type='method_call'sender='com.example.Test'"),
+        throwsA(isA<DBusMatchRuleException>()));
+    expect(
+        () => DBusMatchRule.fromDBusString(
+            "type='method_call' sender='com.example.Test'"),
+        throwsA(isA<DBusMatchRuleException>()));
+    expect(
+        () => DBusMatchRule.fromDBusString(
+            "type='method_call';sender='com.example.Test'"),
+        throwsA(isA<DBusMatchRuleException>()));
+
+    // Path namespaces.
+    var rule3 = DBusMatchRule.fromDBusString(
+        'type=signal,path_namespace=/com/example/Test');
+    expect(rule3.pathNamespace, equals(DBusObjectPath('/com/example/Test')));
+    expect(
+        () => DBusMatchRule.fromDBusString(
+            'path=/com/example/Test/Object1,path_namespace=/com/example/Test'),
+        throwsA(isA<DBusMatchRuleException>()));
+
+    // Quotes.
+    expect(DBusMatchRule.fromDBusString('sender=com.example.Test').sender,
+        equals(DBusBusName('com.example.Test')));
+    expect(DBusMatchRule.fromDBusString("sender='com.example.Test'").sender,
+        equals(DBusBusName('com.example.Test')));
+    expect(
+        () => DBusMatchRule.fromDBusString(
+            "arg0=''\\''',arg1='\\',arg2=',',arg3='\\\\'"),
+        returnsNormally);
+    expect(
+        () =>
+            DBusMatchRule.fromDBusString("arg0=\\',arg1=\\,arg2=',',arg3=\\\\"),
+        returnsNormally);
+    expect(() => DBusMatchRule.fromDBusString("key='''"),
+        throwsA(isA<DBusMatchRuleException>()));
+    expect(() => DBusMatchRule.fromDBusString("key='value"),
+        throwsA(isA<DBusMatchRuleException>()));
+    expect(() => DBusMatchRule.fromDBusString("key=value'"),
+        throwsA(isA<DBusMatchRuleException>()));
+
+    // Value required
+    expect(() => DBusMatchRule.fromDBusString('key1,key2=value2'),
+        throwsA(isA<DBusMatchRuleException>()));
+    expect(() => DBusMatchRule.fromDBusString('key1=value1,key2'),
+        throwsA(isA<DBusMatchRuleException>()));
+
+    // Valid types.
+    expect(DBusMatchRule.fromDBusString("type='signal'").type,
+        equals(DBusMessageType.signal));
+    expect(DBusMatchRule.fromDBusString("type='method_call'").type,
+        equals(DBusMessageType.methodCall));
+    expect(DBusMatchRule.fromDBusString("type='method_return'").type,
+        equals(DBusMessageType.methodReturn));
+    expect(DBusMatchRule.fromDBusString("type='error'").type,
+        equals(DBusMessageType.error));
+    expect(() => DBusMatchRule.fromDBusString("type='invalid_type'"),
+        throwsA(isA<DBusMatchRuleException>()));
   });
 
   test('ping', () async {
