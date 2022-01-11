@@ -15,8 +15,24 @@
       <arg name="signature_value" type="g"/>
       <arg name="variant_value" type="v"/>
       <arg name="struct_value" type="(si)"/>
-      <arg name="array_value" type="ay"/>
-      <arg name="dict_value" type="a{sv}"/>
+      <arg name="array_value_y" type="ay"/>
+      <arg name="array_value_b" type="ab"/>
+      <arg name="array_value_n" type="an"/>
+      <arg name="array_value_q" type="aq"/>
+      <arg name="array_value_u" type="ai"/>
+      <arg name="array_value_n" type="au"/>
+      <arg name="array_value_x" type="ax"/>
+      <arg name="array_value_t" type="at"/>
+      <arg name="array_value_d" type="ad"/>
+      <arg name="array_value_s" type="as"/>
+      <arg name="array_value_o" type="ao"/>
+      <arg name="array_value_g" type="ag"/>
+      <arg name="array_value_v" type="av"/>
+      <arg name="array_value_struct" type="a(si)"/>
+      <arg name="array_value_array" type="aas"/>
+      <arg name="dict_value_sv" type="a{sv}"/>
+      <arg name="dict_value_us" type="a{us}"/>
+      <arg name="dict_value_dict" type="a{sa{sv}}"/>
     </signal>
   </interface>
 </node>

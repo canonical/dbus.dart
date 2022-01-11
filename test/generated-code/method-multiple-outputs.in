@@ -15,8 +15,24 @@
       <arg name="signature_value" type="g" direction="out"/>
       <arg name="variant_value" type="v" direction="out"/>
       <arg name="struct_value" type="(si)" direction="out"/>
-      <arg name="array_value" type="ay" direction="out"/>
-      <arg name="dict_value" type="a{sv}" direction="out"/>
+      <arg name="array_value_y" type="ay" direction="out"/>
+      <arg name="array_value_b" type="ab" direction="out"/>
+      <arg name="array_value_n" type="an" direction="out"/>
+      <arg name="array_value_q" type="aq" direction="out"/>
+      <arg name="array_value_u" type="ai" direction="out"/>
+      <arg name="array_value_n" type="au" direction="out"/>
+      <arg name="array_value_x" type="ax" direction="out"/>
+      <arg name="array_value_t" type="at" direction="out"/>
+      <arg name="array_value_d" type="ad" direction="out"/>
+      <arg name="array_value_s" type="as" direction="out"/>
+      <arg name="array_value_o" type="ao" direction="out"/>
+      <arg name="array_value_g" type="ag" direction="out"/>
+      <arg name="array_value_v" type="av" direction="out"/>
+      <arg name="array_value_struct" type="a(si)" direction="out"/>
+      <arg name="array_value_array" type="aas" direction="out"/>
+      <arg name="dict_value_sv" type="a{sv}" direction="out"/>
+      <arg name="dict_value_us" type="a{us}" direction="out"/>
+      <arg name="dict_value_dict" type="a{sa{sv}}" direction="out"/>
     </method>
   </interface>
 </node>
