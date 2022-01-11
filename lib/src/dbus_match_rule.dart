@@ -87,13 +87,22 @@ class DBusMatchRule {
       }
     }
 
-    return DBusMatchRule(
-      type: {
+    DBusMessageType? type;
+    var valueType = values['type'];
+    if (valueType != null) {
+      type = {
         'method_call': DBusMessageType.methodCall,
         'method_return': DBusMessageType.methodReturn,
         'error': DBusMessageType.error,
         'signal': DBusMessageType.signal
-      }[values['type']],
+      }[valueType];
+      if (type == null) {
+        throw DBusMatchRuleException('Invalid message type $valueType');
+      }
+    }
+
+    return DBusMatchRule(
+      type: type,
       sender: values['sender'] != null ? DBusBusName(values['sender']!) : null,
       interface: values['interface'] != null
           ? DBusInterfaceName(values['interface']!)
