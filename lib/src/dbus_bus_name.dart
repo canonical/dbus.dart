@@ -3,7 +3,7 @@ class DBusBusName {
   /// The bus name.
   final String value;
 
-  /// True if this a unique bus name e.g. ':42'.
+  /// True if this a unique bus name e.g. ':1.42'.
   bool get isUnique => value.startsWith(':');
 
   /// Creates a new bus name from [value].
