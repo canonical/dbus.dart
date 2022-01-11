@@ -100,6 +100,11 @@ class DBusTimeoutException extends DBusErrorException {
   DBusTimeoutException(DBusMethodErrorResponse response) : super(response);
 }
 
+/// Exception when a request times out.
+class DBusTimedOutException extends DBusErrorException {
+  DBusTimedOutException(DBusMethodErrorResponse response) : super(response);
+}
+
 /// Exception when invalid arguments were provided to a method call.
 class DBusInvalidArgsException extends DBusErrorException {
   DBusInvalidArgsException(DBusMethodErrorResponse response) : super(response);
@@ -170,8 +175,13 @@ class DBusMethodErrorResponse extends DBusMethodResponse {
             message != null ? [DBusString(message)] : []);
 
   /// Creates a new error response indicating the request timed out.
+  DBusMethodErrorResponse.timeout([String? message])
+      : this('org.freedesktop.DBus.Error.Timeout',
+            message != null ? [DBusString(message)] : []);
+
+  /// Creates a new error response indicating the request timed out.
   DBusMethodErrorResponse.timedOut([String? message])
-      : this('org.freedesktop.DBus.Error.<Timeout',
+      : this('org.freedesktop.DBus.Error.TimedOut',
             message != null ? [DBusString(message)] : []);
 
   /// Creates a new error response indicating the arguments passed were invalid.
