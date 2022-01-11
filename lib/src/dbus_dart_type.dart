@@ -49,9 +49,6 @@ abstract class DBusDartType {
   // Native Dart type for the API user to interact with, e.g. 'int', 'String'.
   String get nativeType;
 
-  // Dart type to pass to dbus.dart, e.g. 'DBusUint32', 'DBusString'.
-  String get dbusType;
-
   // Converts a native Dart variable to a D-Bus data type. e.g. 'foo' -> 'DBusInteger(foo)'.
   String nativeToDBus(String name);
 
@@ -64,11 +61,6 @@ class DBusBoolType extends DBusDartType {
   @override
   String get nativeType {
     return 'bool';
-  }
-
-  @override
-  String get dbusType {
-    return 'DBusBoolean';
   }
 
   @override
@@ -92,11 +84,6 @@ abstract class DBusIntegerType extends DBusDartType {
 
 class DBusByteType extends DBusIntegerType {
   @override
-  String get dbusType {
-    return 'DBusByte';
-  }
-
-  @override
   String nativeToDBus(String name) {
     return 'DBusByte($name)';
   }
@@ -109,11 +96,6 @@ class DBusByteType extends DBusIntegerType {
 
 /// Generates Dart code for the signed 16 bit integer D-Bus type.
 class DBusInt16Type extends DBusIntegerType {
-  @override
-  String get dbusType {
-    return 'DBusInt16';
-  }
-
   @override
   String nativeToDBus(String name) {
     return 'DBusInt16($name)';
@@ -128,11 +110,6 @@ class DBusInt16Type extends DBusIntegerType {
 /// Generates Dart code for the unsigned 16 bit integer D-Bus type.
 class DBusUint16Type extends DBusIntegerType {
   @override
-  String get dbusType {
-    return 'DBusUint16';
-  }
-
-  @override
   String nativeToDBus(String name) {
     return 'DBusUint16($name)';
   }
@@ -145,11 +122,6 @@ class DBusUint16Type extends DBusIntegerType {
 
 /// Generates Dart code for the signed 32 bit integer D-Bus type.
 class DBusInt32Type extends DBusIntegerType {
-  @override
-  String get dbusType {
-    return 'DBusInt32';
-  }
-
   @override
   String nativeToDBus(String name) {
     return 'DBusInt32($name)';
@@ -164,11 +136,6 @@ class DBusInt32Type extends DBusIntegerType {
 /// Generates Dart code for the unsigned 32 bit integer D-Bus type.
 class DBusUint32Type extends DBusIntegerType {
   @override
-  String get dbusType {
-    return 'DBusUint32';
-  }
-
-  @override
   String nativeToDBus(String name) {
     return 'DBusUint32($name)';
   }
@@ -182,11 +149,6 @@ class DBusUint32Type extends DBusIntegerType {
 /// Generates Dart code for the signed 64 bit integer D-Bus type.
 class DBusInt64Type extends DBusIntegerType {
   @override
-  String get dbusType {
-    return 'DBusInt64';
-  }
-
-  @override
   String nativeToDBus(String name) {
     return 'DBusInt64($name)';
   }
@@ -199,11 +161,6 @@ class DBusInt64Type extends DBusIntegerType {
 
 /// Generates Dart code for the unsigned 64 bit integer D-Bus type.
 class DBusUint64Type extends DBusIntegerType {
-  @override
-  String get dbusType {
-    return 'DBusUint64';
-  }
-
   @override
   String nativeToDBus(String name) {
     return 'DBusUint64($name)';
@@ -220,11 +177,6 @@ class DBusDoubleType extends DBusDartType {
   @override
   String get nativeType {
     return 'double';
-  }
-
-  @override
-  String get dbusType {
-    return 'DBusDouble';
   }
 
   @override
@@ -246,11 +198,6 @@ class DBusStringType extends DBusDartType {
   }
 
   @override
-  String get dbusType {
-    return 'DBusString';
-  }
-
-  @override
   String nativeToDBus(String name) {
     return 'DBusString($name)';
   }
@@ -263,11 +210,6 @@ class DBusStringType extends DBusDartType {
 
 /// Generates Dart code for the object path D-Bus type.
 class DBusObjectPathType extends DBusStringType {
-  @override
-  String get dbusType {
-    return 'DBusObjectPath';
-  }
-
   @override
   String nativeToDBus(String name) {
     return 'DBusObjectPath($name)';
@@ -287,11 +229,6 @@ class DBusVariantType extends DBusDartType {
   }
 
   @override
-  String get dbusType {
-    return 'DBusVariant';
-  }
-
-  @override
   String nativeToDBus(String name) {
     return 'DBusVariant($name)';
   }
@@ -306,11 +243,6 @@ class DBusVariantType extends DBusDartType {
 class DBusStructType extends DBusDartType {
   @override
   String get nativeType {
-    return 'DBusStruct';
-  }
-
-  @override
-  String get dbusType {
     return 'DBusStruct';
   }
 
@@ -335,11 +267,6 @@ class DBusArrayType extends DBusDartType {
   String get nativeType {
     var childType = getDartType(childSignature);
     return 'List<${childType.nativeType}>';
-  }
-
-  @override
-  String get dbusType {
-    return 'DBusArray';
   }
 
   @override
@@ -397,11 +324,6 @@ class DBusDictType extends DBusDartType {
   }
 
   @override
-  String get dbusType {
-    return 'DBusDict';
-  }
-
-  @override
   String nativeToDBus(String name) {
     if (keySignature == DBusSignature('s') &&
         valueSignature == DBusSignature('v')) {
@@ -429,11 +351,6 @@ class DBusDictType extends DBusDartType {
 class DBusComplexType extends DBusDartType {
   @override
   String get nativeType {
-    return 'DBusValue';
-  }
-
-  @override
-  String get dbusType {
     return 'DBusValue';
   }
 
