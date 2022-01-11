@@ -333,6 +333,6 @@ class ComExampleTest extends DBusObject {
       properties[DBusString('ArrayProperty')] = (await getArrayProperty()).returnValues[0];
       properties[DBusString('DictProperty')] = (await getDictProperty()).returnValues[0];
     }
-    return DBusMethodSuccessResponse([DBusDict(DBusSignature('s'), DBusSignature('v'), properties)]);
+    return DBusMethodSuccessResponse([DBusDict.stringVariant(properties)]);
   }
 }

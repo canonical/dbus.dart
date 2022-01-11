@@ -531,7 +531,7 @@ class DBusCodeGenerator {
     source += '    var properties = <DBusValue, DBusValue>{};\n';
     source += _indentSource(2, _makeSwitch(interfaceBranches));
     source +=
-        "    return DBusMethodSuccessResponse([DBusDict(DBusSignature('s'), DBusSignature('v'), properties)]);\n";
+        '    return DBusMethodSuccessResponse([DBusDict.stringVariant(properties)]);\n';
     source += '  }\n';
 
     return source;
