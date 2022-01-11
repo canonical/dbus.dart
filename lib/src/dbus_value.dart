@@ -239,7 +239,7 @@ class DBusInt64 extends DBusValue {
   DBusInt64(this.value) {
     if (value < -(1 << 63) || value > (1 << 63) - 1) {
       throw ArgumentError.value(value, 'value',
-          'Uint64 must be in range [-9223372036854775808, 9223372036854775807]');
+          'Int64 must be in range [-9223372036854775808, 9223372036854775807]');
     }
   }
 
