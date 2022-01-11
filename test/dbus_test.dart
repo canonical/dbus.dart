@@ -2239,6 +2239,84 @@ void main() {
         throwsA(isA<DBusAccessDeniedException>()));
   });
 
+  test('call method - auth failed', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Create a client that exposes a method that generates an auth failed error.
+    await client1.registerObject(TestObject(methodResponses: {
+      'Test': DBusMethodErrorResponse.authFailed('Failure message')
+    }));
+
+    // Call the method from another client.
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            name: 'Test'),
+        throwsA(isA<DBusAuthFailedException>()));
+  });
+
+  test('call method - timeout', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Create a client that exposes a method that generates a timeout error.
+    await client1.registerObject(TestObject(methodResponses: {
+      'Test': DBusMethodErrorResponse.timeout('Failure message')
+    }));
+
+    // Call the method from another client.
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            name: 'Test'),
+        throwsA(isA<DBusTimeoutException>()));
+  });
+
+  test('call method - timed out', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Create a client that exposes a method that generates a timeout error.
+    await client1.registerObject(TestObject(methodResponses: {
+      'Test': DBusMethodErrorResponse.timedOut('Failure message')
+    }));
+
+    // Call the method from another client.
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            name: 'Test'),
+        throwsA(isA<DBusTimedOutException>()));
+  });
+
   test('call method - remote object', () async {
     var server = DBusServer();
     var address =
