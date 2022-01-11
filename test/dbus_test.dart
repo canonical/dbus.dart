@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dbus/code_generator.dart';
 import 'package:dbus/dbus.dart';
 import 'package:dbus/src/dbus_bus_name.dart';
+import 'package:dbus/src/dbus_error_name.dart';
 import 'package:dbus/src/dbus_interface_name.dart';
 import 'package:dbus/src/dbus_match_rule.dart';
 import 'package:dbus/src/dbus_member_name.dart';
@@ -860,6 +861,58 @@ void main() {
         equals('tcp:host=example.com,bind=192.168.1.1,port=42,family=ipv4'));
     address = DBusAddress.tcp('example.com', family: DBusAddressTcpFamily.ipv6);
     expect(address.value, equals('tcp:host=example.com,family=ipv6'));
+  });
+
+  test('bus name', () async {
+    expect(DBusBusName(':1.42').value, equals(':1.42'));
+    expect(DBusBusName(':1.42').isUnique, isTrue);
+    expect(() => DBusBusName(':42'), throwsFormatException);
+
+    expect(DBusBusName('com.example.Test').value, equals('com.example.Test'));
+    expect(DBusBusName('com.example.Test').isUnique, isFalse);
+    expect(() => DBusBusName(''), throwsFormatException);
+    expect(() => DBusBusName('com'), throwsFormatException);
+    expect(DBusBusName('com.example').value, equals('com.example'));
+    expect(DBusBusName('com.example.' + 'X' * 243).value,
+        equals('com.example.' + 'X' * 243));
+    expect(
+        () => DBusBusName('com.example.' + 'X' * 244), throwsFormatException);
+    expect(() => DBusBusName('com.example.Test~1'), throwsFormatException);
+  });
+
+  test('interface name', () async {
+    expect(DBusInterfaceName('com.example.Test').value,
+        equals('com.example.Test'));
+    expect(() => DBusInterfaceName(''), throwsFormatException);
+    expect(() => DBusInterfaceName('com'), throwsFormatException);
+    expect(DBusInterfaceName('com.example').value, equals('com.example'));
+    expect(DBusInterfaceName('com.example.' + 'X' * 243).value,
+        equals('com.example.' + 'X' * 243));
+    expect(() => DBusInterfaceName('com.example.' + 'X' * 244),
+        throwsFormatException);
+    expect(
+        () => DBusInterfaceName('com.example.Test~1'), throwsFormatException);
+  });
+
+  test('error name', () async {
+    expect(
+        DBusErrorName('com.example.Error').value, equals('com.example.Error'));
+    expect(() => DBusErrorName(''), throwsFormatException);
+    expect(() => DBusErrorName('com'), throwsFormatException);
+    expect(DBusErrorName('com.example').value, equals('com.example'));
+    expect(DBusErrorName('com.example.' + 'X' * 243).value,
+        equals('com.example.' + 'X' * 243));
+    expect(
+        () => DBusErrorName('com.example.' + 'X' * 244), throwsFormatException);
+    expect(() => DBusErrorName('com.example.Test~1'), throwsFormatException);
+  });
+
+  test('member name', () async {
+    expect(DBusMemberName('Member').value, equals('Member'));
+    expect(() => DBusMemberName(''), throwsFormatException);
+    expect(DBusMemberName('X' * 255).value, equals('X' * 255));
+    expect(() => DBusMemberName('X' * 256), throwsFormatException);
+    expect(() => DBusMemberName('Member~1'), throwsFormatException);
   });
 
   test('match rule', () async {
