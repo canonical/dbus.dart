@@ -2298,7 +2298,7 @@ void main() {
     expect(id, equals(server.uuid));
   });
 
-  test('get machine id', () async {
+  test('get machine id - server', () async {
     var server = DBusServer();
     var address =
         await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
@@ -2311,6 +2311,27 @@ void main() {
     var machineId = (await File('/etc/machine-id').readAsLines()).first;
 
     var id = await client.getMachineId();
+    expect(id, equals(machineId));
+  });
+
+  test('get machine id - client', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Connect client.
+    await client1.ping();
+
+    var machineId = (await File('/etc/machine-id').readAsLines()).first;
+
+    var id = await client2.getMachineId(client1.uniqueName);
     expect(id, equals(machineId));
   });
 
