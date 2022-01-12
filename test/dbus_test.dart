@@ -2003,6 +2003,37 @@ void main() {
             name: 'NameHasOwner',
             values: [DBusString('com.example.Test'), DBusString('Bad data')]),
         throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'GetNameOwner'),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'GetNameOwner',
+            values: [DBusString('')]),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'GetNameOwner',
+            values: [DBusString('com.example.Test~1')]),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'GetNameOwner',
+            values: [DBusString('com.example.Test'), DBusString('Bad data')]),
+        throwsA(isA<DBusInvalidArgsException>()));
   });
 
   test('start service by name', () async {
