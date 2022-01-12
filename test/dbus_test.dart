@@ -4573,6 +4573,9 @@ void main() {
           DBusIntrospectInterface('com.example.Test',
               signals: [DBusIntrospectSignal('CountChanged')])
         ])));
+
+    expect(DBusIntrospectSignal('Signal1').toString(),
+        equals("DBusIntrospectSignal('Signal1')"));
   });
 
   test('introspect xml - signal argument', () {
@@ -4643,6 +4646,9 @@ void main() {
           DBusIntrospectInterface('com.example.Test',
               properties: [DBusIntrospectProperty('Count', DBusSignature('u'))])
         ])));
+
+    expect(DBusIntrospectProperty('Property1', DBusSignature('s')).toString(),
+        equals("DBusIntrospectProperty('Property1', DBusSignature('s'))"));
   });
 
   test('introspect xml - property - read access', () {
@@ -4756,6 +4762,8 @@ void main() {
             '<node name="Subobject1"/>'
             '<node name="Subobject2"/>'
             '</node>'));
+
+    expect(DBusIntrospectNode().toString(), equals('DBusIntrospectNode()'));
   });
 
   test('introspect xml - interface', () {
@@ -4819,6 +4827,9 @@ void main() {
             '<annotation name="com.example.Annotation1" value="value1"/>'
             '<annotation name="com.example.Annotation2" value="value2"/>'
             '</interface>'));
+
+    expect(DBusIntrospectInterface('com.example.Test.Interface1').toString(),
+        equals("DBusIntrospectInterface('com.example.Test.Interface1')"));
   });
 
   test('introspect xml - method', () {
@@ -4853,6 +4864,9 @@ void main() {
             '<annotation name="com.example.Annotation1" value="value1"/>'
             '<annotation name="com.example.Annotation2" value="value2"/>'
             '</method>'));
+
+    expect(DBusIntrospectMethod('Method1').toString(),
+        equals("DBusIntrospectMethod('Method1')"));
   });
 
   test('introspect xml - signal', () {
@@ -4955,6 +4969,12 @@ void main() {
             '<annotation name="com.example.Annotation1" value="value1"/>'
             '<annotation name="com.example.Annotation2" value="value2"/>'
             '</arg>'));
+
+    expect(
+        DBusIntrospectArgument(DBusSignature('u'), DBusArgumentDirection.out)
+            .toString(),
+        equals(
+            "DBusIntrospectArgument(DBusSignature('u'), DBusArgumentDirection.out)"));
   });
 
   test('introspect xml - annotation', () {
@@ -4962,6 +4982,12 @@ void main() {
         DBusIntrospectAnnotation('com.example.Annotation1', 'value1');
     expect(annotation.toXml().toXmlString(),
         equals('<annotation name="com.example.Annotation1" value="value1"/>'));
+
+    expect(
+        DBusIntrospectAnnotation('com.example.Annotation1', 'AnnotationValue')
+            .toString(),
+        equals(
+            "DBusIntrospectAnnotation('com.example.Annotation1', 'AnnotationValue')"));
   });
 
   for (var name in [
