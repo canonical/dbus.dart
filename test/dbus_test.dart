@@ -1642,7 +1642,7 @@ void main() {
     });
 
     // Attempt to request a unique bus name
-    expect(() => client.requestName(':unique'),
+    expect(() => client.requestName(':1.42'),
         throwsA(isA<DBusInvalidArgsException>()));
   });
 
