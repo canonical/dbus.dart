@@ -38,6 +38,22 @@ class DBusMethodCall {
       this.allowInteractiveAuthorization = false});
 
   @override
-  String toString() =>
-      "DBusMethodCall(sender: '$sender', interface: '$interface', name: '$name', values: $values, noReplyExpected: $noReplyExpected, noAutoStart: $noAutoStart, allowInteractiveAuthorization: $allowInteractiveAuthorization)";
+  String toString() {
+    var parameters = <String, String?>{
+      'sender': "'$sender'",
+      'interface': interface != null ? "'$interface'" : null,
+      'name': "'$name'",
+      'values': values.isNotEmpty ? values.toString() : null,
+      'noReplyExpected': noReplyExpected ? 'true' : null,
+      'noAutoStart': noAutoStart ? 'true' : null,
+      'allowInteractiveAuthorization':
+          allowInteractiveAuthorization ? 'true' : null
+    };
+    return 'DBusMethodCall(' +
+        parameters.keys
+            .where((key) => parameters[key] != null)
+            .map((key) => '$key: ${parameters[key]}')
+            .join(', ') +
+        ')';
+  }
 }

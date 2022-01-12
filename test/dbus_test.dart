@@ -1050,7 +1050,7 @@ void main() {
             sender: DBusBusName('com.example.Test'),
             values: [DBusString('Ping')]).toString(),
         equals(
-            'DBusMessage(type: DBusMessageType.methodCall, flags: {DBusMessageFlag.noAutoStart}, serial: 1234, path: DBusObjectPath(\'/com/example/Test/Object\'), interface: DBusInterfaceName(\'com.example.Test.Interface1\'), member: DBusMemberName(\'Hello\'), destination: DBusBusName(\'com.example.Test2\'), sender: DBusBusName(\'com.example.Test\'), values: [DBusString(\'Ping\')])'));
+            "DBusMessage(type: DBusMessageType.methodCall, flags: {DBusMessageFlag.noAutoStart}, serial: 1234, path: DBusObjectPath('/com/example/Test/Object'), interface: DBusInterfaceName('com.example.Test.Interface1'), member: DBusMemberName('Hello'), destination: DBusBusName('com.example.Test2'), sender: DBusBusName('com.example.Test'), values: [DBusString('Ping')])"));
 
     expect(
         DBusMessage(DBusMessageType.methodReturn,
@@ -1061,7 +1061,7 @@ void main() {
             sender: DBusBusName('com.example.Test2'),
             values: [DBusString('Pong')]).toString(),
         equals(
-            'DBusMessage(type: DBusMessageType.methodReturn, flags: {DBusMessageFlag.noReplyExpected}, serial: 1235, replySerial: 1234, destination: DBusBusName(\'com.example.Test1\'), sender: DBusBusName(\'com.example.Test2\'), values: [DBusString(\'Pong\')])'));
+            "DBusMessage(type: DBusMessageType.methodReturn, flags: {DBusMessageFlag.noReplyExpected}, serial: 1235, replySerial: 1234, destination: DBusBusName('com.example.Test1'), sender: DBusBusName('com.example.Test2'), values: [DBusString('Pong')])"));
 
     expect(
         DBusMessage(DBusMessageType.error,
@@ -1073,7 +1073,7 @@ void main() {
             sender: DBusBusName('com.example.Test2'),
             values: [DBusString('Error description')]).toString(),
         equals(
-            'DBusMessage(type: DBusMessageType.error, flags: {DBusMessageFlag.noReplyExpected}, serial: 1235, errorName: DBusErrorName(\'com.example.Test.Error1\'), replySerial: 1234, destination: DBusBusName(\'com.example.Test1\'), sender: DBusBusName(\'com.example.Test2\'), values: [DBusString(\'Error description\')])'));
+            "DBusMessage(type: DBusMessageType.error, flags: {DBusMessageFlag.noReplyExpected}, serial: 1235, errorName: DBusErrorName('com.example.Test.Error1'), replySerial: 1234, destination: DBusBusName('com.example.Test1'), sender: DBusBusName('com.example.Test2'), values: [DBusString('Error description')])"));
 
     expect(
         DBusMessage(DBusMessageType.signal,
@@ -1086,7 +1086,12 @@ void main() {
             sender: DBusBusName('com.example.Test2'),
             values: [DBusString('Boo')]).toString(),
         equals(
-            'DBusMessage(type: DBusMessageType.signal, flags: {DBusMessageFlag.noReplyExpected}, serial: 1236, path: DBusObjectPath(\'/com/example/Test/Object\'), interface: DBusInterfaceName(\'com.example.Test.Interface1\'), member: DBusMemberName(\'Event\'), destination: DBusBusName(\'com.example.Test1\'), sender: DBusBusName(\'com.example.Test2\'), values: [DBusString(\'Boo\')])'));
+            "DBusMessage(type: DBusMessageType.signal, flags: {DBusMessageFlag.noReplyExpected}, serial: 1236, path: DBusObjectPath('/com/example/Test/Object'), interface: DBusInterfaceName('com.example.Test.Interface1'), member: DBusMemberName('Event'), destination: DBusBusName('com.example.Test1'), sender: DBusBusName('com.example.Test2'), values: [DBusString('Boo')])"));
+  });
+
+  test('method call', () async {
+    expect(DBusMethodCall(sender: 'com.example.Test', name: 'Hello').toString(),
+        equals("DBusMethodCall(sender: 'com.example.Test', name: 'Hello')"));
   });
 
   test('ping', () async {
