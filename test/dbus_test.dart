@@ -3196,6 +3196,14 @@ void main() {
             name: 'RemoveMatch',
             values: [DBusString('No a valid match')]),
         throwsA(isA<DBusErrorException>()));
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'RemoveMatch',
+            values: [DBusString('type=signal,sender=not.a.real.Sender')]),
+        throwsA(isA<DBusErrorException>()));
   });
 
   test('introspect - server', () async {
