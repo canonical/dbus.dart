@@ -1613,9 +1613,7 @@ void main() {
       await server.close();
     });
 
-    // Make requests with invalid bus names.
-    expect(
-        () => client.requestName(''), throwsA(isA<DBusInvalidArgsException>()));
+    // Make requests with invalid args.
     expect(
         () => client.callMethod(
             destination: 'org.freedesktop.DBus',
@@ -1629,23 +1627,7 @@ void main() {
             path: DBusObjectPath('/'),
             interface: 'org.freedesktop.DBus',
             name: 'RequestName',
-            values: [DBusString(':1.42')]),
-        throwsA(isA<DBusInvalidArgsException>()));
-    expect(
-        () => client.callMethod(
-            destination: 'org.freedesktop.DBus',
-            path: DBusObjectPath('/'),
-            interface: 'org.freedesktop.DBus',
-            name: 'RequestName',
-            values: [DBusString('com.example.Test~1')]),
-        throwsA(isA<DBusInvalidArgsException>()));
-    expect(
-        () => client.callMethod(
-            destination: 'org.freedesktop.DBus',
-            path: DBusObjectPath('/'),
-            interface: 'org.freedesktop.DBus',
-            name: 'RequestName',
-            values: [DBusString('com.example.Test'), DBusString('More stuff')]),
+            values: [DBusUint32(42)]),
         throwsA(isA<DBusInvalidArgsException>()));
   });
 
@@ -1847,8 +1829,6 @@ void main() {
 
     // Make requests with invalid bus names.
     expect(
-        () => client.releaseName(''), throwsA(isA<DBusInvalidArgsException>()));
-    expect(
         () => client.callMethod(
             destination: 'org.freedesktop.DBus',
             path: DBusObjectPath('/'),
@@ -1861,23 +1841,7 @@ void main() {
             path: DBusObjectPath('/'),
             interface: 'org.freedesktop.DBus',
             name: 'ReleaseName',
-            values: [DBusString(':1.42')]),
-        throwsA(isA<DBusInvalidArgsException>()));
-    expect(
-        () => client.callMethod(
-            destination: 'org.freedesktop.DBus',
-            path: DBusObjectPath('/'),
-            interface: 'org.freedesktop.DBus',
-            name: 'ReleaseName',
-            values: [DBusString('com.example.Test~1')]),
-        throwsA(isA<DBusInvalidArgsException>()));
-    expect(
-        () => client.callMethod(
-            destination: 'org.freedesktop.DBus',
-            path: DBusObjectPath('/'),
-            interface: 'org.freedesktop.DBus',
-            name: 'ReleaseName',
-            values: [DBusString('com.example.Test'), DBusString('More stuff')]),
+            values: [DBusUint32(42)]),
         throwsA(isA<DBusInvalidArgsException>()));
   });
 
@@ -1893,6 +1857,36 @@ void main() {
 
     // Attempt to release the unique name of this client.
     expect(() => client.releaseName(client.uniqueName),
+        throwsA(isA<DBusInvalidArgsException>()));
+  });
+
+  test('release name - empty', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    // Attempt to release an empty name.
+    expect(
+        () => client.releaseName(''), throwsA(isA<DBusInvalidArgsException>()));
+  });
+
+  test('release name - invalid name', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    // Attempt to release an invalid name.
+    expect(() => client.releaseName('com.example.Test~1'),
         throwsA(isA<DBusInvalidArgsException>()));
   });
 
@@ -3658,6 +3652,46 @@ void main() {
       'Invalid1',
       'Invalid2'
     ]);
+  });
+
+  test('properties - invalid args', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Create a client that exposes an object with properties.
+    var object = TestObject();
+    await client1.registerObject(object);
+
+    // Try and access methods with invalid args on the properties interface.
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus.Properties',
+            name: 'Get'),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus.Properties',
+            name: 'Set'),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus.Properties',
+            name: 'GetAll'),
+        throwsA(isA<DBusInvalidArgsException>()));
   });
 
   test('properties - unknown method', () async {
