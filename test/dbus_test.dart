@@ -3139,6 +3139,65 @@ void main() {
     methodCallDone = true;
   });
 
+  test('matches - invalid args', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'AddMatch'),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'AddMatch',
+            values: [DBusUint32(42)]),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'AddMatch',
+            values: [DBusString('No a valid match')]),
+        throwsA(isA<DBusErrorException>()));
+
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'RemoveMatch'),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'RemoveMatch',
+            values: [DBusUint32(42)]),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'RemoveMatch',
+            values: [DBusString('No a valid match')]),
+        throwsA(isA<DBusErrorException>()));
+  });
+
   test('introspect - server', () async {
     var server = DBusServer();
     var address =
