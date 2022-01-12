@@ -45,7 +45,11 @@ class DBusMatchRule {
     var values = <String, String>{};
     var offset = 0;
     while (offset < rule.length) {
+      // Extract key.
       var keyStart = offset;
+      if (rule[offset] == '=' || rule[offset] == ',') {
+        throw DBusMatchRuleException('Invalid D-Bus rule, missing key');
+      }
       while (
           offset < rule.length && rule[offset] != '=' && rule[offset] != ',') {
         offset++;
@@ -57,6 +61,7 @@ class DBusMatchRule {
       }
       offset++;
 
+      // Extract value (may be quoted).
       var value = '';
       var inQuotes = false;
       while (offset < rule.length) {
@@ -71,6 +76,11 @@ class DBusMatchRule {
             }
           }
         } else if (rule[offset] == ',' && !inQuotes) {
+          offset++;
+          if (offset >= rule.length) {
+            throw DBusMatchRuleException(
+                'Invalid D-Bus rule, missing key after comma');
+          }
           break;
         }
         value += rule[offset];
@@ -81,14 +91,6 @@ class DBusMatchRule {
       }
 
       values[key] = value;
-
-      if (offset < rule.length) {
-        if (rule[offset] != ',') {
-          throw DBusMatchRuleException(
-              'Invalid D-Bus rule, missing trailing comma after $key value');
-        }
-        offset++;
-      }
     }
 
     DBusMessageType? type;

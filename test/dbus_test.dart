@@ -986,6 +986,10 @@ void main() {
         () => DBusMatchRule.fromDBusString(
             "type='method_call';sender='com.example.Test'"),
         throwsA(isA<DBusMatchRuleException>()));
+    expect(() => DBusMatchRule.fromDBusString(',type=method_call'),
+        throwsA(isA<DBusMatchRuleException>()));
+    expect(() => DBusMatchRule.fromDBusString('type=method_call,'),
+        throwsA(isA<DBusMatchRuleException>()));
 
     // Path namespaces.
     var rule3 = DBusMatchRule.fromDBusString(
