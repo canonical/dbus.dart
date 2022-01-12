@@ -1929,21 +1929,9 @@ void main() {
             interface: 'org.freedesktop.DBus',
             name: 'ListQueuedOwners'),
         throwsA(isA<DBusInvalidArgsException>()));
-    expect(
-        () => client.callMethod(
-            destination: 'org.freedesktop.DBus',
-            path: DBusObjectPath('/'),
-            interface: 'org.freedesktop.DBus',
-            name: 'ListQueuedOwners',
-            values: [DBusString('')]),
+    expect(() => client.listQueuedOwners(''),
         throwsA(isA<DBusInvalidArgsException>()));
-    expect(
-        () => client.callMethod(
-            destination: 'org.freedesktop.DBus',
-            path: DBusObjectPath('/'),
-            interface: 'org.freedesktop.DBus',
-            name: 'ListQueuedOwners',
-            values: [DBusString('com.example.Test~1')]),
+    expect(() => client.listQueuedOwners('com.example.Test~1'),
         throwsA(isA<DBusInvalidArgsException>()));
     expect(
         () => client.callMethod(
@@ -1979,21 +1967,9 @@ void main() {
             interface: 'org.freedesktop.DBus',
             name: 'NameHasOwner'),
         throwsA(isA<DBusInvalidArgsException>()));
-    expect(
-        () => client.callMethod(
-            destination: 'org.freedesktop.DBus',
-            path: DBusObjectPath('/'),
-            interface: 'org.freedesktop.DBus',
-            name: 'NameHasOwner',
-            values: [DBusString('')]),
+    expect(() => client.nameHasOwner(''),
         throwsA(isA<DBusInvalidArgsException>()));
-    expect(
-        () => client.callMethod(
-            destination: 'org.freedesktop.DBus',
-            path: DBusObjectPath('/'),
-            interface: 'org.freedesktop.DBus',
-            name: 'NameHasOwner',
-            values: [DBusString('com.example.Test~1')]),
+    expect(() => client.nameHasOwner('com.example.Test~1'),
         throwsA(isA<DBusInvalidArgsException>()));
     expect(
         () => client.callMethod(
@@ -2010,21 +1986,9 @@ void main() {
             interface: 'org.freedesktop.DBus',
             name: 'GetNameOwner'),
         throwsA(isA<DBusInvalidArgsException>()));
-    expect(
-        () => client.callMethod(
-            destination: 'org.freedesktop.DBus',
-            path: DBusObjectPath('/'),
-            interface: 'org.freedesktop.DBus',
-            name: 'GetNameOwner',
-            values: [DBusString('')]),
+    expect(() => client.getNameOwner(''),
         throwsA(isA<DBusInvalidArgsException>()));
-    expect(
-        () => client.callMethod(
-            destination: 'org.freedesktop.DBus',
-            path: DBusObjectPath('/'),
-            interface: 'org.freedesktop.DBus',
-            name: 'GetNameOwner',
-            values: [DBusString('com.example.Test~1')]),
+    expect(() => client.getNameOwner('com.example.Test~1'),
         throwsA(isA<DBusInvalidArgsException>()));
     expect(
         () => client.callMethod(
