@@ -1178,6 +1178,7 @@ void main() {
         () => client.callMethod(
             destination: 'org.freedesktop.DBus',
             path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
             name: 'Hello'),
         throwsException);
   });
