@@ -878,6 +878,10 @@ void main() {
     expect(
         () => DBusBusName('com.example.' + 'X' * 244), throwsFormatException);
     expect(() => DBusBusName('com.example.Test~1'), throwsFormatException);
+    expect(DBusBusName('com.example.Test') == DBusBusName('com.example.Test'),
+        isTrue);
+    expect(DBusBusName('com.example.Test1') == DBusBusName('com.example.Test2'),
+        isFalse);
     expect(DBusBusName('com.example.Test').toString(),
         equals("DBusBusName('com.example.Test')"));
   });
@@ -894,6 +898,14 @@ void main() {
         throwsFormatException);
     expect(
         () => DBusInterfaceName('com.example.Test~1'), throwsFormatException);
+    expect(
+        DBusInterfaceName('com.example.Test') ==
+            DBusInterfaceName('com.example.Test'),
+        isTrue);
+    expect(
+        DBusInterfaceName('com.example.Test1') ==
+            DBusInterfaceName('com.example.Test2'),
+        isFalse);
     expect(DBusInterfaceName('com.example.Test').toString(),
         equals("DBusInterfaceName('com.example.Test')"));
   });
@@ -909,6 +921,13 @@ void main() {
     expect(
         () => DBusErrorName('com.example.' + 'X' * 244), throwsFormatException);
     expect(() => DBusErrorName('com.example.Test~1'), throwsFormatException);
+    expect(
+        DBusErrorName('com.example.Test') == DBusErrorName('com.example.Test'),
+        isTrue);
+    expect(
+        DBusErrorName('com.example.Test1') ==
+            DBusErrorName('com.example.Test2'),
+        isFalse);
     expect(DBusErrorName('com.example.Test').toString(),
         equals("DBusErrorName('com.example.Test')"));
   });
@@ -919,6 +938,8 @@ void main() {
     expect(DBusMemberName('X' * 255).value, equals('X' * 255));
     expect(() => DBusMemberName('X' * 256), throwsFormatException);
     expect(() => DBusMemberName('Member~1'), throwsFormatException);
+    expect(DBusMemberName('Member') == DBusMemberName('Member'), isTrue);
+    expect(DBusMemberName('Member1') == DBusMemberName('Member2'), isFalse);
     expect(DBusMemberName('Member').toString(),
         equals("DBusMemberName('Member')"));
   });
