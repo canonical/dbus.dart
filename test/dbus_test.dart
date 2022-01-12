@@ -5089,6 +5089,22 @@ void main() {
         throwsFormatException);
   });
 
+  test('server invalid addresses', () async {
+    var server = DBusServer();
+    expect(() => server.listenAddress(DBusAddress('unix:')), throwsException);
+    expect(() => server.listenAddress(DBusAddress('unix:runtime=INVALID')),
+        throwsException);
+    expect(() => server.listenAddress(DBusAddress('tcp:')), throwsException);
+    expect(
+        () => server
+            .listenAddress(DBusAddress('tcp:host=com.example,family=INVALID')),
+        throwsException);
+    expect(
+        () => server
+            .listenAddress(DBusAddress('tcp:host=com.example,port=INVALID')),
+        throwsException);
+  });
+
   for (var name in [
     'method-no-args',
     'method-single-input',
