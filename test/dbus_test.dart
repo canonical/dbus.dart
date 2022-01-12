@@ -3571,6 +3571,64 @@ void main() {
         throwsA(isA<DBusUnknownInterfaceException>()));
   });
 
+  test('peer - invalid args', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Connect client.
+    await client1.ping();
+
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus.Peer',
+            name: 'Ping',
+            values: [DBusString('Boo')]),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus.Peer',
+            name: 'GetMachineId',
+            values: [DBusString('Boo')]),
+        throwsA(isA<DBusInvalidArgsException>()));
+  });
+
+  test('peer - unknown method', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Connect client.
+    await client1.ping();
+
+    // Try and access an unknown method on the Peer interface.
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus.Peer',
+            name: 'NoSuchMethod'),
+        throwsA(isA<DBusUnknownMethodException>()));
+  });
+
   test('introspect - unknown method', () async {
     var server = DBusServer();
     var address =
