@@ -4990,6 +4990,21 @@ void main() {
             "DBusIntrospectAnnotation('com.example.Annotation1', 'AnnotationValue')"));
   });
 
+  test('introspect xml - annotation missing fields', () {
+    expect(
+        () => parseDBusIntrospectXml(
+            '<node><interface name="com.example.Test"><property name="Count" type="u"><annotation/></property></interface></node>'),
+        throwsFormatException);
+    expect(
+        () => parseDBusIntrospectXml(
+            '<node><interface name="com.example.Test"><property name="Count" type="u"><annotation name="com.example.Test.Name"/></property></interface></node>'),
+        throwsFormatException);
+    expect(
+        () => parseDBusIntrospectXml(
+            '<node><interface name="com.example.Test"><property name="Count" type="u"><annotation value="AnnotationValue"/></property></interface></node>'),
+        throwsFormatException);
+  });
+
   for (var name in [
     'method-no-args',
     'method-single-input',
