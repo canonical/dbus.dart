@@ -5091,6 +5091,8 @@ void main() {
 
   test('server invalid addresses', () async {
     var server = DBusServer();
+    expect(
+        () => server.listenAddress(DBusAddress('invalid:')), throwsException);
     expect(() => server.listenAddress(DBusAddress('unix:')), throwsException);
     expect(() => server.listenAddress(DBusAddress('unix:runtime=INVALID')),
         throwsException);
