@@ -851,6 +851,8 @@ void main() {
         address.value,
         equals(
             'unix:path=/path,dir=/dir,tmpdir=/tmp,abstract=foo,runtime=yes'));
+    expect(DBusAddress.unix(path: '/path').toString(),
+        equals("DBusAddress('unix:path=/path')"));
 
     // TCP addresses.
     address = DBusAddress.tcp('example.com');
@@ -861,6 +863,8 @@ void main() {
         equals('tcp:host=example.com,bind=192.168.1.1,port=42,family=ipv4'));
     address = DBusAddress.tcp('example.com', family: DBusAddressTcpFamily.ipv6);
     expect(address.value, equals('tcp:host=example.com,family=ipv6'));
+    expect(DBusAddress.tcp('example.com').toString(),
+        equals("DBusAddress('tcp:host=example.com')"));
   });
 
   test('bus name', () async {
