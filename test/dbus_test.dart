@@ -2366,6 +2366,32 @@ void main() {
         throwsA(isA<DBusUnknownMethodException>()));
   });
 
+  test('call method - not supported', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Create a client that exposes a method that generates an access denied error.
+    await client1.registerObject(TestObject(methodResponses: {
+      'Test': DBusMethodErrorResponse.notSupported('Failure message')
+    }));
+
+    // Call the method from another client.
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            name: 'Test'),
+        throwsA(isA<DBusNotSupportedException>()));
+  });
+
   test('call method - access denied', () async {
     var server = DBusServer();
     var address =
