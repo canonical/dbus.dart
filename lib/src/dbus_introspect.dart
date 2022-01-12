@@ -62,7 +62,17 @@ class DBusIntrospectNode {
 
   @override
   String toString() {
-    return "DBusIntrospectNode(name: ${name != null ? "'$name'" : 'null'}, interfaces: $interfaces, children: $children)";
+    var parameters = <String, String?>{
+      'name': name != null ? '$name' : null,
+      'interfaces': interfaces.isNotEmpty ? interfaces.toString() : null,
+      'children': children.isNotEmpty ? children.toString() : null
+    };
+    return 'DBusIntrospectNode(' +
+        parameters.keys
+            .where((key) => parameters[key] != null)
+            .map((key) => '$key: ${parameters[key]}')
+            .join(', ') +
+        ')';
   }
 
   @override
@@ -140,7 +150,18 @@ class DBusIntrospectInterface {
 
   @override
   String toString() {
-    return "DBusIntrospectInterface('$name', $methods, $signals, $properties)";
+    var parameters = <String, String?>{
+      'methods': methods.isNotEmpty ? methods.toString() : null,
+      'signals': signals.isNotEmpty ? signals.toString() : null,
+      'properties': properties.isNotEmpty ? properties.toString() : null
+    };
+    return 'DBusIntrospectInterface(' +
+        ["'$name'"]
+            .followedBy(parameters.keys
+                .where((key) => parameters[key] != null)
+                .map((key) => '$key: ${parameters[key]}'))
+            .join(', ') +
+        ')';
   }
 
   @override
@@ -214,7 +235,17 @@ class DBusIntrospectMethod {
 
   @override
   String toString() {
-    return "DBusIntrospectMethod('$name', $args)";
+    var parameters = <String, String?>{
+      'args': args.isNotEmpty ? args.toString() : null,
+      'annotations': annotations.isNotEmpty ? annotations.toString() : null
+    };
+    return 'DBusIntrospectMethod(' +
+        ["'$name'"]
+            .followedBy(parameters.keys
+                .where((key) => parameters[key] != null)
+                .map((key) => '$key: ${parameters[key]}'))
+            .join(', ') +
+        ')';
   }
 
   @override
@@ -273,7 +304,17 @@ class DBusIntrospectSignal {
 
   @override
   String toString() {
-    return "DBusIntrospectSignal('$name', $args)";
+    var parameters = <String, String?>{
+      'args': args.isNotEmpty ? args.toString() : null,
+      'annotations': annotations.isNotEmpty ? annotations.toString() : null
+    };
+    return 'DBusIntrospectSignal(' +
+        ["'$name'"]
+            .followedBy(parameters.keys
+                .where((key) => parameters[key] != null)
+                .map((key) => '$key: ${parameters[key]}'))
+            .join(', ') +
+        ')';
   }
 
   @override
@@ -350,7 +391,18 @@ class DBusIntrospectProperty {
 
   @override
   String toString() {
-    return "DBusIntrospectProperty('$name', type: '${type.value}', $access)";
+    var parameters = <String, String?>{
+      'access':
+          access != DBusPropertyAccess.readwrite ? access.toString() : null,
+      'annotations': annotations.isNotEmpty ? annotations.toString() : null
+    };
+    return 'DBusIntrospectProperty(' +
+        ["'$name'", type.toString()]
+            .followedBy(parameters.keys
+                .where((key) => parameters[key] != null)
+                .map((key) => '$key: ${parameters[key]}'))
+            .join(', ') +
+        ')';
   }
 
   @override
@@ -427,7 +479,17 @@ class DBusIntrospectArgument {
 
   @override
   String toString() {
-    return "DBusIntrospectArgument($type, $direction${name != null ? ", name: '$name'" : ''})";
+    var parameters = <String, String?>{
+      'name': name != null ? "'$name'" : null,
+      'annotations': annotations.isNotEmpty ? annotations.toString() : null
+    };
+    return 'DBusIntrospectArgument(' +
+        [type.toString(), direction.toString()]
+            .followedBy(parameters.keys
+                .where((key) => parameters[key] != null)
+                .map((key) => '$key: ${parameters[key]}'))
+            .join(', ') +
+        ')';
   }
 
   @override
@@ -470,6 +532,11 @@ class DBusIntrospectAnnotation {
       XmlAttribute(XmlName('name'), name),
       XmlAttribute(XmlName('value'), value)
     ]);
+  }
+
+  @override
+  String toString() {
+    return "DBusIntrospectAnnotation('$name', '$value')";
   }
 
   @override
