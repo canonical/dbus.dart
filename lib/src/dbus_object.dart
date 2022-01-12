@@ -61,11 +61,7 @@ class DBusObject {
       List<String> invalidatedProperties = const []}) async {
     await emitSignal('org.freedesktop.DBus.Properties', 'PropertiesChanged', [
       DBusString(interface),
-      DBusDict(
-          DBusSignature('s'),
-          DBusSignature('v'),
-          changedProperties.map(
-              (name, value) => MapEntry(DBusString(name), DBusVariant(value)))),
+      DBusDict.stringVariant(changedProperties),
       DBusArray(DBusSignature('s'),
           invalidatedProperties.map((name) => DBusString(name)))
     ]);
@@ -76,11 +72,8 @@ class DBusObject {
   /// [interfacesAndProperties] is the interfaces added to the object at [path] and the properties this object has.
   Future<void> emitInterfacesAdded(DBusObjectPath path,
       Map<String, Map<String, DBusValue>> interfacesAndProperties) async {
-    DBusValue encodeProperties(Map<String, DBusValue> properties) => DBusDict(
-        DBusSignature('s'),
-        DBusSignature('v'),
-        properties.map(
-            (name, value) => MapEntry(DBusString(name), DBusVariant(value))));
+    DBusValue encodeProperties(Map<String, DBusValue> properties) =>
+        DBusDict.stringVariant(properties);
     DBusValue encodeInterfacesAndProperties(
             Map<String, Map<String, DBusValue>> interfacesAndProperties) =>
         DBusDict(

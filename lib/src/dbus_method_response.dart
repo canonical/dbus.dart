@@ -237,13 +237,7 @@ class DBusGetPropertyResponse extends DBusMethodSuccessResponse {
 /// A successful response to [DBusObject.getAllProperties].
 class DBusGetAllPropertiesResponse extends DBusMethodSuccessResponse {
   DBusGetAllPropertiesResponse(Map<String, DBusValue> values)
-      : super([
-          DBusDict(
-              DBusSignature('s'),
-              DBusSignature('v'),
-              values.map((key, value) =>
-                  MapEntry(DBusString(key), DBusVariant(value))))
-        ]);
+      : super([DBusDict.stringVariant(values)]);
 
   @override
   String toString() =>

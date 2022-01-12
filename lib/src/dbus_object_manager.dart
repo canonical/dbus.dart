@@ -60,11 +60,7 @@ DBusMethodResponse handleObjectManagerMethodCall(
       var object = node.object;
       if (object != null && !object.isObjectManager) {
         DBusValue encodeProperties(Map<String, DBusValue> properties) =>
-            DBusDict(
-                DBusSignature('s'),
-                DBusSignature('v'),
-                properties.map((name, value) =>
-                    MapEntry(DBusString(name), DBusVariant(value))));
+            DBusDict.stringVariant(properties);
         DBusValue encodeInterfacesAndProperties(
                 Map<String, Map<String, DBusValue>> interfacesAndProperties) =>
             DBusDict(
