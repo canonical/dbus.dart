@@ -84,7 +84,7 @@ class DBusMessage {
     return 'DBusMessage(' +
         parameters.keys
             .where((key) => parameters[key] != null)
-            .map((key) => '$key=${parameters[key]}')
+            .map((key) => '$key: ${parameters[key]}')
             .join(', ') +
         ')';
   }
