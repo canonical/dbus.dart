@@ -2076,6 +2076,51 @@ void main() {
         throwsA(isA<DBusNotSupportedException>()));
   });
 
+  test('get unix user - unknown client', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    expect(() => client.getConnectionUnixUser('com.example.NotAClient'),
+        throwsA(isA<DBusErrorException>()));
+  });
+
+  test('get unix user - invalid args', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    expect(() => client.getConnectionUnixUser(''),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(() => client.getConnectionUnixUser('com.example.Test~1'),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'GetConnectionUnixUser'),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'GetConnectionUnixUser',
+            values: [DBusUint32(42)]),
+        throwsA(isA<DBusInvalidArgsException>()));
+  });
+
   test('get process id - server', () async {
     var server = DBusServer();
     var address =
@@ -2107,6 +2152,51 @@ void main() {
 
     expect(() => client2.getConnectionUnixProcessId(client1.uniqueName),
         throwsA(isA<DBusNotSupportedException>()));
+  });
+
+  test('get process id - unknown client', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    expect(() => client.getConnectionUnixProcessId('com.example.NotAClient'),
+        throwsA(isA<DBusErrorException>()));
+  });
+
+  test('get process id - invalid args', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    expect(() => client.getConnectionUnixProcessId(''),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(() => client.getConnectionUnixProcessId('com.example.Test~1'),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'GetConnectionUnixProcessID'),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'GetConnectionUnixProcessID',
+            values: [DBusUint32(42)]),
+        throwsA(isA<DBusInvalidArgsException>()));
   });
 
   test('get credentials - server', () async {
@@ -2142,6 +2232,51 @@ void main() {
 
     expect(() => client2.getConnectionCredentials(client1.uniqueName),
         throwsA(isA<DBusNotSupportedException>()));
+  });
+
+  test('get credentials - unknown client', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    expect(() => client.getConnectionCredentials('com.example.NotAClient'),
+        throwsA(isA<DBusErrorException>()));
+  });
+
+  test('get credentials - invalid args', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    expect(() => client.getConnectionCredentials(''),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(() => client.getConnectionCredentials('com.example.Test~1'),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'GetConnectionCredentials'),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'GetConnectionCredentials',
+            values: [DBusUint32(42)]),
+        throwsA(isA<DBusInvalidArgsException>()));
   });
 
   test('get id', () async {
