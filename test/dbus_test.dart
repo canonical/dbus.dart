@@ -2027,6 +2027,26 @@ void main() {
 
     expect(() => client.startServiceByName('com.example.DoesNotExist'),
         throwsA(isA<DBusServiceUnknownException>()));
+
+    expect(() => client.startServiceByName(''),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(() => client.startServiceByName('com.example.Test~1'),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'StartServiceByName'),
+        throwsA(isA<DBusInvalidArgsException>()));
+    expect(
+        () => client.callMethod(
+            destination: 'org.freedesktop.DBus',
+            path: DBusObjectPath('/'),
+            interface: 'org.freedesktop.DBus',
+            name: 'StartServiceByName',
+            values: [DBusUint32(42)]),
+        throwsA(isA<DBusInvalidArgsException>()));
   });
 
   test('get unix user - server', () async {
