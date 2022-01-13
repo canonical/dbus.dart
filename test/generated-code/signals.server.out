@@ -45,10 +45,4 @@ class ComExampleTest extends DBusObject {
       return DBusMethodErrorResponse.unknownProperty();
     }
   }
-
-  @override
-  Future<DBusMethodResponse> getAllProperties(String interface) async {
-    var properties = <DBusValue, DBusValue>{};
-    return DBusMethodSuccessResponse([DBusDict.stringVariant(properties)]);
-  }
 }

@@ -100,11 +100,26 @@ class DBusCodeGenerator {
         methods.add(_generateSignalEmitMethod(memberNames, interface, signal));
       }
     }
-    methods.add(_generateIntrospectMethod(node));
-    methods.add(_generateHandleMethodCall(node));
-    methods.add(_generateGetProperty(getMethodNames, node));
-    methods.add(_generateSetProperty(setMethodNames, node));
-    methods.add(_generateGetAllProperties(node));
+    var code = _generateIntrospectMethod(node);
+    if (code != '') {
+      methods.add(code);
+    }
+    code = _generateHandleMethodCall(node);
+    if (code != '') {
+      methods.add(code);
+    }
+    code = _generateGetProperty(getMethodNames, node);
+    if (code != '') {
+      methods.add(code);
+    }
+    code = _generateSetProperty(setMethodNames, node);
+    if (code != '') {
+      methods.add(code);
+    }
+    code = _generateGetAllProperties(node);
+    if (code != '') {
+      methods.add(code);
+    }
 
     var source = '';
     source += 'class $className extends DBusObject {\n';
@@ -355,6 +370,10 @@ class DBusCodeGenerator {
       interfaceNodes.add(makeIntrospectObject('DBusIntrospectInterface', args));
     }
 
+    if (interfaceNodes.isEmpty) {
+      return '';
+    }
+
     var source = '';
     source += '  @override\n';
     source += '  List<DBusIntrospectInterface> introspect() {\n';
@@ -410,6 +429,10 @@ class DBusCodeGenerator {
           _SwitchBranch("methodCall.interface == '${interface.name}'", source));
     }
 
+    if (interfaceBranches.isEmpty) {
+      return '';
+    }
+
     var source = '';
     source += '  @override\n';
     source +=
@@ -446,6 +469,10 @@ class DBusCodeGenerator {
           'return DBusMethodErrorResponse.unknownProperty();\n');
       interfaceBranches
           .add(_SwitchBranch("interface == '${interface.name}'", source));
+    }
+
+    if (interfaceBranches.isEmpty) {
+      return '';
     }
 
     var source = '';
@@ -492,6 +519,10 @@ class DBusCodeGenerator {
           .add(_SwitchBranch("interface == '${interface.name}'", source));
     }
 
+    if (interfaceBranches.isEmpty) {
+      return '';
+    }
+
     var source = '';
     source += '  @override\n';
     source +=
@@ -522,6 +553,10 @@ class DBusCodeGenerator {
         interfaceBranches
             .add(_SwitchBranch("interface == '${interface.name}'", source));
       }
+    }
+
+    if (interfaceBranches.isEmpty) {
+      return '';
     }
 
     var source = '';
