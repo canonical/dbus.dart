@@ -2391,7 +2391,36 @@ void main() {
       DBusSignature('dog'),
       DBusVariant(DBusString('variant')),
       DBusStruct([]),
-      DBusArray.byte([1, 2, 3]),
+      DBusArray.byte([0, 1, 255]),
+      DBusArray(DBusSignature('b'), [DBusBoolean(false), DBusBoolean(true)]),
+      DBusArray.int16([0, 1, -32768, 32767]),
+      DBusArray.uint16([0, 1, 65535]),
+      DBusArray.int32([0, 1, -2147483648, 2147483647]),
+      DBusArray.uint32([0, 1, 4294967295]),
+      DBusArray.int64([0, 1, -9223372036854775808, 9223372036854775807]),
+      DBusArray.uint64([0, 1, 0xffffffffffffffff]),
+      DBusArray.double([0, 1, 3.14159]),
+      DBusArray.string(['Hello', 'World']),
+      DBusArray.objectPath([
+        DBusObjectPath('/com/example/Test1'),
+        DBusObjectPath('/com/example/Test2')
+      ]),
+      DBusArray(DBusSignature('g'), [DBusSignature('y'), DBusSignature('as')]),
+      DBusArray.variant([DBusString('Hello'), DBusUint32(42)]),
+      DBusArray(DBusSignature('(sy)'), [
+        DBusStruct([DBusString('A'), DBusByte(65)]),
+        DBusStruct([DBusString('B'), DBusByte(66)])
+      ]),
+      DBusArray(DBusSignature('as'), [
+        DBusArray.string(['H', 'e', 'l', 'l', 'o']),
+        DBusArray.string(['W', 'o', 'r', 'l', 'd'])
+      ]),
+      DBusArray(DBusSignature('a{sv}'), [
+        DBusDict.stringVariant(
+            {'one': DBusByte(1), 'two': DBusInt16(2), 'three': DBusUint32(3)}),
+        DBusDict.stringVariant(
+            {'A': DBusString('Aye'), 'B': DBusDouble(3.14159)})
+      ]),
       DBusDict(DBusSignature('i'), DBusSignature('s'), {
         DBusInt32(1): DBusString('one'),
         DBusInt32(2): DBusString('two'),
