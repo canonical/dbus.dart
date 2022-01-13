@@ -80,10 +80,10 @@ class ComExampleTest extends DBusObject {
 
   @override
   Future<DBusMethodResponse> getAllProperties(String interface) async {
-    var properties = <DBusValue, DBusValue>{};
+    var properties = <String, DBusValue>{};
     if (interface == 'com.example.Test') {
-      properties[DBusString('ReadProperty')] = (await getReadProperty()).returnValues[0];
-      properties[DBusString('ReadWriteProperty')] = (await getReadWriteProperty()).returnValues[0];
+      properties['ReadProperty'] = (await getReadProperty()).returnValues[0];
+      properties['ReadWriteProperty'] = (await getReadWriteProperty()).returnValues[0];
     }
     return DBusMethodSuccessResponse([DBusDict.stringVariant(properties)]);
   }

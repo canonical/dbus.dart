@@ -545,8 +545,7 @@ class DBusCodeGenerator {
         if (property.access == DBusPropertyAccess.readwrite ||
             property.access == DBusPropertyAccess.read) {
           var convertedValue = '(await get${property.name}()).returnValues[0]';
-          source +=
-              "properties[DBusString('${property.name}')] = $convertedValue;\n";
+          source += "properties['${property.name}'] = $convertedValue;\n";
         }
       }
       if (source != '') {
@@ -563,7 +562,7 @@ class DBusCodeGenerator {
     source += '  @override\n';
     source +=
         '  Future<DBusMethodResponse> getAllProperties(String interface) async {\n';
-    source += '    var properties = <DBusValue, DBusValue>{};\n';
+    source += '    var properties = <String, DBusValue>{};\n';
     source += _indentSource(2, _makeSwitch(interfaceBranches));
     source +=
         '    return DBusMethodSuccessResponse([DBusDict.stringVariant(properties)]);\n';

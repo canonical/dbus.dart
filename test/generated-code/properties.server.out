@@ -314,24 +314,24 @@ class ComExampleTest extends DBusObject {
 
   @override
   Future<DBusMethodResponse> getAllProperties(String interface) async {
-    var properties = <DBusValue, DBusValue>{};
+    var properties = <String, DBusValue>{};
     if (interface == 'com.example.Test') {
-      properties[DBusString('ByteProperty')] = (await getByteProperty()).returnValues[0];
-      properties[DBusString('BooleanProperty')] = (await getBooleanProperty()).returnValues[0];
-      properties[DBusString('Int16Property')] = (await getInt16Property()).returnValues[0];
-      properties[DBusString('Uint16Property')] = (await getUint16Property()).returnValues[0];
-      properties[DBusString('Int32Property')] = (await getInt32Property()).returnValues[0];
-      properties[DBusString('Uint32Property')] = (await getUint32Property()).returnValues[0];
-      properties[DBusString('Int64Property')] = (await getInt64Property()).returnValues[0];
-      properties[DBusString('Uint64Property')] = (await getUint64Property()).returnValues[0];
-      properties[DBusString('DoubleProperty')] = (await getDoubleProperty()).returnValues[0];
-      properties[DBusString('StringProperty')] = (await getStringProperty()).returnValues[0];
-      properties[DBusString('ObjectPathProperty')] = (await getObjectPathProperty()).returnValues[0];
-      properties[DBusString('SignatureProperty')] = (await getSignatureProperty()).returnValues[0];
-      properties[DBusString('VariantProperty')] = (await getVariantProperty()).returnValues[0];
-      properties[DBusString('StructProperty')] = (await getStructProperty()).returnValues[0];
-      properties[DBusString('ArrayProperty')] = (await getArrayProperty()).returnValues[0];
-      properties[DBusString('DictProperty')] = (await getDictProperty()).returnValues[0];
+      properties['ByteProperty'] = (await getByteProperty()).returnValues[0];
+      properties['BooleanProperty'] = (await getBooleanProperty()).returnValues[0];
+      properties['Int16Property'] = (await getInt16Property()).returnValues[0];
+      properties['Uint16Property'] = (await getUint16Property()).returnValues[0];
+      properties['Int32Property'] = (await getInt32Property()).returnValues[0];
+      properties['Uint32Property'] = (await getUint32Property()).returnValues[0];
+      properties['Int64Property'] = (await getInt64Property()).returnValues[0];
+      properties['Uint64Property'] = (await getUint64Property()).returnValues[0];
+      properties['DoubleProperty'] = (await getDoubleProperty()).returnValues[0];
+      properties['StringProperty'] = (await getStringProperty()).returnValues[0];
+      properties['ObjectPathProperty'] = (await getObjectPathProperty()).returnValues[0];
+      properties['SignatureProperty'] = (await getSignatureProperty()).returnValues[0];
+      properties['VariantProperty'] = (await getVariantProperty()).returnValues[0];
+      properties['StructProperty'] = (await getStructProperty()).returnValues[0];
+      properties['ArrayProperty'] = (await getArrayProperty()).returnValues[0];
+      properties['DictProperty'] = (await getDictProperty()).returnValues[0];
     }
     return DBusMethodSuccessResponse([DBusDict.stringVariant(properties)]);
   }
