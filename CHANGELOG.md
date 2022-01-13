@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.8
+
+* Fix missing semicolon on generated server property code.
+* Fix generated server getAllProperties code.
+
 ## 0.6.7
 
 * Fix exception when closing clients that have signals subscribed.
