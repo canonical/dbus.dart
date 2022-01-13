@@ -44,7 +44,7 @@ class ComExampleTest extends DBusObject {
       if (name == 'ReadProperty') {
         return getReadProperty();
       } else if (name == 'WriteProperty') {
-        return DBusMethodErrorResponse.propertyWriteOnly()
+        return DBusMethodErrorResponse.propertyWriteOnly();
       } else if (name == 'ReadWriteProperty') {
         return getReadWriteProperty();
       } else {
@@ -59,7 +59,7 @@ class ComExampleTest extends DBusObject {
   Future<DBusMethodResponse> setProperty(String interface, String name, DBusValue value) async {
     if (interface == 'com.example.Test') {
       if (name == 'ReadProperty') {
-        return DBusMethodErrorResponse.propertyReadOnly()
+        return DBusMethodErrorResponse.propertyReadOnly();
       } else if (name == 'WriteProperty') {
         if (value.signature != DBusSignature('i')) {
           return DBusMethodErrorResponse.invalidArgs();

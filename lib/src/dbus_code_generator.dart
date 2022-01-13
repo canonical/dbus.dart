@@ -460,7 +460,7 @@ class DBusCodeGenerator {
           var methodName = getMethodNames['${interface.name}.${property.name}'];
           source += 'return $methodName();\n';
         } else {
-          source = 'return DBusMethodErrorResponse.propertyWriteOnly()\n';
+          source = 'return DBusMethodErrorResponse.propertyWriteOnly();\n';
         }
         propertyBranches
             .add(_SwitchBranch("name == '${property.name}'", source));
@@ -508,7 +508,7 @@ class DBusCodeGenerator {
           var methodName = setMethodNames['${interface.name}.${property.name}'];
           source += 'return $methodName($convertedValue);\n';
         } else {
-          source = 'return DBusMethodErrorResponse.propertyReadOnly()\n';
+          source = 'return DBusMethodErrorResponse.propertyReadOnly();\n';
         }
         propertyBranches
             .add(_SwitchBranch("name == '${property.name}'", source));
