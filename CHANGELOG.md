@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.7
+
+* Fix exception when closing clients that have signals subscribed.
+* Fix arrays of signatures not being correctly aligned.
+* Fix invalid TimedOut exception name, and fix confusion with Timeout exception.
+* Use DBusDict.stringVariant constructor in generated code.
+* Don't generate empty methods in generated server code.
+* Fix DBusMethodErrorResponse.toString typo.
+* Improve match rule validation.
+* Fix documentation for DBusBusName.isUnique.
+* Test improvements.
+
 ## 0.6.6
 
 * Remove unawaited calls that were making a depdendency on dart:async 2.14.
