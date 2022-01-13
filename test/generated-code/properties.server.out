@@ -217,7 +217,7 @@ class ComExampleTest extends DBusObject {
         return DBusMethodErrorResponse.unknownProperty();
       }
     } else {
-      return DBusMethodErrorResponse.unknownInterface();
+      return DBusMethodErrorResponse.unknownProperty();
     }
   }
 
@@ -308,7 +308,7 @@ class ComExampleTest extends DBusObject {
         return DBusMethodErrorResponse.unknownProperty();
       }
     } else {
-      return DBusMethodErrorResponse.unknownInterface();
+      return DBusMethodErrorResponse.unknownProperty();
     }
   }
 

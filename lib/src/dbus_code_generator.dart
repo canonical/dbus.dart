@@ -455,7 +455,7 @@ class DBusCodeGenerator {
     source += _indentSource(
         2,
         _makeSwitch(interfaceBranches,
-            'return DBusMethodErrorResponse.unknownInterface();\n'));
+            'return DBusMethodErrorResponse.unknownProperty();\n'));
     source += '  }\n';
 
     return source;
@@ -499,7 +499,7 @@ class DBusCodeGenerator {
     source += _indentSource(
         2,
         _makeSwitch(interfaceBranches,
-            'return DBusMethodErrorResponse.unknownInterface();\n'));
+            'return DBusMethodErrorResponse.unknownProperty();\n'));
     source += '  }\n';
 
     return source;
