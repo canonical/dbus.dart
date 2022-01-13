@@ -8,6 +8,7 @@ import 'package:dbus/src/dbus_interface_name.dart';
 import 'package:dbus/src/dbus_match_rule.dart';
 import 'package:dbus/src/dbus_member_name.dart';
 import 'package:dbus/src/dbus_message.dart';
+import 'package:dbus/src/dbus_uuid.dart';
 import 'package:dbus/src/getuid.dart';
 import 'package:test/test.dart';
 
@@ -791,6 +792,35 @@ void main() {
             .toString(),
         equals(
             "DBusDict.stringVariant({'one': DBusInt32(1), 'two': DBusDouble(2.0)})"));
+  });
+
+  test('uuid', () async {
+    expect(
+        DBusUUID.fromHexString('a61fb428740a11ec90d60242ac120003').value,
+        equals([
+          0xa6,
+          0x1f,
+          0xb4,
+          0x28,
+          0x74,
+          0x0a,
+          0x11,
+          0xec,
+          0x90,
+          0xd6,
+          0x02,
+          0x42,
+          0xac,
+          0x12,
+          0x00,
+          0x03
+        ]));
+    expect(
+        DBusUUID.fromHexString('a61fb428740a11ec90d60242ac120003')
+            .toHexString(),
+        equals('a61fb428740a11ec90d60242ac120003'));
+    expect(() => DBusUUID.fromHexString('a61fb428-740a-11ec-90d6-0242ac120003'),
+        throwsFormatException);
   });
 
   test('address', () async {
