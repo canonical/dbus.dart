@@ -1,6 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'dbus_address.dart';
 import 'dbus_auth_client.dart';
@@ -207,7 +207,7 @@ class DBusClosedException implements Exception {}
 /// A client connection to a D-Bus server.
 class DBusClient {
   final DBusAddress _address;
-  Socket? _socket;
+  RawSocket? _socket;
   var _socketClosed = false;
   final _readBuffer = DBusReadBuffer();
   final _authClient = DBusAuthClient();
@@ -784,15 +784,15 @@ class DBusClient {
         throw 'D-Bus address transport not supported: $_address';
     }
 
-    _socket = await Socket.connect(socketAddress, port);
-    if (_socket != null) {
-      _socket!.listen(_processData,
-          onError: (error) {}, onDone: () => _socket!.close());
-      // ignore: unawaited_futures
-      _socket!.done.then((value) {
+    _socket = await RawSocket.connect(socketAddress, port);
+    _socket?.listen((event) {
+      if (event == RawSocketEvent.read) {
+        _readData();
+      } else if (event == RawSocketEvent.closed ||
+          event == RawSocketEvent.readClosed) {
         _socketClosed = true;
-      });
-    }
+      }
+    });
   }
 
   /// Connects to the D-Bus server.
@@ -804,7 +804,8 @@ class DBusClient {
     _connectCompleter = Completer();
 
     await _openSocket();
-    _authClient.requests.listen((message) => _socket?.write(message + '\r\n'));
+    _authClient.requests
+        .listen((message) => _socket?.write(utf8.encode(message + '\r\n')));
     await _authClient.done;
     _authComplete = true;
     if (!_authClient.isAuthenticated) {
@@ -887,8 +888,12 @@ class DBusClient {
     }
   }
 
-  /// Processes incoming data from the D-Bus server.
-  void _processData(Uint8List data) {
+  /// Read incoming data from the D-Bus server.
+  void _readData() {
+    var data = _socket?.read();
+    if (data == null) {
+      return;
+    }
     _readBuffer.writeBytes(data);
 
     var complete = false;
@@ -1197,7 +1202,8 @@ class DBusClient {
 
     var buffer = DBusWriteBuffer();
     buffer.writeMessage(message);
-    _socket?.add(buffer.data);
+
+    _socket?.write(buffer.data);
   }
 
   @override
