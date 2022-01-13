@@ -5344,4 +5344,57 @@ void main() {
       expect(code, equals(expectedCode));
     });
   }
+
+  test('code generator - comment', () async {
+    var generator = DBusCodeGenerator(
+        DBusIntrospectNode(name: '/com/example/Object'),
+        comment: 'This is great code.\nIt is the best code.');
+    expect(
+        generator.generateClientSource(),
+        equals('// This is great code.\n'
+            '// It is the best code.\n'
+            '\n'
+            'import \'package:dbus/dbus.dart\';\n'
+            '\n'
+            'class ComExampleObject extends DBusRemoteObject {\n'
+            '  ComExampleObject(DBusClient client, String destination, {DBusObjectPath path = const DBusObjectPath.unchecked(\'/com/example/Object\')}) : super(client, name: destination, path: path);\n'
+            '}\n'));
+    expect(
+        generator.generateServerSource(),
+        equals('// This is great code.\n'
+            '// It is the best code.\n'
+            '\n'
+            'import \'package:dbus/dbus.dart\';\n'
+            '\n'
+            'class ComExampleObject extends DBusObject {\n'
+            '  /// Creates a new object to expose on [path].\n'
+            '  ComExampleObject({DBusObjectPath path = const DBusObjectPath.unchecked(\'/com/example/Object\')}) : super(path);\n'
+            '\n'
+            '  @override\n'
+            '  List<DBusIntrospectInterface> introspect() {\n'
+            '    return [];\n'
+            '  }\n'
+            '\n'
+            '  @override\n'
+            '  Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {\n'
+            '    return DBusMethodErrorResponse.unknownInterface();\n'
+            '  }\n'
+            '\n'
+            '  @override\n'
+            '  Future<DBusMethodResponse> getProperty(String interface, String name) async {\n'
+            '    return DBusMethodErrorResponse.unknownInterface();\n'
+            '  }\n'
+            '\n'
+            '  @override\n'
+            '  Future<DBusMethodResponse> setProperty(String interface, String name, DBusValue value) async {\n'
+            '    return DBusMethodErrorResponse.unknownInterface();\n'
+            '  }\n'
+            '\n'
+            '  @override\n'
+            '  Future<DBusMethodResponse> getAllProperties(String interface) async {\n'
+            '    var properties = <DBusValue, DBusValue>{};\n'
+            '    return DBusMethodSuccessResponse([DBusDict.stringVariant(properties)]);\n'
+            '  }\n'
+            '}\n'));
+  });
 }
