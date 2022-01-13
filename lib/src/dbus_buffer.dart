@@ -43,7 +43,7 @@ class DBusBuffer {
       return stringAlignment;
     } else if (signature.value == 'o') {
       return objectPathAlignment;
-    } else if (signature.value == 'h') {
+    } else if (signature.value == 'g') {
       return signatureAlignment;
     } else if (signature.value == 'v') {
       return variantAlignment;
