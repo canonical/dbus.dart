@@ -466,9 +466,8 @@ class DBusSignature extends DBusValue {
     var index = 0;
     while (index < value.length) {
       var end = _findChildSignatureEnd(value, index);
-      if (end < 0) {
-        throw FormatException('Unable to split invalid signature');
-      }
+      // The signature was validated at creation, so this assertion should never fail.
+      assert(end >= 0);
       signatures.add(DBusSignature(value.substring(index, end + 1)));
       index = end + 1;
     }
