@@ -18,6 +18,7 @@ class DBusBuffer {
   final int structAlignment = 8;
   final int arrayAlignment = 4;
   final int dictEntryAlignment = 8;
+  final int unixFdAlignment = 4;
 
   /// Returns the alignment of a [DBusValue] with the given [signature].
   int getAlignment(DBusSignature signature) {
@@ -47,6 +48,8 @@ class DBusBuffer {
       return signatureAlignment;
     } else if (signature.value == 'v') {
       return variantAlignment;
+    } else if (signature.value == 'h') {
+      return unixFdAlignment;
     } else if (signature.value.startsWith('(')) {
       return structAlignment;
     } else if (signature.value.startsWith('a')) {
