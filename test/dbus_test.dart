@@ -2781,6 +2781,31 @@ void main() {
     }
   });
 
+  test('call method - empty object', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Create a client that exposes an object without any methods.
+    await client1.registerObject(DBusObject(DBusObjectPath('/')));
+
+    // Call the method from another client.
+    expect(
+        () => client2.callMethod(
+            destination: client1.uniqueName,
+            path: DBusObjectPath('/'),
+            name: 'Test',
+            values: [DBusString('Hello'), DBusUint32(42)]),
+        throwsA(isA<DBusUnknownInterfaceException>()));
+  });
+
   test('call method - unknown object', () async {
     var server = DBusServer();
     var address =
@@ -3627,6 +3652,63 @@ void main() {
             '</node>'));
   });
 
+  test('introspect - empty object', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Create a client that exposes an object without introspection.
+    await client1.registerObject(DBusObject(DBusObjectPath('/')));
+
+    // Read introspection data from the first client.
+    var remoteObject = DBusRemoteObject(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
+    var node = await remoteObject.introspect();
+    expect(
+        node.toXml().toXmlString(),
+        equals('<node>'
+            '<interface name="org.freedesktop.DBus.Introspectable">'
+            '<method name="Introspect">'
+            '<arg name="xml_data" type="s" direction="out"/>'
+            '</method>'
+            '</interface>'
+            '<interface name="org.freedesktop.DBus.Peer">'
+            '<method name="GetMachineId">'
+            '<arg name="machine_uuid" type="s" direction="out"/>'
+            '</method>'
+            '<method name="Ping"/>'
+            '</interface>'
+            '<interface name="org.freedesktop.DBus.Properties">'
+            '<method name="Get">'
+            '<arg name="interface_name" type="s" direction="in"/>'
+            '<arg name="property_name" type="s" direction="in"/>'
+            '<arg name="value" type="v" direction="out"/>'
+            '</method>'
+            '<method name="Set">'
+            '<arg name="interface_name" type="s" direction="in"/>'
+            '<arg name="property_name" type="s" direction="in"/>'
+            '<arg name="value" type="v" direction="in"/>'
+            '</method>'
+            '<method name="GetAll">'
+            '<arg name="interface_name" type="s" direction="in"/>'
+            '<arg name="props" type="a{sv}" direction="out"/>'
+            '</method>'
+            '<signal name="PropertiesChanged">'
+            '<arg name="interface_name" type="s"/>'
+            '<arg name="changed_properties" type="a{sv}"/>'
+            '<arg name="invalidated_properties" type="as"/>'
+            '</signal>'
+            '</interface>'
+            '</node>'));
+  });
+
   test('introspect - not introspectable', () async {
     var server = DBusServer();
     var address =
@@ -3970,6 +4052,33 @@ void main() {
             interface: 'org.freedesktop.DBus.Properties',
             name: 'GetAll'),
         throwsA(isA<DBusInvalidArgsException>()));
+  });
+
+  test('properties - empty object', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Create a client that exposes an object with no properties.
+    await client1.registerObject(DBusObject(DBusObjectPath('/')));
+
+    var remoteObject = DBusRemoteObject(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
+    expect(() => remoteObject.getProperty('com.example.Test', 'Property'),
+        throwsA(isA<DBusUnknownPropertyException>()));
+    expect(
+        () => remoteObject.setProperty(
+            'com.example.Test', 'Property', DBusString('Foo')),
+        throwsA(isA<DBusUnknownPropertyException>()));
+    var properties = await remoteObject.getAllProperties('com.example.Test');
+    expect(properties, isEmpty);
   });
 
   test('properties - unknown method', () async {
@@ -4509,6 +4618,37 @@ void main() {
         name: client1.uniqueName, path: DBusObjectPath('/'));
     await remoteObject.callMethod('com.example.Test', 'AddObject', []);
     methodCallDone = true;
+  });
+
+  test('object manager - empty object', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Register an object manager and an empty object.
+    var objectManager = DBusObject(DBusObjectPath('/'), isObjectManager: true);
+    await client1.registerObject(objectManager);
+    await client1
+        .registerObject(DBusObject(DBusObjectPath('/com/example/Object1')));
+
+    var remoteManagerObject = DBusRemoteObjectManager(client2,
+        name: client1.uniqueName, path: DBusObjectPath('/'));
+    var objects = await remoteManagerObject.getManagedObjects();
+    expect(
+        objects,
+        equals({
+          DBusObjectPath('/com/example/Object1'): {
+            'org.freedesktop.DBus.Introspectable': {},
+            'org.freedesktop.DBus.Properties': {}
+          }
+        }));
   });
 
   test('object manager - unknown method', () async {
