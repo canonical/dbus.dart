@@ -683,9 +683,9 @@ class DBusClient {
   Future<void> registerObject(DBusObject object) async {
     if (object.client != null) {
       if (object.client == this) {
-        throw 'Object already registered';
+        throw Exception('Object already registered');
       } else {
-        throw 'Object already registered on other client';
+        throw Exception('Object already registered on other client');
       }
     }
     object.client = this;

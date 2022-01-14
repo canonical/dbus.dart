@@ -2448,6 +2448,40 @@ void main() {
     expect(id, equals(machineId));
   });
 
+  test('register object twice', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    // Check can only register an object once.
+    var object = TestObject();
+    await client.registerObject(object);
+    expect(() => client.registerObject(object), throwsException);
+  });
+
+  test('register object second client', () async {
+    var server = DBusServer();
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client1 = DBusClient(address);
+    var client2 = DBusClient(address);
+    addTearDown(() async {
+      await client1.close();
+      await client2.close();
+      await server.close();
+    });
+
+    // Check can only register an object on on client.
+    var object = TestObject();
+    await client1.registerObject(object);
+    expect(() => client2.registerObject(object), throwsException);
+  });
+
   test('call method', () async {
     var server = DBusServer();
     var address =
