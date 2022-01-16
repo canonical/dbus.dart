@@ -298,7 +298,7 @@ class DBusClient {
           signature: DBusSignature('s'))
       .map((signal) => (signal.values[0] as DBusString).value);
 
-  /// Stream of name change events as this client loses them.
+  /// Stream of name change events.
   Stream<DBusNameOwnerChangedEvent> get nameOwnerChanged =>
       DBusSignalStream(this,
               sender: 'org.freedesktop.DBus',
