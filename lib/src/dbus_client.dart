@@ -122,12 +122,12 @@ class DBusSignalStream extends Stream<DBusSignal> {
       {Function? onError,
       void Function()? onDone,
       bool? cancelOnError}) {
-    _client._signalStreams.add(this);
     return _controller.stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
   void _onListen() {
+    _client._signalStreams.add(this);
     if (_rule.sender != null) {
       _client._findUniqueName(_rule.sender!);
     }
