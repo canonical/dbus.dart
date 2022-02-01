@@ -793,7 +793,7 @@ class DBusClient {
         _socketClosed = true;
         _socket?.close();
       }
-    });
+    }, onError: (error) {});
   }
 
   /// Connects to the D-Bus server.
