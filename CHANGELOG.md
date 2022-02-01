@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0
+
+* DBusSignalStream is now broadcast.
+* Add support for sending/receiving unix file descriptors.
+* Ensure a signal stream doesn't get recorded multiple times if listen() is called more than once.
+
 ## 0.6.8
 
 * Fix missing semicolon on generated server property code.
