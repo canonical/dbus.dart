@@ -86,7 +86,7 @@ class _DBusRemoteClient {
         serverSocket._clientDisconnected(this);
         _socket.close();
       }
-    });
+    }, onError: (error) {});
   }
 
   /// True if this client has a rule that matches [message].
