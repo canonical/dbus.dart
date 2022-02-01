@@ -791,6 +791,7 @@ class DBusClient {
       } else if (event == RawSocketEvent.closed ||
           event == RawSocketEvent.readClosed) {
         _socketClosed = true;
+        _socket?.close();
       }
     });
   }
