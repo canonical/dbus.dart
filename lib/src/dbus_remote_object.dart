@@ -31,14 +31,11 @@ class DBusPropertiesChangedSignal extends DBusSignal {
 
   /// Properties that have changed and their new values.
   Map<String, DBusValue> get changedProperties =>
-      (values[1] as DBusDict).children.map((name, value) =>
-          MapEntry((name as DBusString).value, (value as DBusVariant).value));
+      (values[1] as DBusDict).mapStringVariant();
 
   /// Properties that have changed but require their values to be requested.
-  List<String> get invalidatedProperties => (values[2] as DBusArray)
-      .children
-      .map((value) => (value as DBusString).value)
-      .toList();
+  List<String> get invalidatedProperties =>
+      (values[2] as DBusArray).mapString().toList();
 
   DBusPropertiesChangedSignal(DBusSignal signal)
       : super(
@@ -150,8 +147,7 @@ class DBusRemoteObject {
         name: 'GetAll',
         values: [DBusString(interface)],
         replySignature: DBusSignature('a{sv}'));
-    return (result.returnValues[0] as DBusDict).children.map((key, value) =>
-        MapEntry((key as DBusString).value, (value as DBusVariant).value));
+    return (result.returnValues[0] as DBusDict).mapStringVariant();
   }
 
   /// Sets a property on this object.

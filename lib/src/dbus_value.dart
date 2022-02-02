@@ -842,6 +842,53 @@ class DBusArray extends DBusValue {
     return children.map((value) => value.toNative());
   }
 
+  /// Maps the contents of this array into native types. Only works if [childSignature] is 'y'.
+  Iterable<int> mapByte() => children.map((value) => (value as DBusByte).value);
+
+  /// Maps the contents of this array into native types. Only works if [childSignature] is 'n'.
+  Iterable<int> mapInt16() =>
+      children.map((value) => (value as DBusInt16).value);
+
+  /// Maps the contents of this array into native types. Only works if [childSignature] is 'q'.
+  Iterable<int> mapUint16() =>
+      children.map((value) => (value as DBusUint16).value);
+
+  /// Maps the contents of this array into native types. Only works if [childSignature] is 'i'.
+  Iterable<int> mapInt32() =>
+      children.map((value) => (value as DBusInt32).value);
+
+  /// Maps the contents of this array into native types. Only works if [childSignature] is 'u'.
+  Iterable<int> mapUint32() =>
+      children.map((value) => (value as DBusUint32).value);
+
+  /// Maps the contents of this array into native types. Only works if [childSignature] is 'x'.
+  Iterable<int> mapInt64() =>
+      children.map((value) => (value as DBusInt64).value);
+
+  /// Maps the contents of this array into native types. Only works if [childSignature] is 't'.
+  Iterable<int> mapUint64() =>
+      children.map((value) => (value as DBusUint64).value);
+
+  /// Maps the contents of this array into native types. Only works if [childSignature] is 'd'.
+  Iterable<double> mapDouble() =>
+      children.map((value) => (value as DBusDouble).value);
+
+  /// Maps the contents of this array into native types. Only works if [childSignature] is 's'.
+  Iterable<String> mapString() =>
+      children.map((value) => (value as DBusString).value);
+
+  /// Maps the contents of this array into native types. Only works if [childSignature] is 'o'.
+  Iterable<DBusObjectPath> mapObjectPath() =>
+      children.map((value) => value as DBusObjectPath);
+
+  /// Maps the contents of this array into native types. Only works if [childSignature] is 'g'.
+  Iterable<DBusSignature> mapSignature() =>
+      children.map((value) => value as DBusSignature);
+
+  /// Maps the contents of this array into native types. Only works if [childSignature] is 'v'.
+  Iterable<DBusValue> mapVariant() =>
+      children.map((value) => (value as DBusVariant).value);
+
   @override
   bool operator ==(other) =>
       other is DBusArray &&
@@ -984,6 +1031,10 @@ class DBusDict extends DBusValue {
     return children
         .map((key, value) => MapEntry(key.toNative(), value.toNative()));
   }
+
+  /// Maps the contents of this array into native types. Only works if [keySignature] is 's' and [valueSignature] is 'v'.
+  Map<String, DBusValue> mapStringVariant() => children.map((key, value) =>
+      MapEntry((key as DBusString).value, (value as DBusVariant).value));
 
   @override
   bool operator ==(other) =>

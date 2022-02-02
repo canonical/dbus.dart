@@ -14,9 +14,7 @@ void main() async {
 
   print('');
   print('Hardware addresses:');
-  var devicePaths = (properties['Devices'] as DBusArray)
-      .children
-      .map((v) => v as DBusObjectPath);
+  var devicePaths = (properties['Devices'] as DBusArray).mapObjectPath();
   for (var path in devicePaths) {
     var device = DBusRemoteObject(client,
         name: 'org.freedesktop.NetworkManager', path: path);
