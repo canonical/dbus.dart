@@ -160,7 +160,7 @@ class ComExampleTest extends DBusRemoteObject {
   /// Gets com.example.Test.ArrayProperty
   Future<List<int>> getArrayProperty() async {
     var value = await getProperty('com.example.Test', 'ArrayProperty', signature: DBusSignature('ay'));
-    return (value as DBusArray).children.map((child) => (child as DBusByte).value).toList();
+    return value.mapByte().toList();
   }
 
   /// Sets com.example.Test.ArrayProperty
@@ -171,7 +171,7 @@ class ComExampleTest extends DBusRemoteObject {
   /// Gets com.example.Test.DictProperty
   Future<Map<String, DBusValue>> getDictProperty() async {
     var value = await getProperty('com.example.Test', 'DictProperty', signature: DBusSignature('a{sv}'));
-    return (value as DBusDict).children.map((key, value) => MapEntry((key as DBusString).value, (value as DBusVariant).value));
+    return (value as DBusDict).mapStringVariant();
   }
 
   /// Sets com.example.Test.DictProperty

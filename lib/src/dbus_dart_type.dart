@@ -325,9 +325,36 @@ class DBusArrayType extends DBusDartType {
 
   @override
   String dbusToNative(String name) {
-    var childType = getDartType(childSignature);
-    var convertedValue = childType.dbusToNative('child');
-    return '($name as DBusArray).children.map((child) => $convertedValue).toList()';
+    switch (childSignature.value) {
+      case 'y':
+        return '$name.mapByte().toList()';
+      case 'n':
+        return '$name.mapInt16().toList()';
+      case 'q':
+        return '$name.mapUint16().toList()';
+      case 'i':
+        return '$name.mapInt32().toList()';
+      case 'u':
+        return '$name.mapUint32().toList()';
+      case 'x':
+        return '$name.mapInt64().toList()';
+      case 't':
+        return '$name.mapUint64().toList()';
+      case 'd':
+        return '$name.mapDouble().toList()';
+      case 's':
+        return '$name.mapString().toList()';
+      case 'o':
+        return '$name.objectPath().toList()';
+      case 'g':
+        return '$name.signature().toList()';
+      case 'v':
+        return '$name.mapVariant().toList()';
+      default:
+        var childType = getDartType(childSignature);
+        var convertedValue = childType.dbusToNative('child');
+        return '($name as DBusArray).children.map((child) => $convertedValue).toList()';
+    }
   }
 }
 
@@ -361,11 +388,16 @@ class DBusDictType extends DBusDartType {
 
   @override
   String dbusToNative(String name) {
-    var keyType = getDartType(keySignature);
-    var convertedKey = keyType.dbusToNative('key');
-    var valueType = getDartType(valueSignature);
-    var convertedValue = valueType.dbusToNative('value');
-    return '($name as DBusDict).children.map((key, value) => MapEntry($convertedKey, $convertedValue))';
+    if (keySignature == DBusSignature('s') &&
+        valueSignature == DBusSignature('v')) {
+      return '($name as DBusDict).mapStringVariant()';
+    } else {
+      var keyType = getDartType(keySignature);
+      var convertedKey = keyType.dbusToNative('key');
+      var valueType = getDartType(valueSignature);
+      var convertedValue = valueType.dbusToNative('value');
+      return '($name as DBusDict).children.map((key, value) => MapEntry($convertedKey, $convertedValue))';
+    }
   }
 }
 

@@ -29,10 +29,7 @@ class DBusObjectManagerInterfacesRemovedSignal extends DBusSignal {
   DBusObjectPath get changedPath => values[0] as DBusObjectPath;
 
   /// The interfaces that were removed.
-  List<String> get interfaces => (values[1] as DBusArray)
-      .children
-      .map((value) => (value as DBusString).value)
-      .toList();
+  List<String> get interfaces => (values[1] as DBusArray).mapString().toList();
 
   DBusObjectManagerInterfacesRemovedSignal(DBusSignal signal)
       : super(
@@ -111,6 +108,5 @@ Map<String, Map<String, DBusValue>> _decodeInterfacesAndProperties(
 
 /// Decodes a value with signature 'a{sv}'.
 Map<String, DBusValue> _decodeProperties(DBusValue object) {
-  return (object as DBusDict).children.map((key, value) =>
-      MapEntry((key as DBusString).value, (value as DBusVariant).value));
+  return (object as DBusDict).mapStringVariant();
 }

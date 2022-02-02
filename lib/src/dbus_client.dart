@@ -386,10 +386,7 @@ class DBusClient {
         name: 'ListQueuedOwners',
         values: [DBusString(name)],
         replySignature: DBusSignature('as'));
-    return (result.returnValues[0] as DBusArray)
-        .children
-        .map((v) => (v as DBusString).value)
-        .toList();
+    return (result.returnValues[0] as DBusArray).mapString().toList();
   }
 
   /// Lists the registered names on the bus.
@@ -400,10 +397,7 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         name: 'ListNames',
         replySignature: DBusSignature('as'));
-    return (result.returnValues[0] as DBusArray)
-        .children
-        .map((v) => (v as DBusString).value)
-        .toList();
+    return (result.returnValues[0] as DBusArray).mapString().toList();
   }
 
   /// Returns a list of names that activate services.
@@ -414,10 +408,7 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         name: 'ListActivatableNames',
         replySignature: DBusSignature('as'));
-    return (result.returnValues[0] as DBusArray)
-        .children
-        .map((v) => (v as DBusString).value)
-        .toList();
+    return (result.returnValues[0] as DBusArray).mapString().toList();
   }
 
   /// Starts the service with [name].
@@ -505,17 +496,14 @@ class DBusClient {
         name: 'GetConnectionCredentials',
         values: [DBusString(name)],
         replySignature: DBusSignature('a{sv}'));
-    var credentials = (result.returnValues[0] as DBusDict)
-        .children
-        .map((key, value) => MapEntry((key as DBusString).value, value));
+    var credentials = (result.returnValues[0] as DBusDict).mapStringVariant();
     int? unixUserId;
     List<int>? unixGroupIds;
     int? processId;
     String? windowsSid;
     List<int>? linuxSecurityLabel;
     var otherCredentials = <String, DBusValue>{};
-    credentials.forEach((key, v) {
-      var value = (v as DBusVariant).value;
+    credentials.forEach((key, value) {
       switch (key) {
         case 'UnixUserID':
           if (value.signature != DBusSignature('u')) {
@@ -527,10 +515,7 @@ class DBusClient {
           if (value.signature != DBusSignature('au')) {
             throw 'org.freedesktop.DBus.GetConnectionCredentials returned invalid signature on UnixGroupIDs: ${value.signature.value}';
           }
-          unixGroupIds = (value as DBusArray)
-              .children
-              .map((v) => (v as DBusUint32).value)
-              .toList();
+          unixGroupIds = (value as DBusArray).mapUint32().toList();
           break;
         case 'ProcessID':
           if (value.signature != DBusSignature('u')) {
@@ -548,10 +533,7 @@ class DBusClient {
           if (value.signature != DBusSignature('ay')) {
             throw 'org.freedesktop.DBus.GetConnectionCredentials returned invalid signature on LinuxSecurityLabel: ${value.signature.value}';
           }
-          linuxSecurityLabel = (value as DBusArray)
-              .children
-              .map((v) => (v as DBusByte).value)
-              .toList();
+          linuxSecurityLabel = (value as DBusArray).mapByte().toList();
           break;
         default:
           otherCredentials[key] = value;

@@ -241,5 +241,5 @@ class DBusGetAllPropertiesResponse extends DBusMethodSuccessResponse {
 
   @override
   String toString() =>
-      'DBusGetAllPropertiesResponse(${(values[0] as DBusDict).children.map((key, value) => MapEntry((key as DBusString).value, (value as DBusVariant).value))})';
+      'DBusGetAllPropertiesResponse(${(values[0] as DBusDict).mapStringVariant()})';
 }

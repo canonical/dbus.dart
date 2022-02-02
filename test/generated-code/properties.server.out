@@ -298,12 +298,12 @@ class ComExampleTest extends DBusObject {
         if (value.signature != DBusSignature('ay')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setArrayProperty((value as DBusArray).children.map((child) => (child as DBusByte).value).toList());
+        return setArrayProperty(value.mapByte().toList());
       } else if (name == 'DictProperty') {
         if (value.signature != DBusSignature('a{sv}')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setDictProperty((value as DBusDict).children.map((key, value) => MapEntry((key as DBusString).value, (value as DBusVariant).value)));
+        return setDictProperty((value as DBusDict).mapStringVariant());
       } else {
         return DBusMethodErrorResponse.unknownProperty();
       }
