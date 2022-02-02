@@ -120,7 +120,7 @@ class ComExampleTest extends DBusObject {
   }
 
   /// Sets property com.example.Test.SignatureProperty
-  Future<DBusMethodResponse> setSignatureProperty(DBusValue value) async {
+  Future<DBusMethodResponse> setSignatureProperty(DBusSignature value) async {
     return DBusMethodErrorResponse.failed('Set com.example.Test.SignatureProperty not implemented');
   }
 
@@ -283,7 +283,7 @@ class ComExampleTest extends DBusObject {
         if (value.signature != DBusSignature('g')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setSignatureProperty(value);
+        return setSignatureProperty(value as DBusSignature);
       } else if (name == 'VariantProperty') {
         if (value.signature != DBusSignature('v')) {
           return DBusMethodErrorResponse.invalidArgs();

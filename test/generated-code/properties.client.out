@@ -125,13 +125,13 @@ class ComExampleTest extends DBusRemoteObject {
   }
 
   /// Gets com.example.Test.SignatureProperty
-  Future<DBusValue> getSignatureProperty() async {
+  Future<DBusSignature> getSignatureProperty() async {
     var value = await getProperty('com.example.Test', 'SignatureProperty', signature: DBusSignature('g'));
-    return value;
+    return value as DBusSignature;
   }
 
   /// Sets com.example.Test.SignatureProperty
-  Future<void> setSignatureProperty (DBusValue value) async {
+  Future<void> setSignatureProperty (DBusSignature value) async {
     await setProperty('com.example.Test', 'SignatureProperty', value);
   }
 
