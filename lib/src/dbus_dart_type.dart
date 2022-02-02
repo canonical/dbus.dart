@@ -312,6 +312,8 @@ class DBusArrayType extends DBusDartType {
         return 'DBusArray.string($name)';
       case 'o':
         return 'DBusArray.objectPath($name)';
+      case 'g':
+        return 'DBusArray.signature($name)';
       case 'v':
         return 'DBusArray.variant($name)';
       default:

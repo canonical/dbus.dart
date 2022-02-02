@@ -821,6 +821,11 @@ class DBusArray extends DBusValue {
     return DBusArray(DBusSignature('o'), values);
   }
 
+  /// Creates a new array of D-Bus signatures.
+  factory DBusArray.signature(Iterable<DBusSignature> values) {
+    return DBusArray(DBusSignature('g'), values);
+  }
+
   /// Creates a new array of D-Bus variants.
   factory DBusArray.variant(Iterable<DBusValue> values) {
     return DBusArray(
@@ -891,6 +896,12 @@ class DBusArray extends DBusValue {
         return 'DBusArray.objectPath([' +
             children
                 .map((child) => (child as DBusObjectPath).toString())
+                .join(', ') +
+            '])';
+      case 'g':
+        return 'DBusArray.signature([' +
+            children
+                .map((child) => (child as DBusSignature).toString())
                 .join(', ') +
             '])';
       case 'v':
