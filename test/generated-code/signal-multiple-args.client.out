@@ -13,7 +13,7 @@ class ComExampleTestEvent extends DBusSignal {
   double get double_value => (values[8] as DBusDouble).value;
   String get string_value => (values[9] as DBusString).value;
   String get object_path_value => (values[10] as DBusObjectPath).value;
-  DBusValue get signature_value => values[11];
+  DBusSignature get signature_value => values[11] as DBusSignature;
   DBusValue get variant_value => (values[12] as DBusVariant).value;
   DBusStruct get struct_value => values[13] as DBusStruct;
   List<int> get array_value_y => (values[14] as DBusArray).children.map((child) => (child as DBusByte).value).toList();
@@ -27,7 +27,7 @@ class ComExampleTestEvent extends DBusSignal {
   List<double> get array_value_d => (values[22] as DBusArray).children.map((child) => (child as DBusDouble).value).toList();
   List<String> get array_value_s => (values[23] as DBusArray).children.map((child) => (child as DBusString).value).toList();
   List<String> get array_value_o => (values[24] as DBusArray).children.map((child) => (child as DBusObjectPath).value).toList();
-  List<DBusValue> get array_value_g => (values[25] as DBusArray).children.map((child) => child).toList();
+  List<DBusSignature> get array_value_g => (values[25] as DBusArray).children.map((child) => child as DBusSignature).toList();
   List<DBusValue> get array_value_v => (values[26] as DBusArray).children.map((child) => (child as DBusVariant).value).toList();
   List<DBusStruct> get array_value_struct => (values[27] as DBusArray).children.map((child) => child as DBusStruct).toList();
   List<List<String>> get array_value_array => (values[28] as DBusArray).children.map((child) => (child as DBusArray).children.map((child) => (child as DBusString).value).toList()).toList();

@@ -25,6 +25,8 @@ DBusDartType getDartType(DBusSignature signature) {
     return DBusStringType();
   } else if (value == 'o') {
     return DBusObjectPathType();
+  } else if (value == 'g') {
+    return DBusSignatureType();
   } else if (value == 'v') {
     return DBusVariantType();
   } else if (value.startsWith('(') && value.endsWith(')')) {
@@ -218,6 +220,24 @@ class DBusObjectPathType extends DBusStringType {
   @override
   String dbusToNative(String name) {
     return '($name as DBusObjectPath).value';
+  }
+}
+
+/// Generates Dart code for the signature D-Bus type.
+class DBusSignatureType extends DBusDartType {
+  @override
+  String get nativeType {
+    return 'DBusSignature';
+  }
+
+  @override
+  String nativeToDBus(String name) {
+    return name;
+  }
+
+  @override
+  String dbusToNative(String name) {
+    return '$name as DBusSignature';
   }
 }
 
