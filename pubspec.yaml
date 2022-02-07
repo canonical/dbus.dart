@@ -10,6 +10,10 @@ homepage: https://github.com/canonical/dbus.dart
 environment:
   sdk: '>=2.15.0 <3.0.0'
 
+platforms:
+  linux:
+  windows:
+
 dependencies:
   args: ^2.0.0
   ffi: ^1.1.2
