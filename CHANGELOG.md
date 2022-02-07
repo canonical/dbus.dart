@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.1
+
+* Only list as supporting Linux and Windows.
+* Make a DBusArray.signature constructor.
+* Fix type in generated code for D-Bus signatures.
+
 ## 0.7.0
 
 * DBusSignalStream is now broadcast.
