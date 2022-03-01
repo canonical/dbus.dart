@@ -39,12 +39,7 @@ class DBusSignal {
       _listsEqual(other.values, values);
 
   @override
-  int get hashCode =>
-      sender.hashCode |
-      path.hashCode |
-      interface.hashCode |
-      name.hashCode |
-      values.hashCode;
+  int get hashCode => Object.hash(sender, path, interface, name, values);
 
   @override
   String toString() =>

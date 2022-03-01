@@ -208,12 +208,7 @@ class DBusMatchRule {
 
   @override
   int get hashCode =>
-      (type?.hashCode ?? 0) |
-      (sender?.hashCode ?? 0) |
-      (interface?.hashCode ?? 0) |
-      (member?.hashCode ?? 0) |
-      (path?.hashCode ?? 0) |
-      (pathNamespace?.hashCode ?? 0);
+      Object.hash(type, sender, interface, member, path, pathNamespace);
 
   @override
   String toString() {

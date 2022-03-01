@@ -83,8 +83,7 @@ class DBusIntrospectNode {
       _listsEqual(other.children, children);
 
   @override
-  int get hashCode =>
-      (name?.hashCode ?? 0) | interfaces.hashCode | children.hashCode;
+  int get hashCode => Object.hash(name, interfaces, children);
 }
 
 /// Introspection information about a D-Bus interface.
@@ -175,11 +174,7 @@ class DBusIntrospectInterface {
 
   @override
   int get hashCode =>
-      name.hashCode |
-      methods.hashCode |
-      signals.hashCode |
-      properties.hashCode |
-      annotations.hashCode;
+      Object.hash(name, methods, signals, properties, annotations);
 }
 
 /// Introspection information about a D-Bus method.
@@ -256,7 +251,7 @@ class DBusIntrospectMethod {
       _listsEqual(other.annotations, annotations);
 
   @override
-  int get hashCode => name.hashCode | args.hashCode | annotations.hashCode;
+  int get hashCode => Object.hash(name, args, annotations);
 }
 
 /// Introspection information about a D-Bus signal.
@@ -325,7 +320,7 @@ class DBusIntrospectSignal {
       _listsEqual(other.annotations, annotations);
 
   @override
-  int get hashCode => name.hashCode | args.hashCode | annotations.hashCode;
+  int get hashCode => Object.hash(name, args, annotations);
 }
 
 /// Introspection information about a D-Bus property.
@@ -414,8 +409,7 @@ class DBusIntrospectProperty {
       _listsEqual(other.annotations, annotations);
 
   @override
-  int get hashCode =>
-      name.hashCode | type.hashCode | access.hashCode | annotations.hashCode;
+  int get hashCode => Object.hash(name, type, access, annotations);
 }
 
 /// Introspection information about a D-Bus argument.
@@ -501,8 +495,7 @@ class DBusIntrospectArgument {
       _listsEqual(other.annotations, annotations);
 
   @override
-  int get hashCode =>
-      name.hashCode | type.hashCode | direction.hashCode | annotations.hashCode;
+  int get hashCode => Object.hash(name, type, direction, annotations);
 }
 
 /// Annotation that applies to a D-Bus interface, method, signal, property or argument.
@@ -546,7 +539,7 @@ class DBusIntrospectAnnotation {
       other.value == value;
 
   @override
-  int get hashCode => name.hashCode | value.hashCode;
+  int get hashCode => Object.hash(name, value);
 }
 
 /// Parse D-Bus introspection data.

@@ -651,7 +651,7 @@ class DBusMaybe extends DBusValue {
       other.value == value;
 
   @override
-  int get hashCode => valueSignature.hashCode | value.hashCode;
+  int get hashCode => Object.hash(valueSignature, value);
 
   @override
   String toString() => 'DBusMaybe($valueSignature, ${value?.toString()})';
