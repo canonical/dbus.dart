@@ -24,6 +24,15 @@ import 'dbus_value.dart';
 import 'dbus_write_buffer.dart';
 import 'getuid.dart';
 
+// begin: dbus over websocket
+import 'dbus_ws_write_buffer.dart';
+import 'dbus_ws_read_buffer.dart';
+import 'dbus_ws_message.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+part 'dbus_ws_client.dart';
+// end: dbus over websocket
+
 /// Reply received when calling [DBusClient.requestName].
 enum DBusRequestNameReply { primaryOwner, inQueue, exists, alreadyOwner }
 

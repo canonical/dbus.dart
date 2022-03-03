@@ -11,7 +11,7 @@ class DBusErrorName {
   /// Creates and validated a D-Bus error name.
   DBusErrorName(this.value) {
     if (value.length > 255) {
-      throw FormatException('Error name too long');
+      throw FormatException('Error name too long: ${value}');
     }
     if (!value.contains('.')) {
       throw FormatException('Error name needs at least two elements');
@@ -22,6 +22,9 @@ class DBusErrorName {
       }
     }
   }
+
+  /// Creates D-Bus error name from JSON String. No validation.
+  DBusErrorName.fromJson(this.value);
 
   @override
   bool operator ==(other) => other is DBusErrorName && other.value == value;
