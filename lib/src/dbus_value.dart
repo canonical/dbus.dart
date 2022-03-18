@@ -460,6 +460,71 @@ class DBusSignature extends DBusValue {
     }
   }
 
+  /// Create a new D-Bus signature with the given [value].
+  ///
+  /// No checking is performed on the validity of [value].
+  /// This function is useful when you need a constant value (e.g. for a
+  /// parameter default value). In all other cases use the standard constructor.
+  const DBusSignature.unchecked(this.value);
+
+  /// Empty "void" signature.
+  static const empty = DBusSignature.unchecked(''); // void :(
+
+  /// D-Bus signature of an unsigned 8 bit value ([DBusByte]).
+  static const byte = DBusSignature.unchecked('y');
+
+  /// D-Bus signature of a boolean value ([DBusBoolean]).
+  static const boolean = DBusSignature.unchecked('b');
+
+  /// D-Bus signature of a signed 16 bit integer ([DBusInt16]).
+  static const int16 = DBusSignature.unchecked('n');
+
+  /// D-Bus signature of an unsigned 16 bit integer ([DBusUint16]).
+  static const uint16 = DBusSignature.unchecked('q');
+
+  /// D-Bus signature of a signed 32 bit integer ([DBusInt32]).
+  static const int32 = DBusSignature.unchecked('i');
+
+  /// D-Bus signature of an unsigned 32 bit integer ([DBusUint32]).
+  static const uint32 = DBusSignature.unchecked('u');
+
+  /// D-Bus signature of a signed 64 bit integer ([DBusInt64]).
+  static const int64 = DBusSignature.unchecked('x');
+
+  /// D-Bus signature of an unsigned 64 bit integer ([DBusUint64]).
+  static const uint64 = DBusSignature.unchecked('t');
+
+  /// D-Bus signature of a 64 bit floating point value ([DBusDouble]).
+  static const double = DBusSignature.unchecked('d');
+
+  /// D-Bus signature of a Unicode text string ([DBusString]).
+  static const string = DBusSignature.unchecked('s');
+
+  /// D-Bus signature of an object path ([DBusObjectPath]).
+  static const objectPath = DBusSignature.unchecked('o');
+
+  /// Create a new D-Bus signature of a variant that contains any D-Bus type ([DBusVariant]).
+  static const variant = DBusSignature.unchecked('v');
+
+  /// D-Bus signature of a Unix file descriptor ([DBusUnixFd]).
+  static const unixFd = DBusSignature.unchecked('h');
+
+  /// Create a new D-Bus signature of an array of the given [type] ([DBusArray]).
+  factory DBusSignature.array(DBusSignature type) =>
+      DBusSignature('a${type.value}');
+
+  /// Create a new D-Bus signature of a dictionary of the given [key] and [value] types ([DBusDict]).
+  factory DBusSignature.dict(DBusSignature key, DBusSignature value) =>
+      DBusSignature('a{${key.value}${value.value}}');
+
+  /// Create a new D-Bus signature of a struct of the given [types] ([DBusStruct]).
+  factory DBusSignature.struct(Iterable<DBusSignature> types) =>
+      DBusSignature('(${types.map((t) => t.value).join()})');
+
+  /// Create a new D-Bus signature of a value that contains a D-Bus type or null ([DBusMaybe]).
+  factory DBusSignature.maybe(DBusSignature type) =>
+      DBusSignature('m${type.value}');
+
   /// Splits this signature into a list of signatures with single complete types, e.g. 'asbo' -> ['as', 'b', 'o']
   List<DBusSignature> split() {
     var signatures = <DBusSignature>[];

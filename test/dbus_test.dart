@@ -197,6 +197,7 @@ void main() {
     expect(DBusByte(42) == DBusByte(42), isTrue);
     expect(DBusByte(42) == DBusByte(99), isFalse);
     expect(DBusByte(42).toString(), equals('DBusByte(42)'));
+    expect(DBusByte(44).signature, equals(DBusSignature.byte));
 
     // Check hash codes.
     var map = {DBusByte(1): 1, DBusByte(2): 2, DBusByte(3): 3};
@@ -213,6 +214,7 @@ void main() {
     expect(DBusBoolean(true) == DBusBoolean(false), isFalse);
     expect(DBusBoolean(true).toString(), equals('DBusBoolean(true)'));
     expect(DBusBoolean(false).toString(), equals('DBusBoolean(false)'));
+    expect(DBusBoolean(false).signature, equals(DBusSignature.boolean));
 
     // Check hash codes.
     var map = {DBusBoolean(false): 0, DBusBoolean(true): 1};
@@ -230,6 +232,7 @@ void main() {
     expect(DBusInt16(42) == DBusInt16(42), isTrue);
     expect(DBusInt16(42) == DBusInt16(99), isFalse);
     expect(DBusInt16(-42).toString(), equals('DBusInt16(-42)'));
+    expect(DBusInt16(-42).signature, equals(DBusSignature.int16));
 
     // Check hash codes.
     var map = {DBusInt16(1): 1, DBusInt16(2): 2, DBusInt16(3): 3};
@@ -246,6 +249,7 @@ void main() {
     expect(DBusUint16(42) == DBusUint16(42), isTrue);
     expect(DBusUint16(42) == DBusUint16(99), isFalse);
     expect(DBusUint16(42).toString(), equals('DBusUint16(42)'));
+    expect(DBusUint16(42).signature, equals(DBusSignature.uint16));
 
     // Check hash codes.
     var map = {DBusUint16(1): 1, DBusUint16(2): 2, DBusUint16(3): 3};
@@ -263,6 +267,7 @@ void main() {
     expect(DBusInt32(42) == DBusInt32(42), isTrue);
     expect(DBusInt32(42) == DBusInt32(99), isFalse);
     expect(DBusInt32(-42).toString(), equals('DBusInt32(-42)'));
+    expect(DBusInt32(42).signature, equals(DBusSignature.int32));
 
     // Check hash codes.
     var map = {DBusInt32(1): 1, DBusInt32(2): 2, DBusInt32(3): 3};
@@ -279,6 +284,7 @@ void main() {
     expect(DBusUint32(42) == DBusUint32(42), isTrue);
     expect(DBusUint32(42) == DBusUint32(99), isFalse);
     expect(DBusUint32(42).toString(), equals('DBusUint32(42)'));
+    expect(DBusUint32(42).signature, equals(DBusSignature.uint32));
 
     // Check hash codes.
     var map = {DBusUint32(1): 1, DBusUint32(2): 2, DBusUint32(3): 3};
@@ -294,6 +300,7 @@ void main() {
     expect(DBusInt64(42) == DBusInt64(42), isTrue);
     expect(DBusInt64(42) == DBusInt64(99), isFalse);
     expect(DBusInt64(-42).toString(), equals('DBusInt64(-42)'));
+    expect(DBusInt64(42).signature, equals(DBusSignature.int64));
 
     // Check hash codes.
     var map = {DBusInt64(1): 1, DBusInt64(2): 2, DBusInt64(3): 3};
@@ -309,6 +316,7 @@ void main() {
     expect(DBusUint64(42) == DBusUint64(42), isTrue);
     expect(DBusUint64(42) == DBusUint64(99), isFalse);
     expect(DBusUint64(42).toString(), equals('DBusUint64(42)'));
+    expect(DBusUint64(42).signature, equals(DBusSignature.uint64));
 
     // Check hash codes.
     var map = {DBusUint64(1): 1, DBusUint64(2): 2, DBusUint64(3): 3};
@@ -322,6 +330,7 @@ void main() {
     expect(DBusDouble(3.14159) == DBusDouble(3.14159), isTrue);
     expect(DBusDouble(3.14159) == DBusDouble(2.71828), isFalse);
     expect(DBusDouble(3.14159).toString(), equals('DBusDouble(3.14159)'));
+    expect(DBusDouble(3.14159).signature, equals(DBusSignature.double));
 
     // Check hash codes.
     var map = {DBusDouble(1.1): 1, DBusDouble(2.2): 2, DBusDouble(3.3): 3};
@@ -338,6 +347,7 @@ void main() {
     expect(DBusString('one') == DBusString('one'), isTrue);
     expect(DBusString('one') == DBusString('two'), isFalse);
     expect(DBusString('one').toString(), equals("DBusString('one')"));
+    expect(DBusString('one').signature, equals(DBusSignature.string));
 
     // Check hash codes.
     var map = {
@@ -409,6 +419,8 @@ void main() {
         isFalse);
     expect(DBusObjectPath('/com/example/Test').toString(),
         equals("DBusObjectPath('/com/example/Test')"));
+    expect(DBusObjectPath('/com/example/Test').signature,
+        equals(DBusSignature.objectPath));
 
     // Check hash codes.
     var map = {
@@ -537,6 +549,8 @@ void main() {
         DBusVariant(DBusString('one')) == DBusVariant(DBusUint32(2)), isFalse);
     expect(DBusVariant(DBusString('one')).toString(),
         equals("DBusVariant(DBusString('one'))"));
+    expect(DBusVariant(DBusString('one')).signature,
+        equals(DBusSignature.variant));
 
     // Check hash codes.
     var map = {
@@ -572,6 +586,8 @@ void main() {
         isFalse);
     expect(DBusMaybe(DBusSignature('s'), DBusString('one')).toString(),
         equals("DBusMaybe(DBusSignature('s'), DBusString('one'))"));
+    expect(DBusMaybe(DBusSignature('s'), null).signature,
+        equals(DBusSignature.maybe(DBusSignature.string)));
   });
 
   test('value - unix fd', () async {
@@ -583,6 +599,7 @@ void main() {
     expect(DBusUnixFd(stdinHandle) == DBusUnixFd(stdinHandle), isTrue);
     expect(DBusUnixFd(stdinHandle) == DBusUnixFd(stdoutHandle), isFalse);
     expect(DBusUnixFd(stdinHandle).toString(), equals('DBusUnixFd()'));
+    expect(DBusUnixFd(stdinHandle).signature, equals(DBusSignature.unixFd));
 
     // Check hash codes.
     var map = {DBusUnixFd(stdinHandle): 0, DBusUnixFd(stdoutHandle): 1};
@@ -617,6 +634,14 @@ void main() {
             .toString(),
         equals(
             "DBusStruct([DBusString('one'), DBusUint32(2), DBusDouble(3.0)])"));
+    expect(
+        DBusStruct([DBusString('one'), DBusUint32(2), DBusDouble(3.0)])
+            .signature,
+        equals(DBusSignature.struct([
+          DBusSignature.string,
+          DBusSignature.uint32,
+          DBusSignature.double
+        ])));
   });
 
   test('value - array', () async {
@@ -757,6 +782,10 @@ void main() {
             [DBusInt32(1), DBusString('two'), DBusDouble(3.14159)]).toString(),
         equals(
             "DBusArray.variant([DBusInt32(1), DBusString('two'), DBusDouble(3.14159)])"));
+    expect(
+        DBusArray.variant(
+            [DBusInt32(1), DBusString('two'), DBusDouble(3.14159)]).signature,
+        equals(DBusSignature.array(DBusSignature.variant)));
   });
 
   test('value - dict', () async {
@@ -875,6 +904,11 @@ void main() {
             .toString(),
         equals(
             "DBusDict.stringVariant({'one': DBusInt32(1), 'two': DBusDouble(2.0)})"));
+    expect(
+        DBusDict.stringVariant({'one': DBusInt32(1), 'two': DBusDouble(2)})
+            .signature,
+        equals(
+            DBusSignature.dict(DBusSignature.string, DBusSignature.variant)));
   });
 
   test('uuid', () async {
