@@ -564,7 +564,7 @@ class DBusClient {
   Future<void> ping([String destination = 'org.freedesktop.DBus']) async {
     await callMethod(
         destination: destination,
-        path: DBusObjectPath('/'),
+        path: DBusObjectPath.root,
         interface: 'org.freedesktop.DBus.Peer',
         name: 'Ping',
         replySignature: DBusSignature(''));
@@ -576,7 +576,7 @@ class DBusClient {
       [String destination = 'org.freedesktop.DBus']) async {
     var result = await callMethod(
         destination: destination,
-        path: DBusObjectPath('/'),
+        path: DBusObjectPath.root,
         interface: 'org.freedesktop.DBus.Peer',
         name: 'GetMachineId',
         replySignature: DBusSignature('s'));
@@ -1029,7 +1029,7 @@ class DBusClient {
 
       var signal = DBusSignal(
           sender: message.sender?.value ?? '',
-          path: message.path ?? DBusObjectPath('/'),
+          path: message.path ?? DBusObjectPath.root,
           interface: message.interface?.value ?? '',
           name: message.member?.value ?? '',
           values: message.values);
