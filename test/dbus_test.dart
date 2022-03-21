@@ -188,10 +188,10 @@ class TestManagerObject extends DBusObject {
 
 void main() {
   test('value - byte', () async {
-    expect(() => DBusByte(-1), throwsArgumentError);
+    expect(() => DBusByte(-1), throwsA(isA<AssertionError>()));
     expect(DBusByte(0).value, equals(0));
     expect(DBusByte(255).value, equals(255));
-    expect(() => DBusByte(256), throwsArgumentError);
+    expect(() => DBusByte(256), throwsA(isA<AssertionError>()));
     expect(DBusByte(0).signature, equals(DBusSignature('y')));
     expect(DBusByte(42).toNative(), equals(42));
     expect(DBusByte(42) == DBusByte(42), isTrue);
@@ -222,11 +222,11 @@ void main() {
   });
 
   test('value - int16', () async {
-    expect(() => DBusInt16(-32769), throwsArgumentError);
+    expect(() => DBusInt16(-32769), throwsA(isA<AssertionError>()));
     expect(DBusInt16(-32768).value, equals(-32768));
     expect(DBusInt16(0).value, equals(0));
     expect(DBusInt16(32767).value, equals(32767));
-    expect(() => DBusInt16(32768), throwsArgumentError);
+    expect(() => DBusInt16(32768), throwsA(isA<AssertionError>()));
     expect(DBusInt16(0).signature, equals(DBusSignature('n')));
     expect(DBusInt16(-42).toNative(), equals(-42));
     expect(DBusInt16(42) == DBusInt16(42), isTrue);
@@ -240,10 +240,10 @@ void main() {
   });
 
   test('value - uint16', () async {
-    expect(() => DBusUint16(-1), throwsArgumentError);
+    expect(() => DBusUint16(-1), throwsA(isA<AssertionError>()));
     expect(DBusUint16(0).value, equals(0));
     expect(DBusUint16(65535).value, equals(65535));
-    expect(() => DBusUint16(65536), throwsArgumentError);
+    expect(() => DBusUint16(65536), throwsA(isA<AssertionError>()));
     expect(DBusUint16(0).signature, equals(DBusSignature('q')));
     expect(DBusUint16(42).toNative(), equals(42));
     expect(DBusUint16(42) == DBusUint16(42), isTrue);
@@ -257,11 +257,11 @@ void main() {
   });
 
   test('value - int32', () async {
-    expect(() => DBusInt32(-2147483649), throwsArgumentError);
+    expect(() => DBusInt32(-2147483649), throwsA(isA<AssertionError>()));
     expect(DBusInt32(-2147483648).value, equals(-2147483648));
     expect(DBusInt32(0).value, equals(0));
     expect(DBusInt32(2147483647).value, equals(2147483647));
-    expect(() => DBusInt32(2147483648), throwsArgumentError);
+    expect(() => DBusInt32(2147483648), throwsA(isA<AssertionError>()));
     expect(DBusInt32(0).signature, equals(DBusSignature('i')));
     expect(DBusInt32(-42).toNative(), equals(-42));
     expect(DBusInt32(42) == DBusInt32(42), isTrue);
@@ -275,10 +275,10 @@ void main() {
   });
 
   test('value - uint32', () async {
-    expect(() => DBusUint32(-1), throwsArgumentError);
+    expect(() => DBusUint32(-1), throwsA(isA<AssertionError>()));
     expect(DBusUint32(0).value, equals(0));
     expect(DBusUint32(4294967295).value, equals(4294967295));
-    expect(() => DBusUint32(4294967296), throwsArgumentError);
+    expect(() => DBusUint32(4294967296), throwsA(isA<AssertionError>()));
     expect(DBusUint32(0).signature, equals(DBusSignature('u')));
     expect(DBusUint32(42).toNative(), equals(42));
     expect(DBusUint32(42) == DBusUint32(42), isTrue);
@@ -310,7 +310,7 @@ void main() {
   test('value - uint64', () async {
     expect(DBusUint64(0).value, equals(0));
     expect(DBusUint64(0xffffffffffffffff).value, equals(0xffffffffffffffff));
-    expect(() => DBusUint32(4294967296), throwsArgumentError);
+    expect(() => DBusUint32(4294967296), throwsA(isA<AssertionError>()));
     expect(DBusUint64(0).signature, equals(DBusSignature('t')));
     expect(DBusUint64(42).toNative(), equals(42));
     expect(DBusUint64(42) == DBusUint64(42), isTrue);

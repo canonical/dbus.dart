@@ -45,12 +45,8 @@ class DBusByte extends DBusValue {
   final int value;
 
   /// Creates a new byte with the given [value].
-  DBusByte(this.value) {
-    if (value.isNegative || value > 255) {
-      throw ArgumentError.value(
-          value, 'value', 'Byte must be in range [0, 255]');
-    }
-  }
+  const DBusByte(this.value)
+      : assert(value >= 0 && value <= 255, 'Byte must be in range [0, 255]');
 
   @override
   DBusSignature get signature {
@@ -106,12 +102,9 @@ class DBusInt16 extends DBusValue {
   final int value;
 
   /// Creates a new signed 16 bit integer with the given [value].
-  DBusInt16(this.value) {
-    if (value < -32768 || value > 32767) {
-      throw ArgumentError.value(
-          value, 'value', 'Int16 must be in range [-32768, 32767]');
-    }
-  }
+  const DBusInt16(this.value)
+      : assert(value >= -32768 && value <= 32767,
+            'Int16 must be in range [-32768, 32767]');
 
   @override
   DBusSignature get signature {
@@ -139,12 +132,9 @@ class DBusUint16 extends DBusValue {
   final int value;
 
   /// Creates a new unsigned 16 bit integer with the given [value].
-  DBusUint16(this.value) {
-    if (value.isNegative || value > 65535) {
-      throw ArgumentError.value(
-          value, 'value', 'Uint16 must be in range [0, 65535]');
-    }
-  }
+  const DBusUint16(this.value)
+      : assert(
+            value >= 0 && value <= 65535, 'Uint16 must be in range [0, 65535]');
 
   @override
   DBusSignature get signature {
@@ -172,12 +162,9 @@ class DBusInt32 extends DBusValue {
   final int value;
 
   /// Creates a new signed 32 bit integer with the given [value].
-  DBusInt32(this.value) {
-    if (value < -2147483648 || value > 2147483647) {
-      throw ArgumentError.value(
-          value, 'value', 'Int32 must be in range [-2147483648, 2147483647]');
-    }
-  }
+  const DBusInt32(this.value)
+      : assert(value >= -2147483648 && value <= 2147483647,
+            'Int32 must be in range [-2147483648, 2147483647]');
 
   @override
   DBusSignature get signature {
@@ -205,12 +192,9 @@ class DBusUint32 extends DBusValue {
   final int value;
 
   /// Creates a new unsigned 32 bit integer with the given [value].
-  DBusUint32(this.value) {
-    if (value.isNegative || value > 4294967295) {
-      throw ArgumentError.value(
-          value, 'value', 'Uint32 must be in range [0, 4294967295]');
-    }
-  }
+  const DBusUint32(this.value)
+      : assert(value >= 0 && value <= 4294967295,
+            'Uint32 must be in range [0, 4294967295]');
 
   @override
   DBusSignature get signature {
@@ -238,12 +222,9 @@ class DBusInt64 extends DBusValue {
   final int value;
 
   /// Creates a new signed 64 bit integer with the given [value].
-  DBusInt64(this.value) {
-    if (value < -(1 << 63) || value > (1 << 63) - 1) {
-      throw ArgumentError.value(value, 'value',
-          'Int64 must be in range [-9223372036854775808, 9223372036854775807]');
-    }
-  }
+  const DBusInt64(this.value)
+      : assert(value >= -(1 << 63) && value <= (1 << 63) - 1,
+            'Int64 must be in range [-9223372036854775808, 9223372036854775807]');
 
   @override
   DBusSignature get signature {
