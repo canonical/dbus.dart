@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.2
+
+* Add helper methods to map DBusArray and DBusDict.
+* Add some convenience for working with D-Bus signatures.
+* Use Object.hash for hashCode calculations.
+
 ## 0.7.1
 
 * Only list as supporting Linux and Windows.
