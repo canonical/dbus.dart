@@ -376,6 +376,9 @@ class DBusObjectPath extends DBusString {
   /// parameter default value). In all other cases use the standard constructor.
   const DBusObjectPath.unchecked(String value) : super(value);
 
+  /// The root object path ("/").
+  static const DBusObjectPath root = DBusObjectPath.unchecked('/');
+
   /// Splits an object path into separate elements, e.g. '/org/freedesktop/DBus' -> [ 'org', 'freedesktop', 'DBus' ].
   List<String> split() {
     if (value == '/') {
