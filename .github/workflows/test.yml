@@ -23,7 +23,24 @@ jobs:
         run: dart pub get
 
       - name: Run regression tests
-        run: dart run test_cov
+        run: dart test
+
+  coverage:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: subosito/flutter-action@v1
+
+      - name: Print Flutter SDK version
+        run: flutter --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Collect coverage
+        run: flutter test --coverage
 
       - name: Upload coverage
         uses: codecov/codecov-action@v1
