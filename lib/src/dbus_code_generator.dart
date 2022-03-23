@@ -18,17 +18,19 @@ class DBusCodeGenerator {
   late final String className;
 
   final String? _comment;
+  late final bool _withAnnotations;
 
   /// Creates a new object to generate code from [node].
   /// [className] is the name of the generated class, if not provided it will be inferred from [node].
   /// If provided [comment] is added to the top of the source.
-  DBusCodeGenerator(this.node, {String? comment, String? className})
+  DBusCodeGenerator(this.node, {String? comment, String? className, bool? withAnnotations})
       : _comment = comment {
     var _className = className ?? _nodeToClassName();
     if (_className == null) {
       throw 'Unable to determine class name';
     }
     this.className = _className;
+    this._withAnnotations = withAnnotations ?? false;
   }
 
   /// Generates Dart code for a client to access the given D-Bus interface.
@@ -38,6 +40,10 @@ class DBusCodeGenerator {
     source += _generateHeader();
     source += "import 'package:dbus/dbus.dart';\n";
     source += '\n';
+    if (_withAnnotations) {
+      source += '//part_placeholder\n';
+      source += '\n';
+    }
     source += _generateRemoteObjectClass();
 
     return source;
@@ -615,8 +621,9 @@ class DBusCodeGenerator {
       pathArg = 'DBusObjectPath path';
     }
 
+    var suffix = _withAnnotations ? "Internal" : "";
     var constructor =
-        '  $className(DBusClient client, String destination, $pathArg) : super(client, name: destination, path: path)';
+        '  ${className}${suffix}(DBusClient client, String destination, $pathArg) : super(client, name: destination, path: path)';
     if (variableConstructors.isEmpty) {
       constructor += ';\n';
     } else {
@@ -631,7 +638,10 @@ class DBusCodeGenerator {
     members.addAll(methods);
 
     var source = '';
-    source += 'class $className extends DBusRemoteObject {\n';
+    if (_withAnnotations) {
+      source += '@DBusAPI()\n';
+    }
+    source += 'class ${className}${suffix} extends DBusRemoteObject {\n';
     source += members.join('\n');
     source += '}\n';
     classes.add(source);
@@ -714,6 +724,15 @@ class DBusCodeGenerator {
       returnType = 'Future<List<DBusValue>>';
     }
 
+
+    var outputArgsNames = outputArgs.map( (arg) => "'" + (arg.name ?? '') + "'" );
+    String annotationOutArgNames = "[]";
+    if (outputArgsNames.length > 0) {
+      annotationOutArgNames = outputArgsNames.join(", ");
+      annotationOutArgNames = "[" + annotationOutArgNames + "]";
+    }
+    String annotation = "@DBusReplySignature('${method.outputSignature.value}', ${annotationOutArgNames})";
+
     var methodArgs = [
       "'${interface.name}'",
       "'${method.name}'",
@@ -732,6 +751,9 @@ class DBusCodeGenerator {
 
     var source = '';
     source += '  /// Invokes ${interface.name}.${method.name}()\n';
+    if (_withAnnotations) {
+      source += '  ${annotation}\n';
+    }
     source += '  $returnType $methodName(${argsList.join(', ')}) async {\n';
     if (isNoReply || outputArgs.isEmpty) {
       source += '    $methodCall\n';

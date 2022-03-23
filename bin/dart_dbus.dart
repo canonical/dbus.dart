@@ -49,6 +49,7 @@ class GenerateRemoteObjectCommand extends Command {
         abbr: 'o', valueHelp: 'filename', help: 'Dart file to write to');
     argParser.addOption('class-name',
         valueHelp: 'ClassName', help: 'Class name to use');
+    argParser.addFlag('annotations', help: 'whether to use annotations (default: no)');
   }
 
   @override
@@ -62,7 +63,7 @@ class GenerateRemoteObjectCommand extends Command {
     var comment =
         'This file was generated using the following command and may be overwritten.\ndart-dbus $name $filename';
     var source = DBusCodeGenerator(node,
-            comment: comment, className: argResults?['class-name'])
+            comment: comment, className: argResults?['class-name'], withAnnotations:argResults?['annotations'])
         .generateClientSource();
     await writeSource(source, argResults?['output']);
   }

@@ -9,3 +9,4 @@ export 'src/dbus_remote_object_manager.dart';
 export 'src/dbus_server.dart';
 export 'src/dbus_signal.dart';
 export 'src/dbus_value.dart';
+export 'src/dbus_annotations.dart';
