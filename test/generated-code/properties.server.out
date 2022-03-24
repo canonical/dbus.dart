@@ -298,7 +298,7 @@ class ComExampleTest extends DBusObject {
         if (value.signature != DBusSignature('ay')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setArrayProperty(value.mapByte().toList());
+        return setArrayProperty((value as DBusArray).mapByte().toList());
       } else if (name == 'DictProperty') {
         if (value.signature != DBusSignature('a{sv}')) {
           return DBusMethodErrorResponse.invalidArgs();

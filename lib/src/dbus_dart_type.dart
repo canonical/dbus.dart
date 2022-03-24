@@ -327,29 +327,29 @@ class DBusArrayType extends DBusDartType {
   String dbusToNative(String name) {
     switch (childSignature.value) {
       case 'y':
-        return '$name.mapByte().toList()';
+        return '($name as DBusArray).mapByte().toList()';
       case 'n':
-        return '$name.mapInt16().toList()';
+        return '($name as DBusArray).mapInt16().toList()';
       case 'q':
-        return '$name.mapUint16().toList()';
+        return '($name as DBusArray).mapUint16().toList()';
       case 'i':
-        return '$name.mapInt32().toList()';
+        return '($name as DBusArray).mapInt32().toList()';
       case 'u':
-        return '$name.mapUint32().toList()';
+        return '($name as DBusArray).mapUint32().toList()';
       case 'x':
-        return '$name.mapInt64().toList()';
+        return '($name as DBusArray).mapInt64().toList()';
       case 't':
-        return '$name.mapUint64().toList()';
+        return '($name as DBusArray).mapUint64().toList()';
       case 'd':
-        return '$name.mapDouble().toList()';
+        return '($name as DBusArray).mapDouble().toList()';
       case 's':
-        return '$name.mapString().toList()';
+        return '($name as DBusArray).mapString().toList()';
       case 'o':
-        return '$name.objectPath().toList()';
+        return '($name as DBusArray).objectPath().toList()';
       case 'g':
-        return '$name.signature().toList()';
+        return '($name as DBusArray).signature().toList()';
       case 'v':
-        return '$name.mapVariant().toList()';
+        return '($name as DBusArray).mapVariant().toList()';
       default:
         var childType = getDartType(childSignature);
         var convertedValue = childType.dbusToNative('child');
