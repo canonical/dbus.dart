@@ -160,7 +160,7 @@ class ComExampleTest extends DBusRemoteObject {
   /// Gets com.example.Test.ArrayProperty
   Future<List<int>> getArrayProperty() async {
     var value = await getProperty('com.example.Test', 'ArrayProperty', signature: DBusSignature('ay'));
-    return value.mapByte().toList();
+    return (value as DBusArray).mapByte().toList();
   }
 
   /// Sets com.example.Test.ArrayProperty
