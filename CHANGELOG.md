@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.3
+
+* Add missing cast in generated array code.
+* Use const constructors for integer value types.
+* Add DBusObjectPath.root constant.
+
 ## 0.7.2
 
 * Add helper methods to map DBusArray and DBusDict.
