@@ -1,0 +1,232 @@
+import 'package:dbus_onemw/dbus.dart';
+
+//part_placeholder
+
+@DBusAPI()
+class ComExampleTestInternal extends DBusRemoteObject {
+  ComExampleTestInternal(DBusClient client, String destination, DBusObjectPath path) : super(client, name: destination, path: path);
+
+  /// Invokes com.example.Test.get_byte_value()
+  @DBusReplySignature('y', ['byte_value'])
+  Future<int> callget_byte_value({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_byte_value', [], replySignature: DBusSignature('y'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusByte).value;
+  }
+
+  /// Invokes com.example.Test.get_boolean_value()
+  @DBusReplySignature('b', ['boolean_value'])
+  Future<bool> callget_boolean_value({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_boolean_value', [], replySignature: DBusSignature('b'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusBoolean).value;
+  }
+
+  /// Invokes com.example.Test.get_int16_value()
+  @DBusReplySignature('n', ['int16_value'])
+  Future<int> callget_int16_value({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_int16_value', [], replySignature: DBusSignature('n'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusInt16).value;
+  }
+
+  /// Invokes com.example.Test.get_uint16_value()
+  @DBusReplySignature('q', ['uint16_value'])
+  Future<int> callget_uint16_value({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_uint16_value', [], replySignature: DBusSignature('q'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusUint16).value;
+  }
+
+  /// Invokes com.example.Test.get_int32_value()
+  @DBusReplySignature('i', ['int32_value'])
+  Future<int> callget_int32_value({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_int32_value', [], replySignature: DBusSignature('i'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusInt32).value;
+  }
+
+  /// Invokes com.example.Test.get_uint32_value()
+  @DBusReplySignature('u', ['uint32_value'])
+  Future<int> callget_uint32_value({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_uint32_value', [], replySignature: DBusSignature('u'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusUint32).value;
+  }
+
+  /// Invokes com.example.Test.get_int64_value()
+  @DBusReplySignature('x', ['int64_value'])
+  Future<int> callget_int64_value({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_int64_value', [], replySignature: DBusSignature('x'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusInt64).value;
+  }
+
+  /// Invokes com.example.Test.get_uint64_value()
+  @DBusReplySignature('t', ['uint64_value'])
+  Future<int> callget_uint64_value({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_uint64_value', [], replySignature: DBusSignature('t'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusUint64).value;
+  }
+
+  /// Invokes com.example.Test.get_double_value()
+  @DBusReplySignature('d', ['double_value'])
+  Future<double> callget_double_value({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_double_value', [], replySignature: DBusSignature('d'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusDouble).value;
+  }
+
+  /// Invokes com.example.Test.get_string_value()
+  @DBusReplySignature('s', ['string_value'])
+  Future<String> callget_string_value({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_string_value', [], replySignature: DBusSignature('s'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusString).value;
+  }
+
+  /// Invokes com.example.Test.get_object_path_value()
+  @DBusReplySignature('o', ['object_path_value'])
+  Future<String> callget_object_path_value({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_object_path_value', [], replySignature: DBusSignature('o'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusObjectPath).value;
+  }
+
+  /// Invokes com.example.Test.get_signature_value()
+  @DBusReplySignature('g', ['signature_value'])
+  Future<DBusSignature> callget_signature_value({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_signature_value', [], replySignature: DBusSignature('g'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return result.returnValues[0] as DBusSignature;
+  }
+
+  /// Invokes com.example.Test.get_variant_value()
+  @DBusReplySignature('v', ['variant_value'])
+  Future<DBusValue> callget_variant_value({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_variant_value', [], replySignature: DBusSignature('v'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusVariant).value;
+  }
+
+  /// Invokes com.example.Test.get_struct_value()
+  @DBusReplySignature('(si)', ['struct_value'])
+  Future<DBusStruct> callget_struct_value({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_struct_value', [], replySignature: DBusSignature('(si)'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return result.returnValues[0] as DBusStruct;
+  }
+
+  /// Invokes com.example.Test.get_array_value_y()
+  @DBusReplySignature('ay', ['array_value_y'])
+  Future<List<int>> callget_array_value_y({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_array_value_y', [], replySignature: DBusSignature('ay'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusArray).mapByte().toList();
+  }
+
+  /// Invokes com.example.Test.get_array_value_b()
+  @DBusReplySignature('ab', ['array_value_b'])
+  Future<List<bool>> callget_array_value_b({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_array_value_b', [], replySignature: DBusSignature('ab'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusArray).children.map((child) => (child as DBusBoolean).value).toList();
+  }
+
+  /// Invokes com.example.Test.get_array_value_n()
+  @DBusReplySignature('an', ['array_value_n'])
+  Future<List<int>> callget_array_value_n({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_array_value_n', [], replySignature: DBusSignature('an'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusArray).mapInt16().toList();
+  }
+
+  /// Invokes com.example.Test.get_array_value_q()
+  @DBusReplySignature('aq', ['array_value_q'])
+  Future<List<int>> callget_array_value_q({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_array_value_q', [], replySignature: DBusSignature('aq'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusArray).mapUint16().toList();
+  }
+
+  /// Invokes com.example.Test.get_array_value_u()
+  @DBusReplySignature('ai', ['array_value_u'])
+  Future<List<int>> callget_array_value_u({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_array_value_u', [], replySignature: DBusSignature('ai'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusArray).mapInt32().toList();
+  }
+
+  /// Invokes com.example.Test.get_array_value_n()
+  @DBusReplySignature('au', ['array_value_n'])
+  Future<List<int>> callget_array_value_n_({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_array_value_n', [], replySignature: DBusSignature('au'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusArray).mapUint32().toList();
+  }
+
+  /// Invokes com.example.Test.get_array_value_x()
+  @DBusReplySignature('ax', ['array_value_x'])
+  Future<List<int>> callget_array_value_x({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_array_value_x', [], replySignature: DBusSignature('ax'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusArray).mapInt64().toList();
+  }
+
+  /// Invokes com.example.Test.get_array_value_t()
+  @DBusReplySignature('at', ['array_value_t'])
+  Future<List<int>> callget_array_value_t({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_array_value_t', [], replySignature: DBusSignature('at'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusArray).mapUint64().toList();
+  }
+
+  /// Invokes com.example.Test.get_array_value_d()
+  @DBusReplySignature('ad', ['array_value_d'])
+  Future<List<double>> callget_array_value_d({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_array_value_d', [], replySignature: DBusSignature('ad'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusArray).mapDouble().toList();
+  }
+
+  /// Invokes com.example.Test.get_array_value_s()
+  @DBusReplySignature('as', ['array_value_s'])
+  Future<List<String>> callget_array_value_s({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_array_value_s', [], replySignature: DBusSignature('as'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusArray).mapString().toList();
+  }
+
+  /// Invokes com.example.Test.get_array_value_o()
+  @DBusReplySignature('ao', ['array_value_o'])
+  Future<List<String>> callget_array_value_o({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_array_value_o', [], replySignature: DBusSignature('ao'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusArray).objectPath().toList();
+  }
+
+  /// Invokes com.example.Test.get_array_value_g()
+  @DBusReplySignature('ag', ['array_value_g'])
+  Future<List<DBusSignature>> callget_array_value_g({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_array_value_g', [], replySignature: DBusSignature('ag'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusArray).signature().toList();
+  }
+
+  /// Invokes com.example.Test.get_array_value_v()
+  @DBusReplySignature('av', ['array_value_v'])
+  Future<List<DBusValue>> callget_array_value_v({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_array_value_v', [], replySignature: DBusSignature('av'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusArray).mapVariant().toList();
+  }
+
+  /// Invokes com.example.Test.get_array_value_struct()
+  @DBusReplySignature('a(si)', ['array_value_struct'])
+  Future<List<DBusStruct>> callget_array_value_struct({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_array_value_struct', [], replySignature: DBusSignature('a(si)'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusArray).children.map((child) => child as DBusStruct).toList();
+  }
+
+  /// Invokes com.example.Test.get_array_value_array()
+  @DBusReplySignature('aas', ['array_value_array'])
+  Future<List<List<String>>> callget_array_value_array({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_array_value_array', [], replySignature: DBusSignature('aas'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusArray).children.map((child) => (child as DBusArray).mapString().toList()).toList();
+  }
+
+  /// Invokes com.example.Test.get_dict_value_sv()
+  @DBusReplySignature('a{sv}', ['dict_value_sv'])
+  Future<Map<String, DBusValue>> callget_dict_value_sv({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_dict_value_sv', [], replySignature: DBusSignature('a{sv}'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusDict).mapStringVariant();
+  }
+
+  /// Invokes com.example.Test.get_dict_value_us()
+  @DBusReplySignature('a{us}', ['dict_value_us'])
+  Future<Map<int, String>> callget_dict_value_us({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_dict_value_us', [], replySignature: DBusSignature('a{us}'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusDict).children.map((key, value) => MapEntry((key as DBusUint32).value, (value as DBusString).value));
+  }
+
+  /// Invokes com.example.Test.get_dict_value_dict()
+  @DBusReplySignature('a{sa{sv}}', ['dict_value_dict'])
+  Future<Map<String, Map<String, DBusValue>>> callget_dict_value_dict({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'get_dict_value_dict', [], replySignature: DBusSignature('a{sa{sv}}'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusDict).children.map((key, value) => MapEntry((key as DBusString).value, (value as DBusDict).mapStringVariant()));
+  }
+}

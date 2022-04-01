@@ -1,0 +1,15 @@
+import 'package:dbus/dbus.dart';
+
+//part_placeholder
+
+@DBusAPI()
+class ComExampleTestInternal extends DBusRemoteObject {
+  ComExampleTestInternal(DBusClient client, String destination, DBusObjectPath path) : super(client, name: destination, path: path);
+
+  /// Invokes com.example.Test.Hello()
+  @DBusReplySignature('ybnqiuxtdsogv(si)ayabanaqaiauaxatadasaoagava(si)aasa{sv}a{us}a{sa{sv}}', ['byte_value', 'boolean_value', 'int16_value', 'uint16_value', 'int32_value', 'uint32_value', 'int64_value', 'uint64_value', 'double_value', 'string_value', 'object_path_value', 'signature_value', 'variant_value', 'struct_value', 'array_value_y', 'array_value_b', 'array_value_n', 'array_value_q', 'array_value_u', 'array_value_n', 'array_value_x', 'array_value_t', 'array_value_d', 'array_value_s', 'array_value_o', 'array_value_g', 'array_value_v', 'array_value_struct', 'array_value_array', 'dict_value_sv', 'dict_value_us', 'dict_value_dict'])
+  Future<List<DBusValue>> callHello({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'Hello', [], replySignature: DBusSignature('ybnqiuxtdsogv(si)ayabanaqaiauaxatadasaoagava(si)aasa{sv}a{us}a{sa{sv}}'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return result.returnValues;
+  }
+}

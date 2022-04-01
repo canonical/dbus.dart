@@ -1,0 +1,32 @@
+import 'package:dbus/dbus.dart';
+
+//part_placeholder
+
+/// Signal data for com.example.Test.Event1.
+class ComExampleTestEvent1 extends DBusSignal {
+  String get value => (values[0] as DBusString).value;
+
+  ComExampleTestEvent1(DBusSignal signal) : super(sender: signal.sender, path: signal.path, interface: signal.interface, name: signal.name, values: signal.values);
+}
+
+/// Signal data for com.example.Test.Event2.
+class ComExampleTestEvent2 extends DBusSignal {
+  int get value => (values[0] as DBusInt32).value;
+
+  ComExampleTestEvent2(DBusSignal signal) : super(sender: signal.sender, path: signal.path, interface: signal.interface, name: signal.name, values: signal.values);
+}
+
+@DBusAPI()
+class ComExampleTestInternal extends DBusRemoteObject {
+  /// Stream of com.example.Test.Event1 signals.
+  late final Stream<ComExampleTestEvent1> event1;
+
+  /// Stream of com.example.Test.Event2 signals.
+  late final Stream<ComExampleTestEvent2> event2;
+
+  ComExampleTestInternal(DBusClient client, String destination, DBusObjectPath path) : super(client, name: destination, path: path) {
+    event1 = DBusRemoteObjectSignalStream(object: this, interface: 'com.example.Test', name: 'Event1', signature: DBusSignature('s')).asBroadcastStream().map((signal) => ComExampleTestEvent1(signal));
+
+    event2 = DBusRemoteObjectSignalStream(object: this, interface: 'com.example.Test', name: 'Event2', signature: DBusSignature('i')).asBroadcastStream().map((signal) => ComExampleTestEvent2(signal));
+  }
+}

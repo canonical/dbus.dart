@@ -1,0 +1,20 @@
+import 'package:dbus/dbus.dart';
+
+//part_placeholder
+
+@DBusAPI()
+class ComExampleTest1Internal extends DBusRemoteObject {
+  ComExampleTest1Internal(DBusClient client, String destination, DBusObjectPath path) : super(client, name: destination, path: path);
+
+  /// Invokes com.example.Test1.Hello()
+  @DBusReplySignature('', [])
+  Future<void> callHello({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    await callMethod('com.example.Test1', 'Hello', [], replySignature: DBusSignature(''), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+  }
+
+  /// Invokes com.example.Test2.Hello()
+  @DBusReplySignature('', [])
+  Future<void> callHello_({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    await callMethod('com.example.Test2', 'Hello', [], replySignature: DBusSignature(''), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+  }
+}

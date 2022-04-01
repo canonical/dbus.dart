@@ -1,0 +1,15 @@
+import 'package:dbus/dbus.dart';
+
+//part_placeholder
+
+@DBusAPI()
+class ComExampleTestInternal extends DBusRemoteObject {
+  ComExampleTestInternal(DBusClient client, String destination, DBusObjectPath path) : super(client, name: destination, path: path);
+
+  /// Invokes com.example.Test.Hello()
+  @DBusReplySignature('s', ['value'])
+  Future<String> callHello({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
+    var result = await callMethod('com.example.Test', 'Hello', [], replySignature: DBusSignature('s'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
+    return (result.returnValues[0] as DBusString).value;
+  }
+}

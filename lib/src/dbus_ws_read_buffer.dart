@@ -172,7 +172,7 @@ class DBusWSReadBuffer {
 
   /// Reads a [DBusBoolean] from the buffer or returns null if not enough data.
   DBusBoolean? readDBusBoolean(dynamic item) {
-    return DBusBoolean((item as int)!= 0);
+    return DBusBoolean((item as bool)!= 0);
   }
 
   /// Reads a [DBusInt16] from the buffer or returns null if not enough data.
@@ -207,7 +207,7 @@ class DBusWSReadBuffer {
 
   /// Reads a [DBusDouble] from the buffer or returns null if not enough data.
   DBusDouble? readDBusDouble(dynamic item) {
-    return DBusDouble(item as double);
+    return item is double ? DBusDouble(item as double) : DBusDouble((item as int).toDouble());
   }
 
   /// Reads a [DBusString] from the buffer or returns null if not enough data.
@@ -280,9 +280,10 @@ class DBusWSReadBuffer {
     var children = <DBusValue>[];
     var list = item as List<dynamic>;
     int i = 0;
-    assert(children.length == list.length);
+    assert(childSignatures.length == list.length);
     // print("readDBusStruct: $childSignatures $item");
     for (var signature in childSignatures) {
+      // print("readDBusStruct: $i: $signature ${list[i]}");
       var child = readDBusValue(signature, list[i]);
       if (child == null) {
         return null;

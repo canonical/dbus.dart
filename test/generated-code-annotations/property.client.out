@@ -1,0 +1,19 @@
+import 'package:dbus/dbus.dart';
+
+//part_placeholder
+
+@DBusAPI()
+class ComExampleTestInternal extends DBusRemoteObject {
+  ComExampleTestInternal(DBusClient client, String destination, DBusObjectPath path) : super(client, name: destination, path: path);
+
+  /// Gets com.example.Test.Value
+  Future<String> getValue() async {
+    var value = await getProperty('com.example.Test', 'Value', signature: DBusSignature('s'));
+    return (value as DBusString).value;
+  }
+
+  /// Sets com.example.Test.Value
+  Future<void> setValue (String value) async {
+    await setProperty('com.example.Test', 'Value', DBusString(value));
+  }
+}

@@ -34,7 +34,7 @@ class DBusWSWriteBuffer {
       _data["signature"] = message.signature.value;
     }
 
-    print("> writeMesage:$_data");
-    print("> writeMesage:$data");
+    // print("> writeMesage:$_data");
+    // print("> writeMesage:$data");
   }
 }

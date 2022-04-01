@@ -1,9 +1,9 @@
-name: dbus
+name: dbus_lg
 version: 0.7.3
 
 description:
-  A native Dart implementation of the D-Bus message bus client. This package
-  allows Dart applications to directly access services on the Linux desktop.
+  LG extension of a native Dart implementation of the D-Bus message bus client.
+  https://github.com/canonical/dbus.dart
 
 homepage: https://github.com/canonical/dbus.dart
 

@@ -11,7 +11,7 @@ class DBusErrorName {
   /// Creates and validated a D-Bus error name.
   DBusErrorName(this.value) {
     if (value.length > 255) {
-      throw FormatException('Error name too long: ${value}');
+      throw FormatException('Error name too long');
     }
     if (!value.contains('.')) {
       throw FormatException('Error name needs at least two elements');

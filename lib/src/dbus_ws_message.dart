@@ -3,7 +3,7 @@ import 'dbus_value.dart';
 
 class DBusWSMessage extends DBusMessage {
   DBusWSMessage(type,
-      {flags = const {},
+      {flags = const <DBusMessageFlag>{},
       serial,
       path,
       interface,
@@ -13,7 +13,7 @@ class DBusWSMessage extends DBusMessage {
       destination,
       sender,
       this.replySignature,
-      values = const []})
+      values = const <DBusValue> []})
       : super(type,
             flags: flags,
             serial: serial,
