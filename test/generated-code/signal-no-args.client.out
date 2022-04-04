@@ -1,4 +1,4 @@
-import 'package:dbus/dbus.dart';
+import 'package:dbus_onemw/dbus.dart';
 
 /// Signal data for com.example.Test.Event.
 class ComExampleTestEvent extends DBusSignal {

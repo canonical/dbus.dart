@@ -1,4 +1,4 @@
-import 'package:dbus/dbus.dart';
+import 'package:dbus_onemw/dbus.dart';
 
 Future<void> acquireName(
     DBusClient client, String name, Set<DBusRequestNameFlag> flags) async {

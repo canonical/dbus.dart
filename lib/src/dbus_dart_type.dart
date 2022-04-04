@@ -1,4 +1,4 @@
-import 'package:dbus/dbus.dart';
+import 'package:dbus_onemw/dbus.dart';
 
 /// Gets an object that indicates how to generate Dart code for a given D-Bus type.
 DBusDartType getDartType(DBusSignature signature) {

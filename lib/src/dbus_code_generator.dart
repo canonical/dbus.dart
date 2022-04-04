@@ -1,5 +1,5 @@
-import 'package:dbus/dbus.dart';
-import 'package:dbus/src/dbus_dart_type.dart';
+import 'package:dbus_onemw/dbus.dart';
+import 'package:dbus_onemw/src/dbus_dart_type.dart';
 
 // Branch in a switch (if/else) statement.
 class _SwitchBranch {
@@ -38,7 +38,7 @@ class DBusCodeGenerator {
     var source = '';
 
     source += _generateHeader();
-    source += "import 'package:dbus/dbus.dart';\n";
+    source += "import 'package:dbus_onemw/dbus.dart';\n";
     source += '\n';
     if (_withAnnotations) {
       source += '//part_placeholder\n';
@@ -54,7 +54,7 @@ class DBusCodeGenerator {
     var source = '';
 
     source += _generateHeader();
-    source += "import 'package:dbus/dbus.dart';\n";
+    source += "import 'package:dbus_onemw/dbus.dart';\n";
     source += '\n';
     source += _generateObjectClass();
 

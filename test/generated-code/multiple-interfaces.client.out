@@ -1,4 +1,4 @@
-import 'package:dbus/dbus.dart';
+import 'package:dbus_onemw/dbus.dart';
 
 class ComExampleTest1 extends DBusRemoteObject {
   ComExampleTest1(DBusClient client, String destination, DBusObjectPath path) : super(client, name: destination, path: path);

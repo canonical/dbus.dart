@@ -28,7 +28,7 @@ $ dart-dbus generate-remote-object test-object.xml -o test-remote-object.dart
 You can then use the generated `test-remote-object.dart` to access that remote object from your program:
 
 ```dart
-import 'package:dbus/dbus.dart';
+import 'package:dbus_onemw/dbus.dart';
 import 'test-remote-object.dart';
 
 Future<void> main() async {
@@ -55,7 +55,7 @@ $ dart-dbus generate-object test-object.xml -o test-object.dart
 You can then use the generated `test-object.dart` in your program:
 
 ```dart
-import 'package:dbus/dbus.dart';
+import 'package:dbus_onemw/dbus.dart';
 import 'test-object.dart';
 
 class TestObject extends ComExampleTestObject {
@@ -86,7 +86,7 @@ This requires writing more code and handing more error cases.
 The following code shows how to access the remote object in the above examples:
 
 ```dart
-import 'package:dbus/dbus.dart';
+import 'package:dbus_onemw/dbus.dart';
 
 Future<void> main() async {
   var client = DBusClient.session();
@@ -104,7 +104,7 @@ Future<void> main() async {
 And the following shows how to export that object:
 
 ```dart
-import 'package:dbus/dbus.dart';
+import 'package:dbus_onemw/dbus.dart';
 
 class TestObject extends DBusObject {
   TestObject() : super(DBusObjectPath('/com/example/Test/Object'));

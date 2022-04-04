@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:dbus/dbus.dart';
+import 'package:dbus_onemw/dbus.dart';
 
 void main() async {
   var client = DBusClient.system();

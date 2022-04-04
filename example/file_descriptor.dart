@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dbus/dbus.dart';
+import 'package:dbus_onemw/dbus.dart';
 
 class TestObject extends DBusObject {
   TestObject() : super(DBusObjectPath('/com/canonical/DBusDart'));

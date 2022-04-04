@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:args/command_runner.dart';
-import 'package:dbus/code_generator.dart';
-import 'package:dbus/dbus.dart';
+import 'package:dbus_onemw/code_generator.dart';
+import 'package:dbus_onemw/dbus.dart';
 
 /// Command that generates a DBusObject class from an introspection XML file.
 class GenerateObjectCommand extends Command {

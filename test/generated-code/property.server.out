@@ -1,4 +1,4 @@
-import 'package:dbus/dbus.dart';
+import 'package:dbus_onemw/dbus.dart';
 
 class ComExampleTest extends DBusObject {
   /// Creates a new object to expose on [path].

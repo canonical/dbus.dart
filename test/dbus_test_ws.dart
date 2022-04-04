@@ -1,16 +1,16 @@
 import 'dart:io';
 
-import 'package:dbus/code_generator.dart';
-import 'package:dbus/dbus.dart';
+import 'package:dbus_onemw/code_generator.dart';
+import 'package:dbus_onemw/dbus.dart';
 import 'package:test/test.dart';
-import 'package:dbus/src/dbus_value_ws_ext.dart';
-import 'package:dbus/src/dbus_ws_read_buffer.dart';
-import 'package:dbus/src/dbus_ws_message.dart';
-import 'package:dbus/src/dbus_message.dart';
-import 'package:dbus/src/dbus_ws_write_buffer.dart';
-import 'package:dbus/src/dbus_interface_name.dart';
-import 'package:dbus/src/dbus_member_name.dart';
-import 'package:dbus/src/dbus_bus_name.dart';
+import 'package:dbus_onemw/src/dbus_value_ws_ext.dart';
+import 'package:dbus_onemw/src/dbus_ws_read_buffer.dart';
+import 'package:dbus_onemw/src/dbus_ws_message.dart';
+import 'package:dbus_onemw/src/dbus_message.dart';
+import 'package:dbus_onemw/src/dbus_ws_write_buffer.dart';
+import 'package:dbus_onemw/src/dbus_interface_name.dart';
+import 'package:dbus_onemw/src/dbus_member_name.dart';
+import 'package:dbus_onemw/src/dbus_bus_name.dart';
 
 void main() {
   for (var name in [

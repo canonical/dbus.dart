@@ -1,15 +1,15 @@
 import 'dart:io';
 
-import 'package:dbus/code_generator.dart';
-import 'package:dbus/dbus.dart';
-import 'package:dbus/src/dbus_bus_name.dart';
-import 'package:dbus/src/dbus_error_name.dart';
-import 'package:dbus/src/dbus_interface_name.dart';
-import 'package:dbus/src/dbus_match_rule.dart';
-import 'package:dbus/src/dbus_member_name.dart';
-import 'package:dbus/src/dbus_message.dart';
-import 'package:dbus/src/dbus_uuid.dart';
-import 'package:dbus/src/getuid.dart';
+import 'package:dbus_onemw/code_generator.dart';
+import 'package:dbus_onemw/dbus.dart';
+import 'package:dbus_onemw/src/dbus_bus_name.dart';
+import 'package:dbus_onemw/src/dbus_error_name.dart';
+import 'package:dbus_onemw/src/dbus_interface_name.dart';
+import 'package:dbus_onemw/src/dbus_match_rule.dart';
+import 'package:dbus_onemw/src/dbus_member_name.dart';
+import 'package:dbus_onemw/src/dbus_message.dart';
+import 'package:dbus_onemw/src/dbus_uuid.dart';
+import 'package:dbus_onemw/src/getuid.dart';
 import 'package:test/test.dart';
 
 // Test server that exposes an activatable service.
@@ -5554,7 +5554,7 @@ void main() {
         equals('// This is great code.\n'
             '// It is the best code.\n'
             '\n'
-            'import \'package:dbus/dbus.dart\';\n'
+            'import \'package:dbus_onemw/dbus.dart\';\n'
             '\n'
             'class ComExampleObject extends DBusRemoteObject {\n'
             '  ComExampleObject(DBusClient client, String destination, {DBusObjectPath path = const DBusObjectPath.unchecked(\'/com/example/Object\')}) : super(client, name: destination, path: path);\n'
@@ -5564,7 +5564,7 @@ void main() {
         equals('// This is great code.\n'
             '// It is the best code.\n'
             '\n'
-            'import \'package:dbus/dbus.dart\';\n'
+            'import \'package:dbus_onemw/dbus.dart\';\n'
             '\n'
             'class ComExampleObject extends DBusObject {\n'
             '  /// Creates a new object to expose on [path].\n'
