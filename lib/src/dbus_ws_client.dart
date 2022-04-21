@@ -44,27 +44,6 @@ class DBusWSClient extends DBusClient {
     _connectCompleter?.complete();
   }
 
-  /// Adds a rule to match which messages to receive.
-  @override
-  Future<void> _addMatch(String rule) async {
-    var count = _matchRules[rule];
-    // print("> _addMatch $rule");
-    if (count == null) {
-      // print("> _addMatch callMethod: $rule");
-      _matchRules[rule] = 1;
-      await callMethod(
-          destination: 'org.freedesktop.DBus',
-          path: DBusObjectPath('/org/freedesktop/DBus'),
-          interface: 'org.freedesktop.DBus',
-          name: 'AddMatch',
-          values: [DBusString(rule)],
-          replySignature: DBusSignature(''));
-      // print("> _addMatch callMethod end");
-    } else {
-      _matchRules[rule] = count + 1;
-    }
-  }
-
   /// Processes incoming data from the D-Bus server.
   void _processDataJson(dynamic data) {
     // print("_processDataJson: $data");
@@ -85,7 +64,6 @@ class DBusWSClient extends DBusClient {
       return true;
     }
 
-    // print("> _processMessages: type: ${message.type}");
     if (message.type == DBusMessageType.methodReturn ||
         message.type == DBusMessageType.error) {
       _processMethodResponse(message);
@@ -120,52 +98,6 @@ class DBusWSClient extends DBusClient {
     completer.complete(response);
   }
 
-  /// Processes a signal received from the D-Bus server.
-  @override
-  void _processSignal(DBusMessage message) {
-    // print("> _processSignal: $message");
-    // Check has required fields.
-    if (message.path == null ||
-        message.interface == null ||
-        message.member == null) {
-      return;
-    }
-
-    for (var stream in _signalStreams) {
-      // If the stream is for an owned name, check if that matches the unique name in the message.
-      var sender = message.sender;
-      // print("> _processSignal ${message.sender}");
-      if (_nameOwners[stream._rule.sender] == sender) {
-        sender = stream._rule.sender;
-      }
-
-      if (!stream._rule.match(
-          type: DBusMessageType.signal,
-          sender: sender,
-          interface: message.interface,
-          member: message.member,
-          path: message.path)) {
-        continue;
-      }
-
-      var signal = DBusSignal(
-          sender: message.sender?.value ?? '',
-          path: message.path ?? DBusObjectPath('/'),
-          interface: message.interface?.value ?? '',
-          name: message.member?.value ?? '',
-          values: message.values);
-
-      // print("_processSignal: message: $message");
-      // print("_processSignal: values: ${message.values}");
-      if (stream._signature != null && message.signature != stream._signature) {
-        stream._controller.addError(DBusSignalSignatureException(
-            '${message.interface?.value}.${message.member?.value}', signal));
-      } else {
-        stream._controller.add(signal);
-      }
-    }
-  }
-
   /// Invokes a method on a D-Bus object.
   @override
   Future<DBusMethodSuccessResponse> _callMethod(
@@ -179,8 +111,6 @@ class DBusWSClient extends DBusClient {
       bool noAutoStart = false,
       bool allowInteractiveAuthorization = false,
       bool requireConnect = true}) async {
-
-    // print(">> BEGIN _callMethod ${name}");
     _lastSerial++;
     var serial = _lastSerial;
     Future<DBusMethodResponse> response;
@@ -188,7 +118,6 @@ class DBusWSClient extends DBusClient {
       response = Future<DBusMethodResponse>.value(DBusMethodSuccessResponse());
     } else {
       var completer = Completer<DBusMethodResponse>();
-      // print("_callMethod completer: $serial");
       _methodCalls[serial] = completer;
       response = completer.future;
     }
@@ -214,7 +143,7 @@ class DBusWSClient extends DBusClient {
         replySignature : replySignature
         );
 
-    await _sendMessage(message, requireConnect: requireConnect);
+    _sendMessage(message, requireConnect: requireConnect);
 
     var r = await response;
     if (r is DBusMethodSuccessResponse) {
