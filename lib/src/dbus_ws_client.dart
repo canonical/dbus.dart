@@ -2,11 +2,15 @@ part of 'dbus_client.dart';
 
 /// A client connection to a D-Bus over websocket server.
 class DBusWSClient extends DBusClient {
-  WebSocketChannel? _channel;
+  StreamChannel? _channel;
   final _readJsonBuffer = DBusWSReadBuffer();
-  final Uri _uri;
+  final Uri? _uri;
   DBusWSClient(this._uri) : super(DBusAddress("unix:path=/bus")) {}
 
+  @visibleForTesting
+  DBusWSClient.test(StreamChannel this._channel)
+      : _uri = null,
+        super(DBusAddress("unix:path=/bus")) {}
 
   /// Terminates all active connections. If a client remains unclosed, the Dart process may not terminate.
   @override
@@ -22,14 +26,11 @@ class DBusWSClient extends DBusClient {
   @override
   Future<void> _openSocket() async {
     // print("> openSocket");
-    _channel = WebSocketChannel.connect(_uri);
+    // _channel can be injected with test construction, so skip connecting if already set.
+    if (_channel == null) {
+      _channel = WebSocketChannel.connect(_uri!);
+    }
     _channel?.stream.listen(_processDataJson);
-  }
-
-  /// Performs authentication with D-Bus server.
-  @override
-  Future<bool> _authenticate() async {
-    return true;
   }
 
   /// Connects to the D-Bus server.
@@ -140,8 +141,7 @@ class DBusWSClient extends DBusClient {
         member: name,
         values: values.toList(),
         flags: flags,
-        replySignature : replySignature
-        );
+        replySignature: replySignature);
 
     _sendMessage(message, requireConnect: requireConnect);
 

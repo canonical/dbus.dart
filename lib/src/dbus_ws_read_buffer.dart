@@ -131,18 +131,7 @@ class DBusWSReadBuffer {
 
     if (signature != null) {
       if (values_in_json!=null) {
-        var signatures = signature.split();
-        int idx = 0;
-        assert(signatures.length == values_in_json.length);
-        for (var s in signatures) {
-          // print("> readMessage: signature $signature, idx: $idx, body@$idx ${values_in_json[idx]}");
-          var value = readDBusValue(s, values_in_json[idx]);
-          if (value == null) {
-            return null;
-          }
-          values.add(value);
-          idx++;
-        }
+        values = readDBusValuesFromJson(signature, values_in_json);
       } else {
         throw 'Message has signature $signature but json body is null';
       }
@@ -165,6 +154,20 @@ class DBusWSReadBuffer {
         values: values);
   }
 
+  List<DBusValue> readDBusValuesFromJson(DBusSignature signature, var values_in_json) {
+    var values = <DBusValue>[  ];
+    var signatures = signature.split();
+    int idx = 0;
+    assert(signatures.length == values_in_json.length);
+    for (var s in signatures) {
+      // print("> readMessage: signature $signature, idx: $idx, body@$idx ${values_in_json[idx]}");
+      var value = readDBusValue(s, values_in_json[idx]);
+      values.add(value!);
+      idx++;
+    }
+    return values;
+  }
+
   /// Reads a [DBusByte] from the buffer or returns null if not enough data.
   DBusByte? readDBusByte(dynamic item) {
     return DBusByte(item as int);
@@ -172,7 +175,7 @@ class DBusWSReadBuffer {
 
   /// Reads a [DBusBoolean] from the buffer or returns null if not enough data.
   DBusBoolean? readDBusBoolean(dynamic item) {
-    return DBusBoolean((item as bool)!= 0);
+    return DBusBoolean((item as bool));
   }
 
   /// Reads a [DBusInt16] from the buffer or returns null if not enough data.
