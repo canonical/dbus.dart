@@ -162,7 +162,8 @@ class DBusMatchRule {
   /// Escapes a string value.
   String _escapeString(String value) {
     // Replace quotes with: End quotes, escaped quote, start quotes again.
-    return "'" + value.replaceAll("'", "'\\''") + "'";
+    var escapedValue = value.replaceAll("'", "'\\''");
+    return "'$escapedValue'";
   }
 
   /// True if the rule matches the supplied values.
@@ -220,11 +221,10 @@ class DBusMatchRule {
       'path': path?.toString(),
       'pathNamespace': pathNamespace?.toString()
     };
-    return 'DBusMatchRule(' +
-        parameters.keys
-            .where((key) => parameters[key] != null)
-            .map((key) => '$key=${parameters[key]}')
-            .join(', ') +
-        ')';
+    var parameterString = parameters.keys
+        .where((key) => parameters[key] != null)
+        .map((key) => '$key=${parameters[key]}')
+        .join(', ');
+    return 'DBusMatchRule($parameterString)';
   }
 }

@@ -24,11 +24,11 @@ class DBusCodeGenerator {
   /// If provided [comment] is added to the top of the source.
   DBusCodeGenerator(this.node, {String? comment, String? className})
       : _comment = comment {
-    var _className = className ?? _nodeToClassName();
-    if (_className == null) {
+    var className_ = className ?? _nodeToClassName();
+    if (className_ == null) {
       throw 'Unable to determine class name';
     }
-    this.className = _className;
+    this.className = className_;
   }
 
   /// Generates Dart code for a client to access the given D-Bus interface.
@@ -60,7 +60,8 @@ class DBusCodeGenerator {
     var source = '';
 
     if (_comment != null) {
-      source += '// ' + _comment!.split('\n').join('\n// ') + '\n\n';
+      var escapedComment = _comment!.split('\n').join('\n// ');
+      source += '// $escapedComment\n\n';
     }
 
     return source;

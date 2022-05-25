@@ -67,12 +67,11 @@ class DBusIntrospectNode {
       'interfaces': interfaces.isNotEmpty ? interfaces.toString() : null,
       'children': children.isNotEmpty ? children.toString() : null
     };
-    return 'DBusIntrospectNode(' +
-        parameters.keys
-            .where((key) => parameters[key] != null)
-            .map((key) => '$key: ${parameters[key]}')
-            .join(', ') +
-        ')';
+    var parameterString = parameters.keys
+        .where((key) => parameters[key] != null)
+        .map((key) => '$key: ${parameters[key]}')
+        .join(', ');
+    return 'DBusIntrospectNode($parameterString)';
   }
 
   @override
@@ -154,13 +153,12 @@ class DBusIntrospectInterface {
       'signals': signals.isNotEmpty ? signals.toString() : null,
       'properties': properties.isNotEmpty ? properties.toString() : null
     };
-    return 'DBusIntrospectInterface(' +
-        ["'$name'"]
-            .followedBy(parameters.keys
-                .where((key) => parameters[key] != null)
-                .map((key) => '$key: ${parameters[key]}'))
-            .join(', ') +
-        ')';
+    var parameterString = ["'$name'"]
+        .followedBy(parameters.keys
+            .where((key) => parameters[key] != null)
+            .map((key) => '$key: ${parameters[key]}'))
+        .join(', ');
+    return 'DBusIntrospectInterface($parameterString)';
   }
 
   @override
@@ -234,13 +232,12 @@ class DBusIntrospectMethod {
       'args': args.isNotEmpty ? args.toString() : null,
       'annotations': annotations.isNotEmpty ? annotations.toString() : null
     };
-    return 'DBusIntrospectMethod(' +
-        ["'$name'"]
-            .followedBy(parameters.keys
-                .where((key) => parameters[key] != null)
-                .map((key) => '$key: ${parameters[key]}'))
-            .join(', ') +
-        ')';
+    var parameterString = ["'$name'"]
+        .followedBy(parameters.keys
+            .where((key) => parameters[key] != null)
+            .map((key) => '$key: ${parameters[key]}'))
+        .join(', ');
+    return 'DBusIntrospectMethod($parameterString)';
   }
 
   @override
@@ -303,13 +300,12 @@ class DBusIntrospectSignal {
       'args': args.isNotEmpty ? args.toString() : null,
       'annotations': annotations.isNotEmpty ? annotations.toString() : null
     };
-    return 'DBusIntrospectSignal(' +
-        ["'$name'"]
-            .followedBy(parameters.keys
-                .where((key) => parameters[key] != null)
-                .map((key) => '$key: ${parameters[key]}'))
-            .join(', ') +
-        ')';
+    var parameterString = ["'$name'"]
+        .followedBy(parameters.keys
+            .where((key) => parameters[key] != null)
+            .map((key) => '$key: ${parameters[key]}'))
+        .join(', ');
+    return 'DBusIntrospectSignal($parameterString)';
   }
 
   @override
@@ -391,13 +387,12 @@ class DBusIntrospectProperty {
           access != DBusPropertyAccess.readwrite ? access.toString() : null,
       'annotations': annotations.isNotEmpty ? annotations.toString() : null
     };
-    return 'DBusIntrospectProperty(' +
-        ["'$name'", type.toString()]
-            .followedBy(parameters.keys
-                .where((key) => parameters[key] != null)
-                .map((key) => '$key: ${parameters[key]}'))
-            .join(', ') +
-        ')';
+    var parameterString = ["'$name'", type.toString()]
+        .followedBy(parameters.keys
+            .where((key) => parameters[key] != null)
+            .map((key) => '$key: ${parameters[key]}'))
+        .join(', ');
+    return 'DBusIntrospectProperty($parameterString)';
   }
 
   @override
@@ -477,13 +472,12 @@ class DBusIntrospectArgument {
       'name': name != null ? "'$name'" : null,
       'annotations': annotations.isNotEmpty ? annotations.toString() : null
     };
-    return 'DBusIntrospectArgument(' +
-        [type.toString(), direction.toString()]
-            .followedBy(parameters.keys
-                .where((key) => parameters[key] != null)
-                .map((key) => '$key: ${parameters[key]}'))
-            .join(', ') +
-        ')';
+    var parameterString = [type.toString(), direction.toString()]
+        .followedBy(parameters.keys
+            .where((key) => parameters[key] != null)
+            .map((key) => '$key: ${parameters[key]}'))
+        .join(', ');
+    return 'DBusIntrospectArgument($parameterString)';
   }
 
   @override

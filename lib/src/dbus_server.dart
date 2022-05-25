@@ -77,7 +77,7 @@ class _DBusRemoteClient {
   _DBusRemoteClient(this.serverSocket, this._socket, this.uniqueName)
       : _authServer = DBusAuthServer(serverSocket.uuid, unixFdSupported: true) {
     _authServer.responses
-        .listen((message) => _socket.write(utf8.encode(message + '\r\n')));
+        .listen((message) => _socket.write(utf8.encode('$message\r\n')));
     _socket.listen((event) {
       if (event == RawSocketEvent.read) {
         _readData();

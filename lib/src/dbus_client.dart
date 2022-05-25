@@ -75,12 +75,11 @@ class DBusProcessCredentials {
       'otherCredentials':
           otherCredentials.isNotEmpty ? otherCredentials.toString() : null
     };
-    return 'DBusProcessCredentials(' +
-        parameters.keys
-            .where((key) => parameters[key] != null)
-            .map((key) => '$key=${parameters[key]}')
-            .join(', ') +
-        ')';
+    var parameterString = parameters.keys
+        .where((key) => parameters[key] != null)
+        .map((key) => '$key=${parameters[key]}')
+        .join(', ');
+    return 'DBusProcessCredentials($parameterString)';
   }
 }
 
@@ -787,7 +786,7 @@ class DBusClient {
 
     await _openSocket();
     _authClient.requests
-        .listen((message) => _socket?.write(utf8.encode(message + '\r\n')));
+        .listen((message) => _socket?.write(utf8.encode('$message\r\n')));
     await _authClient.done;
     _authComplete = true;
     if (!_authClient.isAuthenticated) {

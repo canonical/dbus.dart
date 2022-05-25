@@ -14,10 +14,10 @@ class DBusAddress {
 
   /// Gets this address in string format.
   String get value {
-    return '$transport:' +
-        properties.keys
-            .map((key) => '$key=${_encodeValue(properties[key]!)}')
-            .join(',');
+    var propertyString = properties.keys
+        .map((key) => '$key=${_encodeValue(properties[key]!)}')
+        .join(',');
+    return '$transport:$propertyString';
   }
 
   /// Creates a new address from the given [address] string, e.g. 'unix:path=/run/user/1000/bus'.
@@ -149,7 +149,7 @@ class DBusAddress {
       {
         escapedValue += utf8.decode([byte]);
       } else {
-        escapedValue += '%' + byte.toRadixString(16).padLeft(2, '0');
+        escapedValue += '%${byte.toRadixString(16).padLeft(2, '0')}';
       }
     }
     return escapedValue;

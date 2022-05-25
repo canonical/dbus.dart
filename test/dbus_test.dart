@@ -1044,10 +1044,10 @@ void main() {
     expect(() => DBusBusName(''), throwsFormatException);
     expect(() => DBusBusName('com'), throwsFormatException);
     expect(DBusBusName('com.example').value, equals('com.example'));
-    expect(DBusBusName('com.example.' + 'X' * 243).value,
-        equals('com.example.' + 'X' * 243));
+    expect(DBusBusName('com.example.${'X' * 243}').value,
+        equals('com.example.${'X' * 243}'));
     expect(
-        () => DBusBusName('com.example.' + 'X' * 244), throwsFormatException);
+        () => DBusBusName('com.example.${'X' * 244}'), throwsFormatException);
     expect(() => DBusBusName('com.example.Test~1'), throwsFormatException);
     expect(DBusBusName('com.example.Test') == DBusBusName('com.example.Test'),
         isTrue);
@@ -1063,9 +1063,9 @@ void main() {
     expect(() => DBusInterfaceName(''), throwsFormatException);
     expect(() => DBusInterfaceName('com'), throwsFormatException);
     expect(DBusInterfaceName('com.example').value, equals('com.example'));
-    expect(DBusInterfaceName('com.example.' + 'X' * 243).value,
-        equals('com.example.' + 'X' * 243));
-    expect(() => DBusInterfaceName('com.example.' + 'X' * 244),
+    expect(DBusInterfaceName('com.example.${'X' * 243}').value,
+        equals('com.example.${'X' * 243}'));
+    expect(() => DBusInterfaceName('com.example.${'X' * 244}'),
         throwsFormatException);
     expect(
         () => DBusInterfaceName('com.example.Test~1'), throwsFormatException);
@@ -1087,10 +1087,10 @@ void main() {
     expect(() => DBusErrorName(''), throwsFormatException);
     expect(() => DBusErrorName('com'), throwsFormatException);
     expect(DBusErrorName('com.example').value, equals('com.example'));
-    expect(DBusErrorName('com.example.' + 'X' * 243).value,
-        equals('com.example.' + 'X' * 243));
+    expect(DBusErrorName('com.example.${'X' * 243}').value,
+        equals('com.example.${'X' * 243}'));
     expect(
-        () => DBusErrorName('com.example.' + 'X' * 244), throwsFormatException);
+        () => DBusErrorName('com.example.${'X' * 244}'), throwsFormatException);
     expect(() => DBusErrorName('com.example.Test~1'), throwsFormatException);
     expect(
         DBusErrorName('com.example.Test') == DBusErrorName('com.example.Test'),
