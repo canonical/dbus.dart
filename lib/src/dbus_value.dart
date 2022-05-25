@@ -373,7 +373,7 @@ class DBusObjectPath extends DBusString {
   bool isInNamespace(DBusObjectPath namespace) {
     return namespace.value == '/' ||
         value == namespace.value ||
-        value.startsWith(namespace.value + '/');
+        value.startsWith('${namespace.value}/');
   }
 
   @override
@@ -685,7 +685,7 @@ class DBusMaybe extends DBusValue {
 
   @override
   DBusSignature get signature {
-    return DBusSignature('m' + valueSignature.value);
+    return DBusSignature('m${valueSignature.value}');
   }
 
   @override
@@ -750,7 +750,7 @@ class DBusStruct extends DBusValue {
     for (var child in children) {
       signature += child.signature.value;
     }
-    return DBusSignature('(' + signature + ')');
+    return DBusSignature('($signature)');
   }
 
   @override
@@ -883,7 +883,7 @@ class DBusArray extends DBusValue {
 
   @override
   DBusSignature get signature {
-    return DBusSignature('a' + childSignature.value);
+    return DBusSignature('a${childSignature.value}');
   }
 
   @override
@@ -951,59 +951,56 @@ class DBusArray extends DBusValue {
   String toString() {
     switch (childSignature.value) {
       case 'y':
-        return 'DBusArray.byte([' +
-            children.map((child) => (child as DBusByte).value).join(', ') +
-            '])';
+        var values =
+            children.map((child) => (child as DBusByte).value).join(', ');
+        return 'DBusArray.byte([$values])';
       case 'n':
-        return 'DBusArray.int16([' +
-            children.map((child) => (child as DBusInt16).value).join(', ') +
-            '])';
+        var values =
+            children.map((child) => (child as DBusInt16).value).join(', ');
+        return 'DBusArray.int16([$values])';
       case 'q':
-        return 'DBusArray.uint16([' +
-            children.map((child) => (child as DBusUint16).value).join(', ') +
-            '])';
+        var values =
+            children.map((child) => (child as DBusUint16).value).join(', ');
+        return 'DBusArray.uint16([$values])';
       case 'i':
-        return 'DBusArray.int32([' +
-            children.map((child) => (child as DBusInt32).value).join(', ') +
-            '])';
+        var values =
+            children.map((child) => (child as DBusInt32).value).join(', ');
+        return 'DBusArray.int32([$values])';
       case 'u':
-        return 'DBusArray.uint32([' +
-            children.map((child) => (child as DBusUint32).value).join(', ') +
-            '])';
+        var values =
+            children.map((child) => (child as DBusUint32).value).join(', ');
+        return 'DBusArray.uint32([$values])';
       case 'x':
-        return 'DBusArray.int64([' +
-            children.map((child) => (child as DBusInt64).value).join(', ') +
-            '])';
+        var values =
+            children.map((child) => (child as DBusInt64).value).join(', ');
+        return 'DBusArray.int64([$values])';
       case 't':
-        return 'DBusArray.uint64([' +
-            children.map((child) => (child as DBusUint64).value).join(', ') +
-            '])';
+        var values =
+            children.map((child) => (child as DBusUint64).value).join(', ');
+        return 'DBusArray.uint64([$values])';
       case 'd':
-        return 'DBusArray.double([' +
-            children.map((child) => (child as DBusDouble).value).join(', ') +
-            '])';
+        var values =
+            children.map((child) => (child as DBusDouble).value).join(', ');
+        return 'DBusArray.double([$values])';
       case 's':
-        return 'DBusArray.string([' +
-            children
-                .map((child) => "'" + (child as DBusString).value + "'")
-                .join(', ') +
-            '])';
+        var values = children
+            .map((child) => "'${(child as DBusString).value}'")
+            .join(', ');
+        return 'DBusArray.string([$values])';
       case 'o':
-        return 'DBusArray.objectPath([' +
-            children
-                .map((child) => (child as DBusObjectPath).toString())
-                .join(', ') +
-            '])';
+        var values = children
+            .map((child) => (child as DBusObjectPath).toString())
+            .join(', ');
+        return 'DBusArray.objectPath([$values])';
       case 'g':
-        return 'DBusArray.signature([' +
-            children
-                .map((child) => (child as DBusSignature).toString())
-                .join(', ') +
-            '])';
+        var values = children
+            .map((child) => (child as DBusSignature).toString())
+            .join(', ');
+        return 'DBusArray.signature([$values])';
       case 'v':
-        return 'DBusArray.variant([' +
-            children.map((child) => (child as DBusVariant).value).join(', ') +
-            '])';
+        var values =
+            children.map((child) => (child as DBusVariant).value).join(', ');
+        return 'DBusArray.variant([$values])';
       default:
         var childrenText = <String>[];
         for (var child in children) {
@@ -1098,23 +1095,20 @@ class DBusDict extends DBusValue {
   @override
   String toString() {
     if (keySignature.value == 's' && valueSignature.value == 'v') {
-      return 'DBusDict.stringVariant({' +
-          children.entries
-              .map((entry) =>
-                  "'${(entry.key as DBusString).value}': ${(entry.value as DBusVariant).value.toString()}")
-              .join(', ') +
-          '})';
+      var values = children.entries
+          .map((entry) =>
+              "'${(entry.key as DBusString).value}': ${(entry.value as DBusVariant).value.toString()}")
+          .join(', ');
+      return 'DBusDict.stringVariant({$values})';
     } else {
       var childrenText = <String>[];
       children.forEach((key, value) {
         childrenText.add('${key.toString()}: ${value.toString()}');
       });
-      return 'DBusDict($keySignature, $valueSignature, {' +
-          children.entries
-              .map((entry) =>
-                  '${entry.key.toString()}: ${entry.value.toString()}')
-              .join(', ') +
-          '})';
+      var values = children.entries
+          .map((entry) => '${entry.key.toString()}: ${entry.value.toString()}')
+          .join(', ');
+      return 'DBusDict($keySignature, $valueSignature, {$values})';
     }
   }
 }

@@ -81,11 +81,10 @@ class DBusMessage {
       'sender': sender?.toString(),
       'values': values.isNotEmpty ? values.toString() : null
     };
-    return 'DBusMessage(' +
-        parameters.keys
-            .where((key) => parameters[key] != null)
-            .map((key) => '$key: ${parameters[key]}')
-            .join(', ') +
-        ')';
+    var parameterString = parameters.keys
+        .where((key) => parameters[key] != null)
+        .map((key) => '$key: ${parameters[key]}')
+        .join(', ');
+    return 'DBusMessage($parameterString)';
   }
 }

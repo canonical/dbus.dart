@@ -49,11 +49,10 @@ class DBusMethodCall {
       'allowInteractiveAuthorization':
           allowInteractiveAuthorization ? 'true' : null
     };
-    return 'DBusMethodCall(' +
-        parameters.keys
-            .where((key) => parameters[key] != null)
-            .map((key) => '$key: ${parameters[key]}')
-            .join(', ') +
-        ')';
+    var parameterString = parameters.keys
+        .where((key) => parameters[key] != null)
+        .map((key) => '$key: ${parameters[key]}')
+        .join(', ');
+    return 'DBusMethodCall($parameterString)';
   }
 }

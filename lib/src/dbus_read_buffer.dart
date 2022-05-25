@@ -567,7 +567,7 @@ class DBusReadBuffer extends DBusBuffer {
       if (d >= 33 && d <= 126) {
         s += String.fromCharCode(d);
       } else {
-        s += '\\' + d.toRadixString(8);
+        s += '\\${d.toRadixString(8)}';
       }
     }
     return "DBusReadBuffer('$s')";
