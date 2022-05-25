@@ -186,6 +186,26 @@ class TestManagerObject extends DBusObject {
   }
 }
 
+/// Returns the unique ID for this machine.
+Future<String> getMachineId() async {
+  Future<String> readFirstLine(String path) async {
+    var file = File(path);
+    try {
+      var lines = await file.readAsLines();
+      return lines[0];
+    } on FileSystemException {
+      return '';
+    }
+  }
+
+  var machineId = await readFirstLine('/var/lib/dbus/machine-id');
+  if (machineId == '') {
+    machineId = await readFirstLine('/etc/machine-id');
+  }
+
+  return machineId;
+}
+
 void main() {
   test('value - byte', () async {
     expect(() => DBusByte(-1), throwsA(isA<AssertionError>()));
@@ -2455,7 +2475,7 @@ void main() {
       await server.close();
     });
 
-    var machineId = (await File('/etc/machine-id').readAsLines()).first;
+    var machineId = await getMachineId();
 
     var id = await client.getMachineId();
     expect(id, equals(machineId));
@@ -2476,7 +2496,7 @@ void main() {
     // Connect client.
     await client1.ping();
 
-    var machineId = (await File('/etc/machine-id').readAsLines()).first;
+    var machineId = await getMachineId();
 
     var id = await client2.getMachineId(client1.uniqueName);
     expect(id, equals(machineId));
