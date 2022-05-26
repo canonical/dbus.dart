@@ -842,6 +842,9 @@ class DBusCodeGenerator {
 
     var source = '';
     source += '/// Signal data for ${interface.name}.${signal.name}.\n';
+    if (_withAnnotations) {
+      source += '  @DBusSignalSignature("${signal.signature.value}", "${interface.name}")\n';
+    }
     source += 'class $classPrefix${signal.name} extends DBusSignal {\n';
     if (properties.isNotEmpty) {
       source += properties.join();
