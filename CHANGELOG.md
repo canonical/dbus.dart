@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.4
+
+* Depend on xml 6.x
+
 ## 0.7.3
 
 * Add missing cast in generated array code.
