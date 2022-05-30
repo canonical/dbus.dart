@@ -16,7 +16,7 @@ platforms:
 
 dependencies:
   args: ^2.0.0
-  ffi: ^1.1.2
+  ffi: ^2.0.0
   meta: ^1.3.0
   xml: ^6.1.0
 
