@@ -1,5 +1,5 @@
 name: dbus
-version: 0.7.4
+version: 0.7.5
 
 description:
   A native Dart implementation of the D-Bus message bus client. This package

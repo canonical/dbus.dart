@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.5
+
+* depends on ffi 2.x
+
 ## 0.7.4
 
 * Depend on xml 6.x
