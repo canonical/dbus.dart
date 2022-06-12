@@ -26,7 +26,7 @@ class DBusMethodSuccessResponse extends DBusMethodResponse {
   List<DBusValue> get returnValues => values;
 
   @override
-  String toString() => 'DBusMethodSuccessResponse($values)';
+  String toString() => '$runtimeType($values)';
 }
 
 /// Exception when error received calling a D-Bus method on a remote object.
@@ -223,7 +223,7 @@ class DBusMethodErrorResponse extends DBusMethodResponse {
   List<DBusValue> get returnValues => throw DBusMethodResponseException(this);
 
   @override
-  String toString() => 'DBusMethodErrorResponse($errorName, $values)';
+  String toString() => '$runtimeType($errorName, $values)';
 }
 
 /// A successful response to [DBusObject.getProperty].
@@ -231,7 +231,7 @@ class DBusGetPropertyResponse extends DBusMethodSuccessResponse {
   DBusGetPropertyResponse(DBusValue value) : super([DBusVariant(value)]);
 
   @override
-  String toString() => 'DBusGetPropertyResponse($values[0])';
+  String toString() => '$runtimeType($values[0])';
 }
 
 /// A successful response to [DBusObject.getAllProperties].
@@ -241,5 +241,5 @@ class DBusGetAllPropertiesResponse extends DBusMethodSuccessResponse {
 
   @override
   String toString() =>
-      'DBusGetAllPropertiesResponse(${(values[0] as DBusDict).mapStringVariant()})';
+      '$runtimeType(${(values[0] as DBusDict).mapStringVariant()})';
 }

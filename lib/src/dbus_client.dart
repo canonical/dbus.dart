@@ -79,7 +79,7 @@ class DBusProcessCredentials {
         .where((key) => parameters[key] != null)
         .map((key) => '$key=${parameters[key]}')
         .join(', ');
-    return 'DBusProcessCredentials($parameterString)';
+    return '$runtimeType($parameterString)';
   }
 }
 
@@ -186,7 +186,7 @@ class DBusNameOwnerChangedEvent {
 
   @override
   String toString() =>
-      'DBusNameOwnerChangedEvent($name, oldOwner: $oldOwner, newOwner: $newOwner)';
+      '$runtimeType($name, oldOwner: $oldOwner, newOwner: $newOwner)';
 
   @override
   bool operator ==(other) =>
@@ -1197,6 +1197,6 @@ class DBusClient {
 
   @override
   String toString() {
-    return "DBusClient('$_address')";
+    return "$runtimeType('$_address')";
   }
 }

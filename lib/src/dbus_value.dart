@@ -65,7 +65,7 @@ class DBusByte extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => 'DBusByte($value)';
+  String toString() => '$runtimeType($value)';
 }
 
 /// D-Bus representation of a boolean value.
@@ -93,7 +93,7 @@ class DBusBoolean extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => 'DBusBoolean($value)';
+  String toString() => '$runtimeType($value)';
 }
 
 /// D-Bus representation of a signed 16 bit integer.
@@ -123,7 +123,7 @@ class DBusInt16 extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => 'DBusInt16($value)';
+  String toString() => '$runtimeType($value)';
 }
 
 /// D-Bus representation of an unsigned 16 bit integer.
@@ -153,7 +153,7 @@ class DBusUint16 extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => 'DBusUint16($value)';
+  String toString() => '$runtimeType($value)';
 }
 
 /// D-Bus representation of a signed 32 bit integer.
@@ -183,7 +183,7 @@ class DBusInt32 extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => 'DBusInt32($value)';
+  String toString() => '$runtimeType($value)';
 }
 
 /// D-Bus representation of an unsigned 32 bit integer.
@@ -213,7 +213,7 @@ class DBusUint32 extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => 'DBusUint32($value)';
+  String toString() => '$runtimeType($value)';
 }
 
 /// D-Bus representation of a signed 64 bit integer.
@@ -243,7 +243,7 @@ class DBusInt64 extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => 'DBusInt64($value)';
+  String toString() => '$runtimeType($value)';
 }
 
 /// D-Bus representation of an unsigned 64 bit integer.
@@ -271,7 +271,7 @@ class DBusUint64 extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => 'DBusUint64($value)';
+  String toString() => '$runtimeType($value)';
 }
 
 /// D-Bus representation of a 64 bit floating point value.
@@ -299,7 +299,7 @@ class DBusDouble extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => 'DBusDouble($value)';
+  String toString() => '$runtimeType($value)';
 }
 
 /// D-Bus representation of an Unicode text string.
@@ -327,7 +327,7 @@ class DBusString extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => "DBusString('$value')";
+  String toString() => "$runtimeType('$value')";
 }
 
 /// A D-Bus object path.
@@ -393,7 +393,7 @@ class DBusObjectPath extends DBusString {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => "DBusObjectPath('$value')";
+  String toString() => "$runtimeType('$value')";
 }
 
 /// D-Bus value that indicates a set of D-Bus types.
@@ -630,7 +630,7 @@ class DBusSignature extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => "DBusSignature('$value')";
+  String toString() => "$runtimeType('$value')";
 }
 
 /// D-Bus value that contains any D-Bus type.
@@ -658,7 +658,7 @@ class DBusVariant extends DBusValue {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => 'DBusVariant(${value.toString()})';
+  String toString() => '$runtimeType(${value.toString()})';
 }
 
 /// D-Bus value that contains a D-Bus type or null.
@@ -703,7 +703,7 @@ class DBusMaybe extends DBusValue {
   int get hashCode => Object.hash(valueSignature, value);
 
   @override
-  String toString() => 'DBusMaybe($valueSignature, ${value?.toString()})';
+  String toString() => '$runtimeType($valueSignature, ${value?.toString()})';
 }
 
 /// D-Bus value that contains a Unix file descriptor.
@@ -732,7 +732,7 @@ class DBusUnixFd extends DBusValue {
 
   @override
   String toString() {
-    return 'DBusUnixFd()';
+    return '$runtimeType()';
   }
 }
 
@@ -771,7 +771,7 @@ class DBusStruct extends DBusValue {
     for (var child in children) {
       childrenText.add(child.toString());
     }
-    return "DBusStruct([${childrenText.join(', ')}])";
+    return "$runtimeType([${childrenText.join(', ')}])";
   }
 }
 
@@ -1006,7 +1006,7 @@ class DBusArray extends DBusValue {
         for (var child in children) {
           childrenText.add(child.toString());
         }
-        return "DBusArray($childSignature, [${childrenText.join(', ')}])";
+        return "$runtimeType($childSignature, [${childrenText.join(', ')}])";
     }
   }
 }
@@ -1108,7 +1108,7 @@ class DBusDict extends DBusValue {
       var values = children.entries
           .map((entry) => '${entry.key.toString()}: ${entry.value.toString()}')
           .join(', ');
-      return 'DBusDict($keySignature, $valueSignature, {$values})';
+      return '$runtimeType($keySignature, $valueSignature, {$values})';
     }
   }
 }

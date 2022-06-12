@@ -95,7 +95,7 @@ class DBusRemoteObjectManager extends DBusRemoteObject {
 
   @override
   String toString() {
-    return "DBusRemoteObjectManager(name: '$name', path: '${path.value}')";
+    return "$runtimeType(name: '$name', path: '${path.value}')";
   }
 }
 

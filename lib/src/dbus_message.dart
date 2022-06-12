@@ -85,6 +85,6 @@ class DBusMessage {
         .where((key) => parameters[key] != null)
         .map((key) => '$key: ${parameters[key]}')
         .join(', ');
-    return 'DBusMessage($parameterString)';
+    return '$runtimeType($parameterString)';
   }
 }

@@ -225,6 +225,6 @@ class DBusMatchRule {
         .where((key) => parameters[key] != null)
         .map((key) => '$key=${parameters[key]}')
         .join(', ');
-    return 'DBusMatchRule($parameterString)';
+    return '$runtimeType($parameterString)';
   }
 }

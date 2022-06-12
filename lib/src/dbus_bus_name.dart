@@ -37,5 +37,5 @@ class DBusBusName {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => "DBusBusName('$value')";
+  String toString() => "$runtimeType('$value')";
 }

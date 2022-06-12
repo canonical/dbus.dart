@@ -30,5 +30,5 @@ class DBusErrorName {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => "DBusErrorName('$value')";
+  String toString() => "$runtimeType('$value')";
 }

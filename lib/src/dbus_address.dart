@@ -156,5 +156,5 @@ class DBusAddress {
   }
 
   @override
-  String toString() => "DBusAddress('$value')";
+  String toString() => "$runtimeType('$value')";
 }

@@ -27,5 +27,5 @@ class DBusMemberName {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => "DBusMemberName('$value')";
+  String toString() => "$runtimeType('$value')";
 }

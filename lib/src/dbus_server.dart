@@ -185,7 +185,7 @@ class _DBusRemoteClient {
   }
 
   @override
-  String toString() => '_DBusRemoteClient($uniqueName)';
+  String toString() => '$runtimeType($uniqueName)';
 }
 
 /// A socket for incoming D-Bus server connections.
@@ -1280,6 +1280,6 @@ class DBusServer {
 
   @override
   String toString() {
-    return 'DBusServer()';
+    return '$runtimeType()';
   }
 }

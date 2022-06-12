@@ -53,6 +53,6 @@ class DBusMethodCall {
         .where((key) => parameters[key] != null)
         .map((key) => '$key: ${parameters[key]}')
         .join(', ');
-    return 'DBusMethodCall($parameterString)';
+    return '$runtimeType($parameterString)';
   }
 }

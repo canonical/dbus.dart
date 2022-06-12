@@ -30,5 +30,5 @@ class DBusInterfaceName {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => "DBusInterfaceName('$value')";
+  String toString() => "$runtimeType('$value')";
 }

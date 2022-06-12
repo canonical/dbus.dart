@@ -570,6 +570,6 @@ class DBusReadBuffer extends DBusBuffer {
         s += '\\${d.toRadixString(8)}';
       }
     }
-    return "DBusReadBuffer('$s')";
+    return "$runtimeType('$s')";
   }
 }

@@ -200,6 +200,6 @@ class DBusRemoteObject {
 
   @override
   String toString() {
-    return "DBusRemoteObject(name: '$name', path: '${path.value}')";
+    return "$runtimeType(name: '$name', path: '${path.value}')";
   }
 }

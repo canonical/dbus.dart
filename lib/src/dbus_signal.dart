@@ -43,7 +43,7 @@ class DBusSignal {
 
   @override
   String toString() =>
-      "DBusSignal(sender: '$sender', path: $path, interface: '$interface', name: '$name', values: $values)";
+      "$runtimeType(sender: '$sender', path: $path, interface: '$interface', name: '$name', values: $values)";
 }
 
 bool _listsEqual<T>(List<T> a, List<T> b) {

@@ -71,7 +71,7 @@ class DBusIntrospectNode {
         .where((key) => parameters[key] != null)
         .map((key) => '$key: ${parameters[key]}')
         .join(', ');
-    return 'DBusIntrospectNode($parameterString)';
+    return '$runtimeType($parameterString)';
   }
 
   @override
@@ -158,7 +158,7 @@ class DBusIntrospectInterface {
             .where((key) => parameters[key] != null)
             .map((key) => '$key: ${parameters[key]}'))
         .join(', ');
-    return 'DBusIntrospectInterface($parameterString)';
+    return '$runtimeType($parameterString)';
   }
 
   @override
@@ -237,7 +237,7 @@ class DBusIntrospectMethod {
             .where((key) => parameters[key] != null)
             .map((key) => '$key: ${parameters[key]}'))
         .join(', ');
-    return 'DBusIntrospectMethod($parameterString)';
+    return '$runtimeType($parameterString)';
   }
 
   @override
@@ -305,7 +305,7 @@ class DBusIntrospectSignal {
             .where((key) => parameters[key] != null)
             .map((key) => '$key: ${parameters[key]}'))
         .join(', ');
-    return 'DBusIntrospectSignal($parameterString)';
+    return '$runtimeType($parameterString)';
   }
 
   @override
@@ -392,7 +392,7 @@ class DBusIntrospectProperty {
             .where((key) => parameters[key] != null)
             .map((key) => '$key: ${parameters[key]}'))
         .join(', ');
-    return 'DBusIntrospectProperty($parameterString)';
+    return '$runtimeType($parameterString)';
   }
 
   @override
@@ -477,7 +477,7 @@ class DBusIntrospectArgument {
             .where((key) => parameters[key] != null)
             .map((key) => '$key: ${parameters[key]}'))
         .join(', ');
-    return 'DBusIntrospectArgument($parameterString)';
+    return '$runtimeType($parameterString)';
   }
 
   @override
@@ -523,7 +523,7 @@ class DBusIntrospectAnnotation {
 
   @override
   String toString() {
-    return "DBusIntrospectAnnotation('$name', '$value')";
+    return "$runtimeType('$name', '$value')";
   }
 
   @override
