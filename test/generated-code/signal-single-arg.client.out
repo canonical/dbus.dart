@@ -2,7 +2,7 @@ import 'package:dbus/dbus.dart';
 
 /// Signal data for com.example.Test.Event.
 class ComExampleTestEvent extends DBusSignal {
-  String get value => (values[0] as DBusString).value;
+  String get value => values[0].asString();
 
   ComExampleTestEvent(DBusSignal signal) : super(sender: signal.sender, path: signal.path, interface: signal.interface, name: signal.name, values: signal.values);
 }

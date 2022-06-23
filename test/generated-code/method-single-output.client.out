@@ -6,6 +6,6 @@ class ComExampleTest extends DBusRemoteObject {
   /// Invokes com.example.Test.Hello()
   Future<String> callHello({bool noAutoStart = false, bool allowInteractiveAuthorization = false}) async {
     var result = await callMethod('com.example.Test', 'Hello', [], replySignature: DBusSignature('s'), noAutoStart: noAutoStart, allowInteractiveAuthorization: allowInteractiveAuthorization);
-    return (result.returnValues[0] as DBusString).value;
+    return result.returnValues[0].asString();
   }
 }

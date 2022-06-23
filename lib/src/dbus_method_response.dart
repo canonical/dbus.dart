@@ -56,7 +56,7 @@ class DBusErrorException extends DBusMethodResponseException {
   /// Message passed with exception.
   String get message {
     if (response.values.isNotEmpty && response.values.first is DBusString) {
-      return (response.values.first as DBusString).value;
+      return response.values.first.asString();
     }
     return '';
   }
@@ -240,6 +240,5 @@ class DBusGetAllPropertiesResponse extends DBusMethodSuccessResponse {
       : super([DBusDict.stringVariant(values)]);
 
   @override
-  String toString() =>
-      '$runtimeType(${(values[0] as DBusDict).mapStringVariant()})';
+  String toString() => '$runtimeType(${values[0].asStringVariantDict()})';
 }

@@ -48,7 +48,7 @@ class ComExampleTest extends DBusObject {
         if (value.signature != DBusSignature('s')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setValue((value as DBusString).value);
+        return setValue(value.asString());
       } else {
         return DBusMethodErrorResponse.unknownProperty();
       }

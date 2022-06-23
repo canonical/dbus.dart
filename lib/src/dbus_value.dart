@@ -37,6 +37,102 @@ abstract class DBusValue {
 
   /// Converts this value to a native Dart representation.
   dynamic toNative();
+
+  /// Converts this value to the native Dart representation of a byte. Only works if [signature] is 'y'.
+  int asByte() => (this as DBusByte).value;
+
+  /// Converts this value to the native Dart representation of a boolean. Only works if [signature] is 'b'.
+  bool asBoolean() => (this as DBusBoolean).value;
+
+  /// Converts this value to the native Dart representation of a 16 bit signed integer. Only works if [signature] is 'n'.
+  int asInt16() => (this as DBusInt16).value;
+
+  /// Converts this value to the native Dart representation of a 16 bit unsigned integer. Only works if [signature] is 'q'.
+  int asUint16() => (this as DBusUint16).value;
+
+  /// Converts this value to the native Dart representation of a 32 bit signed integer. Only works if [signature] is 'i'.
+  int asInt32() => (this as DBusInt32).value;
+
+  /// Converts this value to the native Dart representation of a 32 bit unsigned integer. Only works if [signature] is 'u'.
+  int asUint32() => (this as DBusUint32).value;
+
+  /// Converts this value to the native Dart representation of a 64 bit signed integer. Only works if [signature] is 'x'.
+  int asInt64() => (this as DBusInt64).value;
+
+  /// Converts this value to the native Dart representation of a 64 bit unsigned integer. Only works if [signature] is 't'.
+  int asUint64() => (this as DBusUint64).value;
+
+  /// Converts this value to the native Dart representation of a 64 bit floating point number. Only works if [signature] is 'd'.
+  double asDouble() => (this as DBusDouble).value;
+
+  /// Converts this value to the native Dart representation of a string. Only works if [signature] is 's'.
+  String asString() => (this as DBusString).value;
+
+  /// Extracts the object path inside this value. Only works if [signature] is 'o'.
+  DBusObjectPath asObjectPath() => this as DBusObjectPath;
+
+  /// Extracts the signature inside this value. Only works if [signature] is 'g'.
+  DBusSignature asSignature() => this as DBusSignature;
+
+  /// Extracts the value stored inside this variant. Only works if [signature] is 'v'.
+  DBusValue asVariant() => (this as DBusVariant).value;
+
+  /// Extracts the maybe type inside this value. Only works if [signature] is a maybe type, e.g. 'mi'.
+  DBusValue? asMaybe() => (this as DBusMaybe).value;
+
+  /// Extracts the [ResourceHandle] inside this unix file descriptor D-Bus value. Only works if [signature] is 'h'.
+  ResourceHandle asUnixFd() => (this as DBusUnixFd).handle;
+
+  /// Extracts this child values inside this struct. Only works if [signature] is a struct type, e.g '(si)'.
+  List<DBusValue> asStruct() => (this as DBusStruct).children;
+
+  /// Extracts the array inside this value. Only works if [signature] is an array type, e.g 'as'.
+  List<DBusValue> asArray() => (this as DBusArray).children;
+
+  /// Extracts the bytes inside this array. Only works if [signature] is 'ay'.
+  Iterable<int> asByteArray() => (this as DBusArray).mapByte();
+
+  /// Extracts the 16 bit signed integers inside this array. Only works if [signature] is 'an'.
+  Iterable<int> asInt16Array() => (this as DBusArray).mapInt16();
+
+  /// Extracts the 16 bit unsigned integers inside this array. Only works if [signature] is 'aq'.
+  Iterable<int> asUint16Array() => (this as DBusArray).mapUint16();
+
+  /// Extracts the 32 bit signed integers inside this array. Only works if [signature] is 'ai'.
+  Iterable<int> asInt32Array() => (this as DBusArray).mapInt32();
+
+  /// Extracts the 32 bit unsigned integers inside this array. Only works if [signature] is 'au'.
+  Iterable<int> asUint32Array() => (this as DBusArray).mapUint32();
+
+  /// Extracts the 64 bit signed integers inside this array. Only works if [signature] is 'ax'.
+  Iterable<int> asInt64Array() => (this as DBusArray).mapInt64();
+
+  /// Extracts the 64 bit unsigned integers inside this array. Only works if [signature] is 'at'.
+  Iterable<int> asUint64Array() => (this as DBusArray).mapUint64();
+
+  /// Extracts the 64 bit floating point numbers inside this array. Only works if [signature] is 'ad'.
+  Iterable<double> asDoubleArray() => (this as DBusArray).mapDouble();
+
+  /// Extracts the strings inside this array. Only works if [signature] is 'as'.
+  Iterable<String> asStringArray() => (this as DBusArray).mapString();
+
+  /// Extracts the object paths inside this array. Only works if [signature] is 'ao'.
+  Iterable<DBusObjectPath> asObjectPathArray() =>
+      (this as DBusArray).mapObjectPath();
+
+  /// Extracts the signatures inside this array. Only works if [signature] is 'ag'.
+  Iterable<DBusSignature> asSignatureArray() =>
+      (this as DBusArray).mapSignature();
+
+  /// Extracts the values inside this variant array. Only works if [signature] is 'av'.
+  Iterable<DBusValue> asVariantArray() => (this as DBusArray).mapVariant();
+
+  /// Extracts the dictionary inside this vlaue. Only works if [signature] is a dictionary type, e.g 'a{os}'.
+  Map<DBusValue, DBusValue> asDict() => (this as DBusDict).children;
+
+  /// Extracts the string to variant dictionary inside this value. Only works if [signature] is 'a{sv}'.
+  Map<String, DBusValue> asStringVariantDict() =>
+      (this as DBusDict).mapStringVariant();
 }
 
 /// D-Bus representation of an unsigned 8 bit value.
@@ -892,51 +988,43 @@ class DBusArray extends DBusValue {
   }
 
   /// Maps the contents of this array into native types. Only works if [childSignature] is 'y'.
-  Iterable<int> mapByte() => children.map((value) => (value as DBusByte).value);
+  Iterable<int> mapByte() => children.map((value) => value.asByte());
 
   /// Maps the contents of this array into native types. Only works if [childSignature] is 'n'.
-  Iterable<int> mapInt16() =>
-      children.map((value) => (value as DBusInt16).value);
+  Iterable<int> mapInt16() => children.map((value) => value.asInt16());
 
   /// Maps the contents of this array into native types. Only works if [childSignature] is 'q'.
-  Iterable<int> mapUint16() =>
-      children.map((value) => (value as DBusUint16).value);
+  Iterable<int> mapUint16() => children.map((value) => value.asUint16());
 
   /// Maps the contents of this array into native types. Only works if [childSignature] is 'i'.
-  Iterable<int> mapInt32() =>
-      children.map((value) => (value as DBusInt32).value);
+  Iterable<int> mapInt32() => children.map((value) => value.asInt32());
 
   /// Maps the contents of this array into native types. Only works if [childSignature] is 'u'.
-  Iterable<int> mapUint32() =>
-      children.map((value) => (value as DBusUint32).value);
+  Iterable<int> mapUint32() => children.map((value) => value.asUint32());
 
   /// Maps the contents of this array into native types. Only works if [childSignature] is 'x'.
-  Iterable<int> mapInt64() =>
-      children.map((value) => (value as DBusInt64).value);
+  Iterable<int> mapInt64() => children.map((value) => value.asInt64());
 
   /// Maps the contents of this array into native types. Only works if [childSignature] is 't'.
-  Iterable<int> mapUint64() =>
-      children.map((value) => (value as DBusUint64).value);
+  Iterable<int> mapUint64() => children.map((value) => value.asUint64());
 
   /// Maps the contents of this array into native types. Only works if [childSignature] is 'd'.
-  Iterable<double> mapDouble() =>
-      children.map((value) => (value as DBusDouble).value);
+  Iterable<double> mapDouble() => children.map((value) => value.asDouble());
 
   /// Maps the contents of this array into native types. Only works if [childSignature] is 's'.
-  Iterable<String> mapString() =>
-      children.map((value) => (value as DBusString).value);
+  Iterable<String> mapString() => children.map((value) => value.asString());
 
   /// Maps the contents of this array into native types. Only works if [childSignature] is 'o'.
   Iterable<DBusObjectPath> mapObjectPath() =>
-      children.map((value) => value as DBusObjectPath);
+      children.map((value) => value.asObjectPath());
 
   /// Maps the contents of this array into native types. Only works if [childSignature] is 'g'.
   Iterable<DBusSignature> mapSignature() =>
-      children.map((value) => value as DBusSignature);
+      children.map((value) => value.asSignature());
 
   /// Maps the contents of this array into native types. Only works if [childSignature] is 'v'.
   Iterable<DBusValue> mapVariant() =>
-      children.map((value) => (value as DBusVariant).value);
+      children.map((value) => value.asVariant());
 
   @override
   bool operator ==(other) =>
@@ -951,55 +1039,43 @@ class DBusArray extends DBusValue {
   String toString() {
     switch (childSignature.value) {
       case 'y':
-        var values =
-            children.map((child) => (child as DBusByte).value).join(', ');
+        var values = children.map((child) => child.asByte()).join(', ');
         return 'DBusArray.byte([$values])';
       case 'n':
-        var values =
-            children.map((child) => (child as DBusInt16).value).join(', ');
+        var values = children.map((child) => child.asInt16()).join(', ');
         return 'DBusArray.int16([$values])';
       case 'q':
-        var values =
-            children.map((child) => (child as DBusUint16).value).join(', ');
+        var values = children.map((child) => child.asUint16()).join(', ');
         return 'DBusArray.uint16([$values])';
       case 'i':
-        var values =
-            children.map((child) => (child as DBusInt32).value).join(', ');
+        var values = children.map((child) => child.asInt32()).join(', ');
         return 'DBusArray.int32([$values])';
       case 'u':
-        var values =
-            children.map((child) => (child as DBusUint32).value).join(', ');
+        var values = children.map((child) => child.asUint32()).join(', ');
         return 'DBusArray.uint32([$values])';
       case 'x':
-        var values =
-            children.map((child) => (child as DBusInt64).value).join(', ');
+        var values = children.map((child) => child.asInt64()).join(', ');
         return 'DBusArray.int64([$values])';
       case 't':
-        var values =
-            children.map((child) => (child as DBusUint64).value).join(', ');
+        var values = children.map((child) => child.asUint64()).join(', ');
         return 'DBusArray.uint64([$values])';
       case 'd':
-        var values =
-            children.map((child) => (child as DBusDouble).value).join(', ');
+        var values = children.map((child) => child.asDouble()).join(', ');
         return 'DBusArray.double([$values])';
       case 's':
-        var values = children
-            .map((child) => "'${(child as DBusString).value}'")
-            .join(', ');
+        var values =
+            children.map((child) => "'${child.asString()}'").join(', ');
         return 'DBusArray.string([$values])';
       case 'o':
-        var values = children
-            .map((child) => (child as DBusObjectPath).toString())
-            .join(', ');
+        var values =
+            children.map((child) => child.asObjectPath().toString()).join(', ');
         return 'DBusArray.objectPath([$values])';
       case 'g':
-        var values = children
-            .map((child) => (child as DBusSignature).toString())
-            .join(', ');
+        var values =
+            children.map((child) => child.asSignature().toString()).join(', ');
         return 'DBusArray.signature([$values])';
       case 'v':
-        var values =
-            children.map((child) => (child as DBusVariant).value).join(', ');
+        var values = children.map((child) => child.asVariant()).join(', ');
         return 'DBusArray.variant([$values])';
       default:
         var childrenText = <String>[];
@@ -1079,8 +1155,8 @@ class DBusDict extends DBusValue {
   }
 
   /// Maps the contents of this array into native types. Only works if [keySignature] is 's' and [valueSignature] is 'v'.
-  Map<String, DBusValue> mapStringVariant() => children.map((key, value) =>
-      MapEntry((key as DBusString).value, (value as DBusVariant).value));
+  Map<String, DBusValue> mapStringVariant() =>
+      children.map((key, value) => MapEntry(key.asString(), value.asVariant()));
 
   @override
   bool operator ==(other) =>
@@ -1097,7 +1173,7 @@ class DBusDict extends DBusValue {
     if (keySignature.value == 's' && valueSignature.value == 'v') {
       var values = children.entries
           .map((entry) =>
-              "'${(entry.key as DBusString).value}': ${(entry.value as DBusVariant).value.toString()}")
+              "'${entry.key.asString()}': ${entry.value.asVariant().toString()}")
           .join(', ');
       return 'DBusDict.stringVariant({$values})';
     } else {

@@ -570,8 +570,8 @@ class DBusServer {
           if (message.signature != DBusSignature('su')) {
             return DBusMethodErrorResponse.invalidArgs();
           }
-          var name = (message.values[0] as DBusString).value;
-          var flags = (message.values[1] as DBusUint32).value;
+          var name = message.values[0].asString();
+          var flags = message.values[1].asUint32();
           var allowReplacement = (flags & 0x01) != 0;
           var replaceExisting = (flags & 0x02) != 0;
           var doNotQueue = (flags & 0x04) != 0;
@@ -581,13 +581,13 @@ class DBusServer {
           if (message.signature != DBusSignature('s')) {
             return DBusMethodErrorResponse.invalidArgs();
           }
-          var name = (message.values[0] as DBusString).value;
+          var name = message.values[0].asString();
           return _releaseName(client, name);
         case 'ListQueuedOwners':
           if (message.signature != DBusSignature('s')) {
             return DBusMethodErrorResponse.invalidArgs();
           }
-          var name = (message.values[0] as DBusString).value;
+          var name = message.values[0].asString();
           return _listQueuedOwners(name);
         case 'ListNames':
           if (message.values.isNotEmpty) {
@@ -603,50 +603,50 @@ class DBusServer {
           if (message.signature != DBusSignature('s')) {
             return DBusMethodErrorResponse.invalidArgs();
           }
-          var name = (message.values[0] as DBusString).value;
+          var name = message.values[0].asString();
           return _nameHasOwner(name);
         case 'StartServiceByName':
           if (message.signature != DBusSignature('su')) {
             return DBusMethodErrorResponse.invalidArgs();
           }
-          var name = (message.values[0] as DBusString).value;
-          var flags = (message.values[1] as DBusUint32).value;
+          var name = message.values[0].asString();
+          var flags = message.values[1].asUint32();
           return await _startServiceByName(name, flags);
         case 'GetNameOwner':
           if (message.signature != DBusSignature('s')) {
             return DBusMethodErrorResponse.invalidArgs();
           }
-          var name = (message.values[0] as DBusString).value;
+          var name = message.values[0].asString();
           return _getNameOwner(name);
         case 'GetConnectionUnixUser':
           if (message.signature != DBusSignature('s')) {
             return DBusMethodErrorResponse.invalidArgs();
           }
-          var name = (message.values[0] as DBusString).value;
+          var name = message.values[0].asString();
           return _getConnectionUnixUser(name);
         case 'GetConnectionUnixProcessID':
           if (message.signature != DBusSignature('s')) {
             return DBusMethodErrorResponse.invalidArgs();
           }
-          var name = (message.values[0] as DBusString).value;
+          var name = message.values[0].asString();
           return _getConnectionUnixProcessId(name);
         case 'GetConnectionCredentials':
           if (message.signature != DBusSignature('s')) {
             return DBusMethodErrorResponse.invalidArgs();
           }
-          var name = (message.values[0] as DBusString).value;
+          var name = message.values[0].asString();
           return _getConnectionCredentials(name);
         case 'AddMatch':
           if (message.signature != DBusSignature('s')) {
             return DBusMethodErrorResponse.invalidArgs();
           }
-          var rule = (message.values[0] as DBusString).value;
+          var rule = message.values[0].asString();
           return _addMatch(client, rule);
         case 'RemoveMatch':
           if (message.signature != DBusSignature('s')) {
             return DBusMethodErrorResponse.invalidArgs();
           }
-          var rule = (message.values[0] as DBusString).value;
+          var rule = message.values[0].asString();
           return _removeMatch(client, rule);
         case 'GetId':
           if (message.values.isNotEmpty) {
@@ -691,22 +691,22 @@ class DBusServer {
           if (message.signature != DBusSignature('ss')) {
             return DBusMethodErrorResponse.invalidArgs();
           }
-          var interfaceName = (message.values[0] as DBusString).value;
-          var name = (message.values[1] as DBusString).value;
+          var interfaceName = message.values[0].asString();
+          var name = message.values[1].asString();
           return _propertiesGet(interfaceName, name);
         case 'Set':
           if (message.signature != DBusSignature('ssv')) {
             return DBusMethodErrorResponse.invalidArgs();
           }
-          var interfaceName = (message.values[0] as DBusString).value;
-          var name = (message.values[1] as DBusString).value;
-          var value = (message.values[2] as DBusVariant).value;
+          var interfaceName = message.values[0].asString();
+          var name = message.values[1].asString();
+          var value = message.values[2].asVariant();
           return _propertiesSet(interfaceName, name, value);
         case 'GetAll':
           if (message.signature != DBusSignature('s')) {
             return DBusMethodErrorResponse.invalidArgs();
           }
-          var interfaceName = (message.values[0] as DBusString).value;
+          var interfaceName = message.values[0].asString();
           return _propertiesGetAll(interfaceName);
         default:
           return DBusMethodErrorResponse.unknownMethod(

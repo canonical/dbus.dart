@@ -286,7 +286,7 @@ class DBusClient {
           interface: 'org.freedesktop.DBus',
           name: 'NameAcquired',
           signature: DBusSignature('s'))
-      .map((signal) => (signal.values[0] as DBusString).value);
+      .map((signal) => signal.values[0].asString());
 
   /// Stream of names as this client loses them.
   Stream<String> get nameLost => DBusSignalStream(this,
@@ -294,7 +294,7 @@ class DBusClient {
           interface: 'org.freedesktop.DBus',
           name: 'NameLost',
           signature: DBusSignature('s'))
-      .map((signal) => (signal.values[0] as DBusString).value);
+      .map((signal) => signal.values[0].asString());
 
   /// Stream of name change events.
   Stream<DBusNameOwnerChangedEvent> get nameOwnerChanged =>
@@ -304,9 +304,9 @@ class DBusClient {
               name: 'NameOwnerChanged',
               signature: DBusSignature('sss'))
           .map((signal) {
-        var name = (signal.values[0] as DBusString).value;
-        var oldOwner = (signal.values[1] as DBusString).value;
-        var newOwner = (signal.values[2] as DBusString).value;
+        var name = signal.values[0].asString();
+        var oldOwner = signal.values[1].asString();
+        var newOwner = signal.values[2].asString();
         return DBusNameOwnerChangedEvent(name,
             oldOwner: oldOwner != '' ? oldOwner : null,
             newOwner: newOwner != '' ? newOwner : null);
@@ -336,7 +336,7 @@ class DBusClient {
         name: 'RequestName',
         values: [DBusString(name), DBusUint32(flagsValue)],
         replySignature: DBusSignature('u'));
-    var returnCode = (result.returnValues[0] as DBusUint32).value;
+    var returnCode = result.returnValues[0].asUint32();
     switch (returnCode) {
       case 1:
         _ownedNames.add(DBusBusName(name));
@@ -361,7 +361,7 @@ class DBusClient {
         name: 'ReleaseName',
         values: [DBusString(name)],
         replySignature: DBusSignature('u'));
-    var returnCode = (result.returnValues[0] as DBusUint32).value;
+    var returnCode = result.returnValues[0].asUint32();
     switch (returnCode) {
       case 1:
         _ownedNames.remove(DBusBusName(name));
@@ -384,7 +384,7 @@ class DBusClient {
         name: 'ListQueuedOwners',
         values: [DBusString(name)],
         replySignature: DBusSignature('as'));
-    return (result.returnValues[0] as DBusArray).mapString().toList();
+    return result.returnValues[0].asStringArray().toList();
   }
 
   /// Lists the registered names on the bus.
@@ -395,7 +395,7 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         name: 'ListNames',
         replySignature: DBusSignature('as'));
-    return (result.returnValues[0] as DBusArray).mapString().toList();
+    return result.returnValues[0].asStringArray().toList();
   }
 
   /// Returns a list of names that activate services.
@@ -406,7 +406,7 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         name: 'ListActivatableNames',
         replySignature: DBusSignature('as'));
-    return (result.returnValues[0] as DBusArray).mapString().toList();
+    return result.returnValues[0].asStringArray().toList();
   }
 
   /// Starts the service with [name].
@@ -418,7 +418,7 @@ class DBusClient {
         name: 'StartServiceByName',
         values: [DBusString(name), DBusUint32(0)],
         replySignature: DBusSignature('u'));
-    var returnCode = (result.returnValues[0] as DBusUint32).value;
+    var returnCode = result.returnValues[0].asUint32();
     switch (returnCode) {
       case 1:
         return DBusStartServiceByNameReply.success;
@@ -438,7 +438,7 @@ class DBusClient {
         name: 'NameHasOwner',
         values: [DBusString(name)],
         replySignature: DBusSignature('b'));
-    return (result.returnValues[0] as DBusBoolean).value;
+    return result.returnValues[0].asBoolean();
   }
 
   /// Returns the unique connection name of the client that owns [name].
@@ -458,7 +458,7 @@ class DBusClient {
       }
       rethrow;
     }
-    return (result.returnValues[0] as DBusString).value;
+    return result.returnValues[0].asString();
   }
 
   /// Returns the Unix user ID of the process running the client that owns [name].
@@ -470,7 +470,7 @@ class DBusClient {
         name: 'GetConnectionUnixUser',
         values: [DBusString(name)],
         replySignature: DBusSignature('u'));
-    return (result.returnValues[0] as DBusUint32).value;
+    return result.returnValues[0].asUint32();
   }
 
   /// Returns the Unix process ID of the process running the client that owns [name].
@@ -482,7 +482,7 @@ class DBusClient {
         name: 'GetConnectionUnixProcessID',
         values: [DBusString(name)],
         replySignature: DBusSignature('u'));
-    return (result.returnValues[0] as DBusUint32).value;
+    return result.returnValues[0].asUint32();
   }
 
   /// Returns credentials for the process running the client that owns [name].
@@ -494,7 +494,7 @@ class DBusClient {
         name: 'GetConnectionCredentials',
         values: [DBusString(name)],
         replySignature: DBusSignature('a{sv}'));
-    var credentials = (result.returnValues[0] as DBusDict).mapStringVariant();
+    var credentials = result.returnValues[0].asStringVariantDict();
     int? unixUserId;
     List<int>? unixGroupIds;
     int? processId;
@@ -507,31 +507,31 @@ class DBusClient {
           if (value.signature != DBusSignature('u')) {
             throw 'org.freedesktop.DBus.GetConnectionCredentials returned invalid signature on UnixUserID: ${value.signature.value}';
           }
-          unixUserId = (value as DBusUint32).value;
+          unixUserId = value.asUint32();
           break;
         case 'UnixGroupIDs':
           if (value.signature != DBusSignature('au')) {
             throw 'org.freedesktop.DBus.GetConnectionCredentials returned invalid signature on UnixGroupIDs: ${value.signature.value}';
           }
-          unixGroupIds = (value as DBusArray).mapUint32().toList();
+          unixGroupIds = value.asUint32Array().toList();
           break;
         case 'ProcessID':
           if (value.signature != DBusSignature('u')) {
             throw 'org.freedesktop.DBus.GetConnectionCredentials returned invalid signature on ProcessID: ${value.signature.value}';
           }
-          processId = (value as DBusUint32).value;
+          processId = value.asUint32();
           break;
         case 'WindowsSID':
           if (value.signature != DBusSignature('s')) {
             throw 'org.freedesktop.DBus.GetConnectionCredentials returned invalid signature on WindowsSID: ${value.signature.value}';
           }
-          windowsSid = (value as DBusString).value;
+          windowsSid = value.asString();
           break;
         case 'LinuxSecurityLabel':
           if (value.signature != DBusSignature('ay')) {
             throw 'org.freedesktop.DBus.GetConnectionCredentials returned invalid signature on LinuxSecurityLabel: ${value.signature.value}';
           }
-          linuxSecurityLabel = (value as DBusArray).mapByte().toList();
+          linuxSecurityLabel = value.asByteArray().toList();
           break;
         default:
           otherCredentials[key] = value;
@@ -555,7 +555,7 @@ class DBusClient {
         interface: 'org.freedesktop.DBus',
         name: 'GetId',
         replySignature: DBusSignature('s'));
-    return (result.returnValues[0] as DBusString).value;
+    return result.returnValues[0].asString();
   }
 
   /// Sends a ping request to the client at the given [destination].
@@ -579,7 +579,7 @@ class DBusClient {
         interface: 'org.freedesktop.DBus.Peer',
         name: 'GetMachineId',
         replySignature: DBusSignature('s'));
-    return (result.returnValues[0] as DBusString).value;
+    return result.returnValues[0].asString();
   }
 
   /// Invokes a method on a D-Bus object.
@@ -803,7 +803,7 @@ class DBusClient {
         interface: DBusInterfaceName('org.freedesktop.DBus'),
         name: DBusMemberName('Hello'),
         replySignature: DBusSignature('s'));
-    _uniqueName = DBusBusName((result.returnValues[0] as DBusString).value);
+    _uniqueName = DBusBusName(result.returnValues[0].asString());
 
     // Notify anyone else awaiting connection.
     _connectCompleter?.complete();

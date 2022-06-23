@@ -20,7 +20,7 @@ class ComExampleTest extends DBusObject {
         if (methodCall.signature != DBusSignature('s')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        await doHello((methodCall.values[0] as DBusString).value);
+        await doHello(methodCall.values[0].asString());
         return DBusMethodSuccessResponse();
       } else {
         return DBusMethodErrorResponse.unknownMethod();
