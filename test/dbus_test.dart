@@ -2682,14 +2682,12 @@ void main() {
         values: unixFdTypes);
     expect(response.values, hasLength(5));
     expect(response.values[0], isA<DBusUnixFd>());
-    expect((response.values[1] as DBusStruct).children[1], isA<DBusUnixFd>());
-    expect((response.values[2] as DBusVariant).value, isA<DBusUnixFd>());
-    expect((response.values[3] as DBusArray).children[0], isA<DBusUnixFd>());
-    expect((response.values[3] as DBusArray).children[1], isA<DBusUnixFd>());
-    expect((response.values[4] as DBusDict).children[DBusInt32(0)],
-        isA<DBusUnixFd>());
-    expect((response.values[4] as DBusDict).children[DBusInt32(0)],
-        isA<DBusUnixFd>());
+    expect(response.values[1].asStruct().elementAt(1), isA<DBusUnixFd>());
+    expect(response.values[2].asVariant(), isA<DBusUnixFd>());
+    expect(response.values[3].asArray()[0], isA<DBusUnixFd>());
+    expect(response.values[3].asArray()[1], isA<DBusUnixFd>());
+    expect(response.values[4].asDict()[DBusInt32(0)], isA<DBusUnixFd>());
+    expect(response.values[4].asDict()[DBusInt32(0)], isA<DBusUnixFd>());
   });
 
   test('call method - no response', () async {

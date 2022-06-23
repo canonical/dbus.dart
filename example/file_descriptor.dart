@@ -52,8 +52,8 @@ void main(List<String> args) async {
 
     var result = await object.callMethod('com.canonical.DBusDart', 'Open', [],
         replySignature: DBusSignature('h'));
-    var fd = result.returnValues[0] as DBusUnixFd;
-    var file = fd.handle.toFile();
+    var handle = result.returnValues[0].asUnixFd();
+    var file = handle.toFile();
 
     print('Contents of file:');
     print(utf8.decode(await file.read(1024)));

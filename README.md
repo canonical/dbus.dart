@@ -92,10 +92,10 @@ Future<void> main() async {
   var client = DBusClient.session();
   var object = DBusRemoteObject(client, name: 'com.example.Test', path: DBusObjectPath('/com/example/Test/Object'));
   var value = await object.getProperty('com.example.Test', 'Version', signature: DBusSignature('s'));
-  var version = (value as DBusString).value;
+  var version = value.asString();
   print('version: $version');
   var response = await object.callMethod('com.example.Test', 'ReverseText', [DBusString('Hello World')], replySignature: DBusSignature('s'));
-  var reversedText = (response.values[0] as DBusString).value;
+  var reversedText = response.values[0].asString();
   print('$reversedText');
   await client.close();
 }
@@ -125,7 +125,7 @@ class TestObject extends DBusObject {
         if (methodCall.signature != DBusSignature('s')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-	var input = (methodCall.values[0] as DBusString).value;
+	var input = methodCall.values[0].asString();
         var reversedText = String.fromCharCodes(input.codeUnits.reversed);
         return DBusMethodSuccessResponse([DBusString(reversedText)]);
       } else {

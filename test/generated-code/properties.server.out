@@ -228,82 +228,82 @@ class ComExampleTest extends DBusObject {
         if (value.signature != DBusSignature('y')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setByteProperty((value as DBusByte).value);
+        return setByteProperty(value.asByte());
       } else if (name == 'BooleanProperty') {
         if (value.signature != DBusSignature('b')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setBooleanProperty((value as DBusBoolean).value);
+        return setBooleanProperty(value.asBoolean());
       } else if (name == 'Int16Property') {
         if (value.signature != DBusSignature('n')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setInt16Property((value as DBusInt16).value);
+        return setInt16Property(value.asInt16());
       } else if (name == 'Uint16Property') {
         if (value.signature != DBusSignature('q')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setUint16Property((value as DBusUint16).value);
+        return setUint16Property(value.asUint16());
       } else if (name == 'Int32Property') {
         if (value.signature != DBusSignature('i')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setInt32Property((value as DBusInt32).value);
+        return setInt32Property(value.asInt32());
       } else if (name == 'Uint32Property') {
         if (value.signature != DBusSignature('u')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setUint32Property((value as DBusUint32).value);
+        return setUint32Property(value.asUint32());
       } else if (name == 'Int64Property') {
         if (value.signature != DBusSignature('x')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setInt64Property((value as DBusInt64).value);
+        return setInt64Property(value.asInt64());
       } else if (name == 'Uint64Property') {
         if (value.signature != DBusSignature('t')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setUint64Property((value as DBusUint64).value);
+        return setUint64Property(value.asUint64());
       } else if (name == 'DoubleProperty') {
         if (value.signature != DBusSignature('d')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setDoubleProperty((value as DBusDouble).value);
+        return setDoubleProperty(value.asDouble());
       } else if (name == 'StringProperty') {
         if (value.signature != DBusSignature('s')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setStringProperty((value as DBusString).value);
+        return setStringProperty(value.asString());
       } else if (name == 'ObjectPathProperty') {
         if (value.signature != DBusSignature('o')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setObjectPathProperty((value as DBusObjectPath).value);
+        return setObjectPathProperty(value.asObjectPath());
       } else if (name == 'SignatureProperty') {
         if (value.signature != DBusSignature('g')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setSignatureProperty(value as DBusSignature);
+        return setSignatureProperty(value.asSignature());
       } else if (name == 'VariantProperty') {
         if (value.signature != DBusSignature('v')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setVariantProperty((value as DBusVariant).value);
+        return setVariantProperty(value.asVariant());
       } else if (name == 'StructProperty') {
         if (value.signature != DBusSignature('(si)')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setStructProperty(value as DBusStruct);
+        return setStructProperty(value.asStruct());
       } else if (name == 'ArrayProperty') {
         if (value.signature != DBusSignature('ay')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setArrayProperty((value as DBusArray).mapByte().toList());
+        return setArrayProperty(value.asByteArray().toList());
       } else if (name == 'DictProperty') {
         if (value.signature != DBusSignature('a{sv}')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setDictProperty((value as DBusDict).mapStringVariant());
+        return setDictProperty(value.asStringVariantDict());
       } else {
         return DBusMethodErrorResponse.unknownProperty();
       }

@@ -64,12 +64,12 @@ class ComExampleTest extends DBusObject {
         if (value.signature != DBusSignature('i')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setWriteProperty((value as DBusInt32).value);
+        return setWriteProperty(value.asInt32());
       } else if (name == 'ReadWriteProperty') {
         if (value.signature != DBusSignature('i')) {
           return DBusMethodErrorResponse.invalidArgs();
         }
-        return setReadWriteProperty((value as DBusInt32).value);
+        return setReadWriteProperty(value.asInt32());
       } else {
         return DBusMethodErrorResponse.unknownProperty();
       }

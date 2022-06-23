@@ -32,7 +32,7 @@ void main(List<String> args) async {
     var signals = DBusRemoteObjectSignalStream(
         object: object, interface: 'com.canonical.DBusDart', name: 'Ping');
     await for (var signal in signals) {
-      var count = (signal.values[0] as DBusUint64).value;
+      var count = signal.values[0].asUint64();
       print('Ping $count!');
     }
   } else if (mode == 'server') {

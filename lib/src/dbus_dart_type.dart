@@ -51,10 +51,10 @@ abstract class DBusDartType {
   // Native Dart type for the API user to interact with, e.g. 'int', 'String'.
   String get nativeType;
 
-  // Converts a native Dart variable to a D-Bus data type. e.g. 'foo' -> 'DBusInteger(foo)'.
+  // Converts a native Dart variable to a D-Bus data type. e.g. 'foo' -> 'DBusInt32(foo)'.
   String nativeToDBus(String name);
 
-  // Converts a DBusValue object to a native type. e.g. 'foo' -> '(foo as DBusInteger).value'.
+  // Converts a DBusValue object to a native type. e.g. 'foo' -> 'foo.asInt32()'.
   String dbusToNative(String name);
 }
 
@@ -72,7 +72,7 @@ class DBusBoolType extends DBusDartType {
 
   @override
   String dbusToNative(String name) {
-    return '($name as DBusBoolean).value';
+    return '$name.asBoolean()';
   }
 }
 
@@ -92,7 +92,7 @@ class DBusByteType extends DBusIntegerType {
 
   @override
   String dbusToNative(String name) {
-    return '($name as DBusByte).value';
+    return '$name.asByte()';
   }
 }
 
@@ -105,7 +105,7 @@ class DBusInt16Type extends DBusIntegerType {
 
   @override
   String dbusToNative(String name) {
-    return '($name as DBusInt16).value';
+    return '$name.asInt16()';
   }
 }
 
@@ -118,7 +118,7 @@ class DBusUint16Type extends DBusIntegerType {
 
   @override
   String dbusToNative(String name) {
-    return '($name as DBusUint16).value';
+    return '$name.asUint16()';
   }
 }
 
@@ -131,7 +131,7 @@ class DBusInt32Type extends DBusIntegerType {
 
   @override
   String dbusToNative(String name) {
-    return '($name as DBusInt32).value';
+    return '$name.asInt32()';
   }
 }
 
@@ -144,7 +144,7 @@ class DBusUint32Type extends DBusIntegerType {
 
   @override
   String dbusToNative(String name) {
-    return '($name as DBusUint32).value';
+    return '$name.asUint32()';
   }
 }
 
@@ -157,7 +157,7 @@ class DBusInt64Type extends DBusIntegerType {
 
   @override
   String dbusToNative(String name) {
-    return '($name as DBusInt64).value';
+    return '$name.asInt64()';
   }
 }
 
@@ -170,7 +170,7 @@ class DBusUint64Type extends DBusIntegerType {
 
   @override
   String dbusToNative(String name) {
-    return '($name as DBusUint64).value';
+    return '$name.asUint64()';
   }
 }
 
@@ -188,7 +188,7 @@ class DBusDoubleType extends DBusDartType {
 
   @override
   String dbusToNative(String name) {
-    return '($name as DBusDouble).value';
+    return '$name.asDouble()';
   }
 }
 
@@ -206,7 +206,7 @@ class DBusStringType extends DBusDartType {
 
   @override
   String dbusToNative(String name) {
-    return '($name as DBusString).value';
+    return '$name.asString()';
   }
 }
 
@@ -219,7 +219,7 @@ class DBusObjectPathType extends DBusStringType {
 
   @override
   String dbusToNative(String name) {
-    return '($name as DBusObjectPath).value';
+    return '$name.asObjectPath()';
   }
 }
 
@@ -237,7 +237,7 @@ class DBusSignatureType extends DBusDartType {
 
   @override
   String dbusToNative(String name) {
-    return '$name as DBusSignature';
+    return '$name.asSignature()';
   }
 }
 
@@ -255,7 +255,7 @@ class DBusVariantType extends DBusDartType {
 
   @override
   String dbusToNative(String name) {
-    return '($name as DBusVariant).value';
+    return '$name.asVariant()';
   }
 }
 
@@ -273,7 +273,7 @@ class DBusStructType extends DBusDartType {
 
   @override
   String dbusToNative(String name) {
-    return '$name as DBusStruct';
+    return '$name.asStruct()';
   }
 }
 
@@ -327,33 +327,33 @@ class DBusArrayType extends DBusDartType {
   String dbusToNative(String name) {
     switch (childSignature.value) {
       case 'y':
-        return '($name as DBusArray).mapByte().toList()';
+        return '$name.asByteArray().toList()';
       case 'n':
-        return '($name as DBusArray).mapInt16().toList()';
+        return '$name.asInt16Array().toList()';
       case 'q':
-        return '($name as DBusArray).mapUint16().toList()';
+        return '$name.asUint16Array().toList()';
       case 'i':
-        return '($name as DBusArray).mapInt32().toList()';
+        return '$name.asInt32Array().toList()';
       case 'u':
-        return '($name as DBusArray).mapUint32().toList()';
+        return '$name.asUint32Array().toList()';
       case 'x':
-        return '($name as DBusArray).mapInt64().toList()';
+        return '$name.asInt64Array().toList()';
       case 't':
-        return '($name as DBusArray).mapUint64().toList()';
+        return '$name.asUint64Array().toList()';
       case 'd':
-        return '($name as DBusArray).mapDouble().toList()';
+        return '$name.asDoubleArray().toList()';
       case 's':
-        return '($name as DBusArray).mapString().toList()';
+        return '$name.asStringArray().toList()';
       case 'o':
-        return '($name as DBusArray).objectPath().toList()';
+        return '$name.asObjectPathArray().toList()';
       case 'g':
-        return '($name as DBusArray).signature().toList()';
+        return '$name.asSignatureArray().toList()';
       case 'v':
-        return '($name as DBusArray).mapVariant().toList()';
+        return '$name.asVariantArray().toList()';
       default:
         var childType = getDartType(childSignature);
         var convertedValue = childType.dbusToNative('child');
-        return '($name as DBusArray).children.map((child) => $convertedValue).toList()';
+        return '$name.asArray().map((child) => $convertedValue).toList()';
     }
   }
 }
@@ -390,13 +390,13 @@ class DBusDictType extends DBusDartType {
   String dbusToNative(String name) {
     if (keySignature == DBusSignature('s') &&
         valueSignature == DBusSignature('v')) {
-      return '($name as DBusDict).mapStringVariant()';
+      return '$name.asStringVariantDict()';
     } else {
       var keyType = getDartType(keySignature);
       var convertedKey = keyType.dbusToNative('key');
       var valueType = getDartType(valueSignature);
       var convertedValue = valueType.dbusToNative('value');
-      return '($name as DBusDict).children.map((key, value) => MapEntry($convertedKey, $convertedValue))';
+      return '$name.asDict().map((key, value) => MapEntry($convertedKey, $convertedValue))';
     }
   }
 }

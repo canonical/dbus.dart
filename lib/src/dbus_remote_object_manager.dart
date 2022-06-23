@@ -8,7 +8,7 @@ import 'dbus_value.dart';
 /// Signal received when interfaces are added.
 class DBusObjectManagerInterfacesAddedSignal extends DBusSignal {
   /// Path of the object that has interfaces added to.
-  DBusObjectPath get changedPath => values[0] as DBusObjectPath;
+  DBusObjectPath get changedPath => values[0].asObjectPath();
 
   /// The properties and interfaces that were added.
   Map<String, Map<String, DBusValue>> get interfacesAndProperties =>
@@ -26,10 +26,10 @@ class DBusObjectManagerInterfacesAddedSignal extends DBusSignal {
 /// Signal received when interfaces are removed.
 class DBusObjectManagerInterfacesRemovedSignal extends DBusSignal {
   /// Path of the object that has interfaces removed from.
-  DBusObjectPath get changedPath => values[0] as DBusObjectPath;
+  DBusObjectPath get changedPath => values[0].asObjectPath();
 
   /// The interfaces that were removed.
-  List<String> get interfaces => (values[1] as DBusArray).mapString().toList();
+  List<String> get interfaces => values[1].asStringArray().toList();
 
   DBusObjectManagerInterfacesRemovedSignal(DBusSignal signal)
       : super(
@@ -86,8 +86,8 @@ class DBusRemoteObjectManager extends DBusRemoteObject {
 
     Map<DBusObjectPath, Map<String, Map<String, DBusValue>>> decodeObjects(
         DBusValue objects) {
-      return (objects as DBusDict).children.map((key, value) => MapEntry(
-          key as DBusObjectPath, _decodeInterfacesAndProperties(value)));
+      return objects.asDict().map((key, value) =>
+          MapEntry(key.asObjectPath(), _decodeInterfacesAndProperties(value)));
     }
 
     return decodeObjects(result.returnValues[0]);
@@ -102,11 +102,6 @@ class DBusRemoteObjectManager extends DBusRemoteObject {
 /// Decodes a value with signature 'a{sa{sv}}'.
 Map<String, Map<String, DBusValue>> _decodeInterfacesAndProperties(
     DBusValue object) {
-  return (object as DBusDict).children.map((key, value) =>
-      MapEntry((key as DBusString).value, _decodeProperties(value)));
-}
-
-/// Decodes a value with signature 'a{sv}'.
-Map<String, DBusValue> _decodeProperties(DBusValue object) {
-  return (object as DBusDict).mapStringVariant();
+  return object.asDict().map(
+      (key, value) => MapEntry(key.asString(), value.asStringVariantDict()));
 }

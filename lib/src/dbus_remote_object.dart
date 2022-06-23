@@ -27,15 +27,14 @@ class DBusRemoteObjectSignalStream extends DBusSignalStream {
 /// Signal received when properties are changed.
 class DBusPropertiesChangedSignal extends DBusSignal {
   /// The interface the properties are on.
-  String get propertiesInterface => (values[0] as DBusString).value;
+  String get propertiesInterface => values[0].asString();
 
   /// Properties that have changed and their new values.
   Map<String, DBusValue> get changedProperties =>
-      (values[1] as DBusDict).mapStringVariant();
+      values[1].asStringVariantDict();
 
   /// Properties that have changed but require their values to be requested.
-  List<String> get invalidatedProperties =>
-      (values[2] as DBusArray).mapString().toList();
+  List<String> get invalidatedProperties => values[2].asStringArray().toList();
 
   DBusPropertiesChangedSignal(DBusSignal signal)
       : super(
@@ -103,7 +102,7 @@ class DBusRemoteObject {
         interface: 'org.freedesktop.DBus.Introspectable',
         name: 'Introspect',
         replySignature: DBusSignature('s'));
-    var xml = (result.returnValues[0] as DBusString).value;
+    var xml = result.returnValues[0].asString();
     return parseDBusIntrospectXml(xml);
   }
 
@@ -127,7 +126,7 @@ class DBusRemoteObject {
         name: 'Get',
         values: [DBusString(interface), DBusString(name)],
         replySignature: DBusSignature('v'));
-    var value = (result.returnValues[0] as DBusVariant).value;
+    var value = result.returnValues[0].asVariant();
     if (signature != null && value.signature != signature) {
       throw DBusPropertySignatureException('$interface.$name', value);
     }
@@ -147,7 +146,7 @@ class DBusRemoteObject {
         name: 'GetAll',
         values: [DBusString(interface)],
         replySignature: DBusSignature('a{sv}'));
-    return (result.returnValues[0] as DBusDict).mapStringVariant();
+    return result.returnValues[0].asStringVariantDict();
   }
 
   /// Sets a property on this object.

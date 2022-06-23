@@ -51,22 +51,22 @@ Future<DBusMethodResponse> handlePropertiesMethodCall(
     if (methodCall.signature != DBusSignature('ss')) {
       return DBusMethodErrorResponse.invalidArgs();
     }
-    var interfaceName = (methodCall.values[0] as DBusString).value;
-    var propertyName = (methodCall.values[1] as DBusString).value;
+    var interfaceName = methodCall.values[0].asString();
+    var propertyName = methodCall.values[1].asString();
     return await object.getProperty(interfaceName, propertyName);
   } else if (methodCall.name == 'Set') {
     if (methodCall.signature != DBusSignature('ssv')) {
       return DBusMethodErrorResponse.invalidArgs();
     }
-    var interfaceName = (methodCall.values[0] as DBusString).value;
-    var propertyName = (methodCall.values[1] as DBusString).value;
-    var value = (methodCall.values[2] as DBusVariant).value;
+    var interfaceName = methodCall.values[0].asString();
+    var propertyName = methodCall.values[1].asString();
+    var value = methodCall.values[2].asVariant();
     return await object.setProperty(interfaceName, propertyName, value);
   } else if (methodCall.name == 'GetAll') {
     if (methodCall.signature != DBusSignature('s')) {
       return DBusMethodErrorResponse.invalidArgs();
     }
-    var interfaceName = (methodCall.values[0] as DBusString).value;
+    var interfaceName = methodCall.values[0].asString();
     return await object.getAllProperties(interfaceName);
   } else {
     return DBusMethodErrorResponse.unknownMethod();
