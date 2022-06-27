@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.6
+
+* Add helper methods to DBusValue to reduce casting.
+* Add helper methods for boolean arrays.
+
 ## 0.7.5
 
 * depends on ffi 2.x
