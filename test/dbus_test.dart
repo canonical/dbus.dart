@@ -715,6 +715,10 @@ void main() {
         equals(DBusArray(
             DBusSignature('y'), [DBusByte(1), DBusByte(2), DBusByte(3)])));
     expect(
+        DBusArray.boolean([false, true]),
+        equals(DBusArray(
+            DBusSignature('b'), [DBusBoolean(false), DBusBoolean(true)])));
+    expect(
         DBusArray.int16([1, 2, -3]),
         equals(DBusArray(
             DBusSignature('n'), [DBusInt16(1), DBusInt16(2), DBusInt16(-3)])));
@@ -771,6 +775,12 @@ void main() {
           DBusArray.byte([1, 2, 3])
         ]).toString(),
         equals("DBusArray(DBusSignature('ay'), [DBusArray.byte([1, 2, 3])])"));
+    expect(
+        DBusArray(DBusSignature('ab'), [
+          DBusArray.boolean([false, true])
+        ]).toString(),
+        equals(
+            "DBusArray(DBusSignature('ab'), [DBusArray.boolean([false, true])])"));
     expect(DBusArray.byte([1, 2, 3]).toString(),
         equals('DBusArray.byte([1, 2, 3])'));
     expect(DBusArray.int16([1, 2, -3]).toString(),
@@ -2593,7 +2603,7 @@ void main() {
       DBusVariant(DBusString('variant')),
       DBusStruct([]),
       DBusArray.byte([0, 1, 255]),
-      DBusArray(DBusSignature('b'), [DBusBoolean(false), DBusBoolean(true)]),
+      DBusArray.boolean([false, true]),
       DBusArray.int16([0, 1, -32768, 32767]),
       DBusArray.uint16([0, 1, 65535]),
       DBusArray.int32([0, 1, -2147483648, 2147483647]),
