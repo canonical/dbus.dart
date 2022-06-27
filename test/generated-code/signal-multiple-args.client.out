@@ -17,7 +17,7 @@ class ComExampleTestEvent extends DBusSignal {
   DBusValue get variant_value => values[12].asVariant();
   DBusStruct get struct_value => values[13].asStruct();
   List<int> get array_value_y => values[14].asByteArray().toList();
-  List<bool> get array_value_b => values[15].asArray().map((child) => child.asBoolean()).toList();
+  List<bool> get array_value_b => values[15].asBooleanArray().toList();
   List<int> get array_value_n => values[16].asInt16Array().toList();
   List<int> get array_value_q => values[17].asUint16Array().toList();
   List<int> get array_value_u => values[18].asInt32Array().toList();

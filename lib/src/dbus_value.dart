@@ -92,6 +92,9 @@ abstract class DBusValue {
   /// Extracts the bytes inside this array. Only works if [signature] is 'ay'.
   Iterable<int> asByteArray() => (this as DBusArray).mapByte();
 
+  /// Extracts the boolean values inside this array. Only works if [signature] is 'ab'.
+  Iterable<bool> asBooleanArray() => (this as DBusArray).mapBoolean();
+
   /// Extracts the 16 bit signed integers inside this array. Only works if [signature] is 'an'.
   Iterable<int> asInt16Array() => (this as DBusArray).mapInt16();
 
@@ -913,6 +916,12 @@ class DBusArray extends DBusValue {
         DBusSignature('y'), values.map((value) => DBusByte(value)));
   }
 
+  /// Creates a new array of boolean values.
+  factory DBusArray.boolean(Iterable<bool> values) {
+    return DBusArray(
+        DBusSignature('b'), values.map((value) => DBusBoolean(value)));
+  }
+
   /// Creates a new array of signed 16 bit values.
   factory DBusArray.int16(Iterable<int> values) {
     return DBusArray(
@@ -990,6 +999,9 @@ class DBusArray extends DBusValue {
   /// Maps the contents of this array into native types. Only works if [childSignature] is 'y'.
   Iterable<int> mapByte() => children.map((value) => value.asByte());
 
+  /// Maps the contents of this array into native types. Only works if [childSignature] is 'b'.
+  Iterable<bool> mapBoolean() => children.map((value) => value.asBoolean());
+
   /// Maps the contents of this array into native types. Only works if [childSignature] is 'n'.
   Iterable<int> mapInt16() => children.map((value) => value.asInt16());
 
@@ -1041,6 +1053,9 @@ class DBusArray extends DBusValue {
       case 'y':
         var values = children.map((child) => child.asByte()).join(', ');
         return 'DBusArray.byte([$values])';
+      case 'b':
+        var values = children.map((child) => child.asBoolean()).join(', ');
+        return 'DBusArray.boolean([$values])';
       case 'n':
         var values = children.map((child) => child.asInt16()).join(', ');
         return 'DBusArray.int16([$values])';

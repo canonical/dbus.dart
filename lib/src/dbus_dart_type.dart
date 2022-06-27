@@ -294,6 +294,8 @@ class DBusArrayType extends DBusDartType {
     switch (childSignature.value) {
       case 'y':
         return 'DBusArray.byte($name)';
+      case 'b':
+        return 'DBusArray.boolean($name)';
       case 'n':
         return 'DBusArray.int16($name)';
       case 'q':
@@ -328,6 +330,8 @@ class DBusArrayType extends DBusDartType {
     switch (childSignature.value) {
       case 'y':
         return '$name.asByteArray().toList()';
+      case 'b':
+        return '$name.asBooleanArray().toList()';
       case 'n':
         return '$name.asInt16Array().toList()';
       case 'q':
