@@ -214,6 +214,57 @@ class DBusNameOwnerChangedEvent {
 /// Exception thrown when a request is sent and the connection to the D-Bus server is closed.
 class DBusClosedException implements Exception {}
 
+class NameOwners {
+  final _nameOwners = <DBusBusName, DBusBusName>{};
+  Future? nameOwnersFutureResponse;
+
+  bool containsValue(DBusBusName? name) {
+    return _nameOwners.containsValue(name);
+  }
+
+  DBusBusName? remove(DBusBusName? name) {
+    return _nameOwners.remove(name);
+  }
+
+  Future<DBusBusName?> setNameOwner(DBusClient client, DBusBusName name) async {
+    nameOwnersFutureResponse = getNameOwner(client, name.value);
+    var uniqueName = await nameOwnersFutureResponse;
+    if (uniqueName == null) {
+      return null;
+    }
+
+    var uniqueName_ = DBusBusName(uniqueName);
+    _nameOwners[name] = uniqueName_;
+    return uniqueName_;
+  }
+
+  /// Returns the unique connection name of the client that owns [name].
+  Future<String?> getNameOwner(DBusClient client, String name) async {
+    DBusMethodSuccessResponse result;
+    try {
+      result = await client.callMethod(
+          destination: 'org.freedesktop.DBus',
+          path: DBusObjectPath('/org/freedesktop/DBus'),
+          interface: 'org.freedesktop.DBus',
+          name: 'GetNameOwner',
+          values: [DBusString(name)],
+          replySignature: DBusSignature('s'));
+    } on DBusMethodResponseException catch (e) {
+      if (e.response.errorName == 'org.freedesktop.DBus.Error.NameHasNoOwner') {
+        return null;
+      }
+      rethrow;
+    }
+    return (result.returnValues[0] as DBusString).value;
+  }
+
+  Future<DBusBusName?> operator [](DBusBusName? key) async {
+    await nameOwnersFutureResponse;
+    return _nameOwners[key];
+  }
+  void operator []=(DBusBusName key, DBusBusName value) => _nameOwners[key] = value;
+}
+
 /// A client connection to a D-Bus server.
 class DBusClient {
   final DBusAddress _address;
@@ -233,7 +284,7 @@ class DBusClient {
   final _matchRules = <String, int>{};
 
   // Maps D-Bus names (e.g. 'org.freedesktop.DBus') to unique names (e.g. ':1').
-  final _nameOwners = <DBusBusName, DBusBusName>{};
+  final _nameOwners = NameOwners();
 
   // Names owned by this client. e.g. [ 'com.example.Foo', 'com.example.Bar' ].
   final _ownedNames = <DBusBusName>{};
@@ -453,26 +504,6 @@ class DBusClient {
     return (result.returnValues[0] as DBusBoolean).value;
   }
 
-  /// Returns the unique connection name of the client that owns [name].
-  Future<String?> getNameOwner(String name) async {
-    DBusMethodSuccessResponse result;
-    try {
-      result = await callMethod(
-          destination: 'org.freedesktop.DBus',
-          path: DBusObjectPath('/org/freedesktop/DBus'),
-          interface: 'org.freedesktop.DBus',
-          name: 'GetNameOwner',
-          values: [DBusString(name)],
-          replySignature: DBusSignature('s'));
-    } on DBusMethodResponseException catch (e) {
-      if (e.response.errorName == 'org.freedesktop.DBus.Error.NameHasNoOwner') {
-        return null;
-      }
-      rethrow;
-    }
-    return (result.returnValues[0] as DBusString).value;
-  }
-
   /// Returns the Unix user ID of the process running the client that owns [name].
   Future<int> getConnectionUnixUser(String name) async {
     var result = await callMethod(
@@ -633,14 +664,7 @@ class DBusClient {
   Future<DBusBusName?> _findUniqueName(DBusBusName name) async {
     if (_nameOwners.containsValue(name)) return _nameOwners[name];
 
-    var uniqueName = await getNameOwner(name.value);
-    if (uniqueName == null) {
-      return null;
-    }
-
-    var uniqueName_ = DBusBusName(uniqueName);
-    _nameOwners[name] = uniqueName_;
-    return uniqueName_;
+    return _nameOwners.setNameOwner(this, name);
   }
 
   /// Emits a signal from a D-Bus object.
@@ -1014,7 +1038,7 @@ class DBusClient {
   }
 
   /// Processes a signal received from the D-Bus server.
-  void _processSignal(DBusMessage message) {
+  void _processSignal(DBusMessage message) async {
     // Check has required fields.
     if (message.path == null ||
         message.interface == null ||
@@ -1025,7 +1049,7 @@ class DBusClient {
     for (var stream in _signalStreams) {
       // If the stream is for an owned name, check if that matches the unique name in the message.
       var sender = message.sender;
-      if (_nameOwners[stream._rule.sender] == sender) {
+      if (await _nameOwners[stream._rule.sender] == sender) {
         sender = stream._rule.sender;
       }
 
