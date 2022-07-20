@@ -862,7 +862,7 @@ class DBusStruct extends DBusValue {
       other is DBusStruct && _listsEqual(other.children, children);
 
   @override
-  int get hashCode => children.hashCode;
+  int get hashCode => Object.hashAll(children);
 
   @override
   String toString() {
@@ -1045,7 +1045,7 @@ class DBusArray extends DBusValue {
       _listsEqual(other.children, children);
 
   @override
-  int get hashCode => children.hashCode;
+  int get hashCode => Object.hashAll(children);
 
   @override
   String toString() {
@@ -1181,7 +1181,8 @@ class DBusDict extends DBusValue {
       _mapsEqual(other.children, children);
 
   @override
-  int get hashCode => children.hashCode;
+  int get hashCode => Object.hashAll(
+      children.entries.map((entry) => Object.hash(entry.key, entry.value)));
 
   @override
   String toString() {
