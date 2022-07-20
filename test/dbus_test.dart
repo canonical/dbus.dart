@@ -662,6 +662,11 @@ void main() {
           DBusSignature.uint32,
           DBusSignature.double
         ])));
+    expect(
+        DBusStruct([DBusString('one'), DBusUint32(2), DBusDouble(3.0)])
+            .hashCode,
+        equals(DBusStruct([DBusString('one'), DBusUint32(2), DBusDouble(3.0)])
+            .hashCode));
   });
 
   test('value - array', () async {
@@ -816,6 +821,8 @@ void main() {
         DBusArray.variant(
             [DBusInt32(1), DBusString('two'), DBusDouble(3.14159)]).signature,
         equals(DBusSignature.array(DBusSignature.variant)));
+    expect(DBusArray.string(['one', 'two', 'three']).hashCode,
+        equals(DBusArray.string(['one', 'two', 'three']).hashCode));
   });
 
   test('value - dict', () async {
@@ -939,6 +946,12 @@ void main() {
             .signature,
         equals(
             DBusSignature.dict(DBusSignature.string, DBusSignature.variant)));
+    expect(
+        DBusDict.stringVariant({'one': DBusInt32(1), 'two': DBusDouble(2)})
+            .hashCode,
+        equals(
+            DBusDict.stringVariant({'one': DBusInt32(1), 'two': DBusDouble(2)})
+                .hashCode));
   });
 
   test('uuid', () async {
