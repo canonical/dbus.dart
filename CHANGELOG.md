@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.7
+
+* Use contents of DBusStruct/Array/Dict for hash codes.
+
 ## 0.7.6
 
 * Add helper methods to DBusValue to reduce casting.
