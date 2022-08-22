@@ -213,6 +213,7 @@ void main() {
     expect(DBusByte(255).value, equals(255));
     expect(() => DBusByte(256), throwsA(isA<AssertionError>()));
     expect(DBusByte(0).signature, equals(DBusSignature('y')));
+    expect(DBusByte(42).asByte(), equals(42));
     expect(DBusByte(42).toNative(), equals(42));
     expect(DBusByte(42) == DBusByte(42), isTrue);
     expect(DBusByte(42) == DBusByte(99), isFalse);
@@ -228,6 +229,7 @@ void main() {
     expect(DBusBoolean(false).value, isFalse);
     expect(DBusBoolean(true).value, isTrue);
     expect(DBusBoolean(true).signature, equals(DBusSignature('b')));
+    expect(DBusBoolean(true).asBoolean(), equals(true));
     expect(DBusBoolean(true).toNative(), equals(true));
     expect(DBusBoolean(false).toNative(), equals(false));
     expect(DBusBoolean(true) == DBusBoolean(true), isTrue);
@@ -248,6 +250,7 @@ void main() {
     expect(DBusInt16(32767).value, equals(32767));
     expect(() => DBusInt16(32768), throwsA(isA<AssertionError>()));
     expect(DBusInt16(0).signature, equals(DBusSignature('n')));
+    expect(DBusInt16(-42).asInt16(), equals(-42));
     expect(DBusInt16(-42).toNative(), equals(-42));
     expect(DBusInt16(42) == DBusInt16(42), isTrue);
     expect(DBusInt16(42) == DBusInt16(99), isFalse);
@@ -265,6 +268,7 @@ void main() {
     expect(DBusUint16(65535).value, equals(65535));
     expect(() => DBusUint16(65536), throwsA(isA<AssertionError>()));
     expect(DBusUint16(0).signature, equals(DBusSignature('q')));
+    expect(DBusUint16(42).asUint16(), equals(42));
     expect(DBusUint16(42).toNative(), equals(42));
     expect(DBusUint16(42) == DBusUint16(42), isTrue);
     expect(DBusUint16(42) == DBusUint16(99), isFalse);
@@ -283,6 +287,7 @@ void main() {
     expect(DBusInt32(2147483647).value, equals(2147483647));
     expect(() => DBusInt32(2147483648), throwsA(isA<AssertionError>()));
     expect(DBusInt32(0).signature, equals(DBusSignature('i')));
+    expect(DBusInt32(-42).asInt32(), equals(-42));
     expect(DBusInt32(-42).toNative(), equals(-42));
     expect(DBusInt32(42) == DBusInt32(42), isTrue);
     expect(DBusInt32(42) == DBusInt32(99), isFalse);
@@ -300,6 +305,7 @@ void main() {
     expect(DBusUint32(4294967295).value, equals(4294967295));
     expect(() => DBusUint32(4294967296), throwsA(isA<AssertionError>()));
     expect(DBusUint32(0).signature, equals(DBusSignature('u')));
+    expect(DBusUint32(42).asUint32(), equals(42));
     expect(DBusUint32(42).toNative(), equals(42));
     expect(DBusUint32(42) == DBusUint32(42), isTrue);
     expect(DBusUint32(42) == DBusUint32(99), isFalse);
@@ -316,6 +322,7 @@ void main() {
     expect(DBusInt64(0).value, equals(0));
     expect(DBusInt64(9223372036854775807).value, equals(9223372036854775807));
     expect(DBusInt64(0).signature, equals(DBusSignature('x')));
+    expect(DBusInt64(-42).asInt64(), equals(-42));
     expect(DBusInt64(-42).toNative(), equals(-42));
     expect(DBusInt64(42) == DBusInt64(42), isTrue);
     expect(DBusInt64(42) == DBusInt64(99), isFalse);
@@ -332,6 +339,7 @@ void main() {
     expect(DBusUint64(0xffffffffffffffff).value, equals(0xffffffffffffffff));
     expect(() => DBusUint32(4294967296), throwsA(isA<AssertionError>()));
     expect(DBusUint64(0).signature, equals(DBusSignature('t')));
+    expect(DBusUint64(42).asUint64(), equals(42));
     expect(DBusUint64(42).toNative(), equals(42));
     expect(DBusUint64(42) == DBusUint64(42), isTrue);
     expect(DBusUint64(42) == DBusUint64(99), isFalse);
@@ -346,6 +354,7 @@ void main() {
   test('value - double', () async {
     expect(DBusDouble(3.14159).value, equals(3.14159));
     expect(DBusDouble(3.14159).signature, equals(DBusSignature('d')));
+    expect(DBusDouble(3.14159).asDouble(), equals(3.14159));
     expect(DBusDouble(3.14159).toNative(), equals(3.14159));
     expect(DBusDouble(3.14159) == DBusDouble(3.14159), isTrue);
     expect(DBusDouble(3.14159) == DBusDouble(2.71828), isFalse);
@@ -363,6 +372,7 @@ void main() {
     expect(DBusString('😄🙃🤪🧐').value, equals('😄🙃🤪🧐'));
     expect(DBusString('!' * 1024).value, equals('!' * 1024));
     expect(DBusString('one').signature, equals(DBusSignature('s')));
+    expect(DBusString('one').asString(), equals('one'));
     expect(DBusString('one').toNative(), equals('one'));
     expect(DBusString('one') == DBusString('one'), isTrue);
     expect(DBusString('one') == DBusString('two'), isFalse);
@@ -400,6 +410,8 @@ void main() {
     expect(() => DBusObjectPath(r'/com/example/T😄st'), throwsArgumentError);
     expect(DBusObjectPath('/com/example/Test').signature,
         equals(DBusSignature('o')));
+    expect(DBusObjectPath('/com/example/Test').asObjectPath(),
+        equals(DBusObjectPath('/com/example/Test')));
     expect(DBusObjectPath('/com/example/Test').toNative(),
         equals(DBusObjectPath('/com/example/Test')));
     expect(
@@ -542,6 +554,7 @@ void main() {
     expect(DBusSignature('(ybnq)').split(), equals([DBusSignature('(ybnq)')]));
     expect(DBusSignature('').split(), equals([]));
     expect(DBusSignature('s').signature, equals(DBusSignature('g')));
+    expect(DBusSignature('s').asSignature(), equals(DBusSignature('s')));
     expect(DBusSignature('s').toNative(), equals(DBusSignature('s')));
     expect(DBusSignature('a{sv}') == DBusSignature('a{sv}'), isTrue);
     expect(DBusSignature('a{sv}') == DBusSignature('s'), isFalse);
@@ -562,6 +575,8 @@ void main() {
     expect(DBusVariant(DBusUint32(2)).value, equals(DBusUint32(2)));
     expect(
         DBusVariant(DBusString('one')).signature, equals(DBusSignature('v')));
+    expect(
+        DBusVariant(DBusString('one')).asVariant(), equals(DBusString('one')));
     expect(DBusVariant(DBusString('one')).toNative(), equals('one'));
     expect(DBusVariant(DBusString('one')) == DBusVariant(DBusString('one')),
         isTrue);
@@ -589,8 +604,11 @@ void main() {
         () => DBusMaybe(DBusSignature('s'), DBusInt32(1)), throwsArgumentError);
     expect(DBusMaybe(DBusSignature('s'), null).signature,
         equals(DBusSignature('ms')));
+    expect(DBusMaybe(DBusSignature('s'), DBusString('one')).asMaybe(),
+        equals(DBusString('one')));
     expect(DBusMaybe(DBusSignature('s'), DBusString('one')).toNative(),
         equals('one'));
+    expect(DBusMaybe(DBusSignature('s'), null).asMaybe(), isNull);
     expect(DBusMaybe(DBusSignature('s'), null).toNative(), isNull);
     expect(
         DBusMaybe(DBusSignature('s'), DBusString('one')) ==
@@ -615,6 +633,7 @@ void main() {
     var stdoutHandle = ResourceHandle.fromStdout(stdout);
     expect(DBusUnixFd(stdinHandle).handle, equals(stdinHandle));
     expect(DBusUnixFd(stdinHandle).signature, equals(DBusSignature('h')));
+    expect(DBusUnixFd(stdinHandle).asUnixFd(), equals(stdinHandle));
     expect(DBusUnixFd(stdinHandle).toNative(), equals(DBusUnixFd(stdinHandle)));
     expect(DBusUnixFd(stdinHandle) == DBusUnixFd(stdinHandle), isTrue);
     expect(DBusUnixFd(stdinHandle) == DBusUnixFd(stdoutHandle), isFalse);
@@ -633,6 +652,10 @@ void main() {
             .children,
         equals([DBusString('one'), DBusUint32(2), DBusDouble(3.0)]));
     expect(DBusStruct([]).signature, equals(DBusSignature('()')));
+    expect(
+        DBusStruct([DBusString('one'), DBusUint32(2), DBusDouble(3.0)])
+            .asStruct(),
+        equals([DBusString('one'), DBusUint32(2), DBusDouble(3.0)]));
     expect(
         DBusStruct([DBusString('one'), DBusUint32(2), DBusDouble(3.0)])
             .toNative(),
@@ -699,6 +722,13 @@ void main() {
           DBusString('one'),
           DBusString('two'),
           DBusString('three')
+        ]).asArray(),
+        equals([DBusString('one'), DBusString('two'), DBusString('three')]));
+    expect(
+        DBusArray(DBusSignature('s'), [
+          DBusString('one'),
+          DBusString('two'),
+          DBusString('three')
         ]).toNative(),
         equals(['one', 'two', 'three']));
     expect(
@@ -719,42 +749,55 @@ void main() {
         DBusArray.byte([1, 2, 3]),
         equals(DBusArray(
             DBusSignature('y'), [DBusByte(1), DBusByte(2), DBusByte(3)])));
+    expect(DBusArray.byte([1, 2, 3]).asByteArray(), equals([1, 2, 3]));
     expect(
         DBusArray.boolean([false, true]),
         equals(DBusArray(
             DBusSignature('b'), [DBusBoolean(false), DBusBoolean(true)])));
+    expect(DBusArray.boolean([false, true]).asBooleanArray(),
+        equals([false, true]));
     expect(
         DBusArray.int16([1, 2, -3]),
         equals(DBusArray(
             DBusSignature('n'), [DBusInt16(1), DBusInt16(2), DBusInt16(-3)])));
+    expect(DBusArray.int16([1, 2, -3]).asInt16Array(), equals([1, 2, -3]));
     expect(
         DBusArray.uint16([1, 2, 3]),
         equals(DBusArray(DBusSignature('q'),
             [DBusUint16(1), DBusUint16(2), DBusUint16(3)])));
+    expect(DBusArray.uint16([1, 2, 3]).asUint16Array(), equals([1, 2, 3]));
     expect(
         DBusArray.int32([1, 2, -3]),
         equals(DBusArray(
             DBusSignature('i'), [DBusInt32(1), DBusInt32(2), DBusInt32(-3)])));
+    expect(DBusArray.int32([1, 2, -3]).asInt32Array(), equals([1, 2, -3]));
     expect(
         DBusArray.uint32([1, 2, 3]),
         equals(DBusArray(DBusSignature('u'),
             [DBusUint32(1), DBusUint32(2), DBusUint32(3)])));
+    expect(DBusArray.uint32([1, 2, 3]).asUint32Array(), equals([1, 2, 3]));
     expect(
         DBusArray.int64([1, 2, -3]),
         equals(DBusArray(
             DBusSignature('x'), [DBusInt64(1), DBusInt64(2), DBusInt64(-3)])));
+    expect(DBusArray.int64([1, 2, -3]).asInt64Array(), equals([1, 2, -3]));
     expect(
         DBusArray.uint64([1, 2, 3]),
         equals(DBusArray(DBusSignature('t'),
             [DBusUint64(1), DBusUint64(2), DBusUint64(3)])));
+    expect(DBusArray.uint64([1, 2, 3]).asUint64Array(), equals([1, 2, 3]));
     expect(
         DBusArray.double([1.1, 2.1, 3.1]),
         equals(DBusArray(DBusSignature('d'),
             [DBusDouble(1.1), DBusDouble(2.1), DBusDouble(3.1)])));
+    expect(DBusArray.double([1.1, 2.1, 3.1]).asDoubleArray(),
+        equals([1.1, 2.1, 3.1]));
     expect(
         DBusArray.string(['one', 'two', 'three']),
         equals(DBusArray(DBusSignature('s'),
             [DBusString('one'), DBusString('two'), DBusString('three')])));
+    expect(DBusArray.string(['one', 'two', 'three']).asStringArray(),
+        equals(['one', 'two', 'three']));
     expect(
         DBusArray.objectPath([
           DBusObjectPath('/one'),
@@ -767,6 +810,17 @@ void main() {
           DBusObjectPath('/three')
         ])));
     expect(
+        DBusArray.objectPath([
+          DBusObjectPath('/one'),
+          DBusObjectPath('/two'),
+          DBusObjectPath('/three')
+        ]).asObjectPathArray(),
+        equals([
+          DBusObjectPath('/one'),
+          DBusObjectPath('/two'),
+          DBusObjectPath('/three')
+        ]));
+    expect(
         DBusArray.variant(
             [DBusInt32(1), DBusString('two'), DBusDouble(3.14159)]),
         equals(DBusArray(DBusSignature('v'), [
@@ -774,6 +828,11 @@ void main() {
           DBusVariant(DBusString('two')),
           DBusVariant(DBusDouble(3.14159))
         ])));
+    expect(
+        DBusArray.variant(
+                [DBusInt32(1), DBusString('two'), DBusDouble(3.14159)])
+            .asVariantArray(),
+        equals([DBusInt32(1), DBusString('two'), DBusDouble(3.14159)]));
     var stdinHandle = ResourceHandle.fromStdin(stdin);
     var stdoutHandle = ResourceHandle.fromStdout(stdout);
     expect(
@@ -820,6 +879,11 @@ void main() {
         ]).toString(),
         equals(
             "DBusArray.objectPath([DBusObjectPath('/one'), DBusObjectPath('/two'), DBusObjectPath('/three')])"));
+    expect(
+        DBusArray.signature([DBusSignature('u'), DBusSignature('as')])
+            .toString(),
+        equals(
+            "DBusArray.signature([DBusSignature('u'), DBusSignature('as')])"));
     expect(
         DBusArray.variant(
             [DBusInt32(1), DBusString('two'), DBusDouble(3.14159)]).toString(),
@@ -909,6 +973,17 @@ void main() {
           DBusInt32(1): DBusString('one'),
           DBusInt32(2): DBusString('two'),
           DBusInt32(3): DBusString('three')
+        }).asDict(),
+        equals({
+          DBusInt32(1): DBusString('one'),
+          DBusInt32(2): DBusString('two'),
+          DBusInt32(3): DBusString('three')
+        }));
+    expect(
+        DBusDict(DBusSignature('i'), DBusSignature('s'), {
+          DBusInt32(1): DBusString('one'),
+          DBusInt32(2): DBusString('two'),
+          DBusInt32(3): DBusString('three')
         }).toNative(),
         equals({1: 'one', 2: 'two', 3: 'three'}));
     expect(
@@ -942,6 +1017,10 @@ void main() {
           DBusString('one'): DBusVariant(DBusInt32(1)),
           DBusString('two'): DBusVariant(DBusDouble(2))
         })));
+    expect(
+        DBusDict.stringVariant({'one': DBusInt32(1), 'two': DBusDouble(2)})
+            .asStringVariantDict(),
+        equals({'one': DBusInt32(1), 'two': DBusDouble(2)}));
     expect(
         DBusDict(DBusSignature('i'), DBusSignature('s'), {
           DBusInt32(1): DBusString('one'),
