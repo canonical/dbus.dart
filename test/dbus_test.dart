@@ -774,6 +774,14 @@ void main() {
           DBusVariant(DBusString('two')),
           DBusVariant(DBusDouble(3.14159))
         ])));
+    var stdinHandle = ResourceHandle.fromStdin(stdin);
+    var stdoutHandle = ResourceHandle.fromStdout(stdout);
+    expect(
+        DBusArray.unixFd([stdinHandle, stdoutHandle]),
+        equals(DBusArray(DBusSignature('h'),
+            [DBusUnixFd(stdinHandle), DBusUnixFd(stdoutHandle)])));
+    expect(DBusArray.unixFd([stdinHandle, stdoutHandle]).asUnixFdArray(),
+        equals([stdinHandle, stdoutHandle]));
 
     expect(
         DBusArray(DBusSignature('ay'), [
@@ -821,6 +829,12 @@ void main() {
         DBusArray.variant(
             [DBusInt32(1), DBusString('two'), DBusDouble(3.14159)]).signature,
         equals(DBusSignature.array(DBusSignature.variant)));
+    expect(
+        DBusArray.unixFd([stdinHandle, stdoutHandle]).toString(),
+        equals(
+            "DBusArray.unixFd([Instance of '_ResourceHandleImpl', Instance of '_ResourceHandleImpl'])"));
+    expect(DBusArray.unixFd([stdinHandle, stdoutHandle]).signature,
+        equals(DBusSignature.array(DBusSignature.unixFd)));
     expect(DBusArray.string(['one', 'two', 'three']).hashCode,
         equals(DBusArray.string(['one', 'two', 'three']).hashCode));
   });

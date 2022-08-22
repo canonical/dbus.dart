@@ -130,6 +130,9 @@ abstract class DBusValue {
   /// Extracts the values inside this variant array. Only works if [signature] is 'av'.
   Iterable<DBusValue> asVariantArray() => (this as DBusArray).mapVariant();
 
+  /// Extracts the resource handles inside this array of unix file descriptors. Only works if [signature] is 'ah'.
+  Iterable<ResourceHandle> asUnixFdArray() => (this as DBusArray).mapUnixFd();
+
   /// Extracts the dictionary inside this vlaue. Only works if [signature] is a dictionary type, e.g 'a{os}'.
   Map<DBusValue, DBusValue> asDict() => (this as DBusDict).children;
 
@@ -986,6 +989,12 @@ class DBusArray extends DBusValue {
         DBusSignature('v'), values.map((value) => DBusVariant(value)));
   }
 
+  /// Creates a new array of Unix file descriptors.
+  factory DBusArray.unixFd(Iterable<ResourceHandle> values) {
+    return DBusArray(
+        DBusSignature('h'), values.map((value) => DBusUnixFd(value)));
+  }
+
   @override
   DBusSignature get signature {
     return DBusSignature('a${childSignature.value}');
@@ -1037,6 +1046,10 @@ class DBusArray extends DBusValue {
   /// Maps the contents of this array into native types. Only works if [childSignature] is 'v'.
   Iterable<DBusValue> mapVariant() =>
       children.map((value) => value.asVariant());
+
+  /// Maps the contents of this array into native types. Only works if [childSignature] is 'h'.
+  Iterable<ResourceHandle> mapUnixFd() =>
+      children.map((value) => value.asUnixFd());
 
   @override
   bool operator ==(other) =>
@@ -1092,6 +1105,9 @@ class DBusArray extends DBusValue {
       case 'v':
         var values = children.map((child) => child.asVariant()).join(', ');
         return 'DBusArray.variant([$values])';
+      case 'h':
+        var values = children.map((child) => child.asUnixFd()).join(', ');
+        return 'DBusArray.unixFd([$values])';
       default:
         var childrenText = <String>[];
         for (var child in children) {
