@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.8
+
+* Add helper methods for unix fd arrays.
+
 ## 0.7.7
 
 * Use contents of DBusStruct/Array/Dict for hash codes.
