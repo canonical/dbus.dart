@@ -29,6 +29,8 @@ DBusDartType getDartType(DBusSignature signature) {
     return DBusSignatureType();
   } else if (value == 'v') {
     return DBusVariantType();
+  } else if (value == 'h') {
+    return DBusUnixFdType();
   } else if (value.startsWith('(') && value.endsWith(')')) {
     return DBusStructType();
   } else if (value.startsWith('a{') && value.endsWith('}')) {
@@ -259,6 +261,24 @@ class DBusVariantType extends DBusDartType {
   }
 }
 
+/// Generates Dart code for the Unix FD D-Bus type.
+class DBusUnixFdType extends DBusDartType {
+  @override
+  String get nativeType {
+    return 'ResourceHandle';
+  }
+
+  @override
+  String nativeToDBus(String name) {
+    return 'DBusUnixFd($name)';
+  }
+
+  @override
+  String dbusToNative(String name) {
+    return '$name.asUnixFd()';
+  }
+}
+
 /// Generates Dart code for the struct D-Bus type.
 class DBusStructType extends DBusDartType {
   @override
@@ -318,6 +338,8 @@ class DBusArrayType extends DBusDartType {
         return 'DBusArray.signature($name)';
       case 'v':
         return 'DBusArray.variant($name)';
+      case 'h':
+        return 'DBusArray.unixFd($name)';
       default:
         var childType = getDartType(childSignature);
         var convertedValue = childType.nativeToDBus('child');
@@ -354,6 +376,8 @@ class DBusArrayType extends DBusDartType {
         return '$name.asSignatureArray().toList()';
       case 'v':
         return '$name.asVariantArray().toList()';
+      case 'h':
+        return '$name.asUnixFdArray().toList()';
       default:
         var childType = getDartType(childSignature);
         var convertedValue = childType.dbusToNative('child');
