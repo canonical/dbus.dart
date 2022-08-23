@@ -13,6 +13,7 @@
     <property name="ObjectPathProperty" type="o"/>
     <property name="SignatureProperty" type="g"/>
     <property name="VariantProperty" type="v"/>
+    <property name="UnixFdProperty" type="h"/>
     <property name="StructProperty" type="(si)"/>
     <property name="ArrayProperty" type="ay"/>
     <property name="DictProperty" type="a{sv}"/>

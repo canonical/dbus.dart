@@ -146,6 +146,17 @@ class ComExampleTest extends DBusRemoteObject {
     await setProperty('com.example.Test', 'VariantProperty', DBusVariant(value));
   }
 
+  /// Gets com.example.Test.UnixFdProperty
+  Future<ResourceHandle> getUnixFdProperty() async {
+    var value = await getProperty('com.example.Test', 'UnixFdProperty', signature: DBusSignature('h'));
+    return value.asUnixFd();
+  }
+
+  /// Sets com.example.Test.UnixFdProperty
+  Future<void> setUnixFdProperty (ResourceHandle value) async {
+    await setProperty('com.example.Test', 'UnixFdProperty', DBusUnixFd(value));
+  }
+
   /// Gets com.example.Test.StructProperty
   Future<DBusStruct> getStructProperty() async {
     var value = await getProperty('com.example.Test', 'StructProperty', signature: DBusSignature('(si)'));

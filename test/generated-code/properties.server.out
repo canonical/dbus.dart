@@ -134,6 +134,16 @@ class ComExampleTest extends DBusObject {
     return DBusMethodErrorResponse.failed('Set com.example.Test.VariantProperty not implemented');
   }
 
+  /// Gets value of property com.example.Test.UnixFdProperty
+  Future<DBusMethodResponse> getUnixFdProperty() async {
+    return DBusMethodErrorResponse.failed('Get com.example.Test.UnixFdProperty not implemented');
+  }
+
+  /// Sets property com.example.Test.UnixFdProperty
+  Future<DBusMethodResponse> setUnixFdProperty(ResourceHandle value) async {
+    return DBusMethodErrorResponse.failed('Set com.example.Test.UnixFdProperty not implemented');
+  }
+
   /// Gets value of property com.example.Test.StructProperty
   Future<DBusMethodResponse> getStructProperty() async {
     return DBusMethodErrorResponse.failed('Get com.example.Test.StructProperty not implemented');
@@ -166,7 +176,7 @@ class ComExampleTest extends DBusObject {
 
   @override
   List<DBusIntrospectInterface> introspect() {
-    return [DBusIntrospectInterface('com.example.Test', properties: [DBusIntrospectProperty('ByteProperty', DBusSignature('y'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('BooleanProperty', DBusSignature('b'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('Int16Property', DBusSignature('n'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('Uint16Property', DBusSignature('q'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('Int32Property', DBusSignature('i'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('Uint32Property', DBusSignature('u'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('Int64Property', DBusSignature('x'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('Uint64Property', DBusSignature('t'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('DoubleProperty', DBusSignature('d'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('StringProperty', DBusSignature('s'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('ObjectPathProperty', DBusSignature('o'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('SignatureProperty', DBusSignature('g'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('VariantProperty', DBusSignature('v'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('StructProperty', DBusSignature('(si)'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('ArrayProperty', DBusSignature('ay'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('DictProperty', DBusSignature('a{sv}'), access: DBusPropertyAccess.readwrite)])];
+    return [DBusIntrospectInterface('com.example.Test', properties: [DBusIntrospectProperty('ByteProperty', DBusSignature('y'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('BooleanProperty', DBusSignature('b'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('Int16Property', DBusSignature('n'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('Uint16Property', DBusSignature('q'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('Int32Property', DBusSignature('i'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('Uint32Property', DBusSignature('u'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('Int64Property', DBusSignature('x'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('Uint64Property', DBusSignature('t'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('DoubleProperty', DBusSignature('d'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('StringProperty', DBusSignature('s'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('ObjectPathProperty', DBusSignature('o'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('SignatureProperty', DBusSignature('g'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('VariantProperty', DBusSignature('v'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('UnixFdProperty', DBusSignature('h'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('StructProperty', DBusSignature('(si)'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('ArrayProperty', DBusSignature('ay'), access: DBusPropertyAccess.readwrite), DBusIntrospectProperty('DictProperty', DBusSignature('a{sv}'), access: DBusPropertyAccess.readwrite)])];
   }
 
   @override
@@ -207,6 +217,8 @@ class ComExampleTest extends DBusObject {
         return getSignatureProperty();
       } else if (name == 'VariantProperty') {
         return getVariantProperty();
+      } else if (name == 'UnixFdProperty') {
+        return getUnixFdProperty();
       } else if (name == 'StructProperty') {
         return getStructProperty();
       } else if (name == 'ArrayProperty') {
@@ -289,6 +301,11 @@ class ComExampleTest extends DBusObject {
           return DBusMethodErrorResponse.invalidArgs();
         }
         return setVariantProperty(value.asVariant());
+      } else if (name == 'UnixFdProperty') {
+        if (value.signature != DBusSignature('h')) {
+          return DBusMethodErrorResponse.invalidArgs();
+        }
+        return setUnixFdProperty(value.asUnixFd());
       } else if (name == 'StructProperty') {
         if (value.signature != DBusSignature('(si)')) {
           return DBusMethodErrorResponse.invalidArgs();
@@ -329,6 +346,7 @@ class ComExampleTest extends DBusObject {
       properties['ObjectPathProperty'] = (await getObjectPathProperty()).returnValues[0];
       properties['SignatureProperty'] = (await getSignatureProperty()).returnValues[0];
       properties['VariantProperty'] = (await getVariantProperty()).returnValues[0];
+      properties['UnixFdProperty'] = (await getUnixFdProperty()).returnValues[0];
       properties['StructProperty'] = (await getStructProperty()).returnValues[0];
       properties['ArrayProperty'] = (await getArrayProperty()).returnValues[0];
       properties['DictProperty'] = (await getDictProperty()).returnValues[0];

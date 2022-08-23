@@ -14,6 +14,7 @@
       <arg name="object_path_value" type="o"/>
       <arg name="signature_value" type="g"/>
       <arg name="variant_value" type="v"/>
+      <arg name="unix_fd_value" type="h"/>
       <arg name="struct_value" type="(si)"/>
       <arg name="array_value_y" type="ay"/>
       <arg name="array_value_b" type="ab"/>
@@ -28,6 +29,7 @@
       <arg name="array_value_o" type="ao"/>
       <arg name="array_value_g" type="ag"/>
       <arg name="array_value_v" type="av"/>
+      <arg name="array_value_h" type="ah"/>
       <arg name="array_value_struct" type="a(si)"/>
       <arg name="array_value_array" type="aas"/>
       <arg name="dict_value_sv" type="a{sv}"/>

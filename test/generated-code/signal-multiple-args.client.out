@@ -15,25 +15,27 @@ class ComExampleTestEvent extends DBusSignal {
   String get object_path_value => values[10].asObjectPath();
   DBusSignature get signature_value => values[11].asSignature();
   DBusValue get variant_value => values[12].asVariant();
-  DBusStruct get struct_value => values[13].asStruct();
-  List<int> get array_value_y => values[14].asByteArray().toList();
-  List<bool> get array_value_b => values[15].asBooleanArray().toList();
-  List<int> get array_value_n => values[16].asInt16Array().toList();
-  List<int> get array_value_q => values[17].asUint16Array().toList();
-  List<int> get array_value_u => values[18].asInt32Array().toList();
-  List<int> get array_value_n_ => values[19].asUint32Array().toList();
-  List<int> get array_value_x => values[20].asInt64Array().toList();
-  List<int> get array_value_t => values[21].asUint64Array().toList();
-  List<double> get array_value_d => values[22].asDoubleArray().toList();
-  List<String> get array_value_s => values[23].asStringArray().toList();
-  List<String> get array_value_o => values[24].asObjectPathArray().toList();
-  List<DBusSignature> get array_value_g => values[25].asSignatureArray().toList();
-  List<DBusValue> get array_value_v => values[26].asVariantArray().toList();
-  List<DBusStruct> get array_value_struct => values[27].asArray().map((child) => child.asStruct()).toList();
-  List<List<String>> get array_value_array => values[28].asArray().map((child) => child.asStringArray().toList()).toList();
-  Map<String, DBusValue> get dict_value_sv => values[29].asStringVariantDict();
-  Map<int, String> get dict_value_us => values[30].asDict().map((key, value) => MapEntry(key.asUint32(), value.asString()));
-  Map<String, Map<String, DBusValue>> get dict_value_dict => values[31].asDict().map((key, value) => MapEntry(key.asString(), value.asStringVariantDict()));
+  ResourceHandle get unix_fd_value => values[13].asUnixFd();
+  DBusStruct get struct_value => values[14].asStruct();
+  List<int> get array_value_y => values[15].asByteArray().toList();
+  List<bool> get array_value_b => values[16].asBooleanArray().toList();
+  List<int> get array_value_n => values[17].asInt16Array().toList();
+  List<int> get array_value_q => values[18].asUint16Array().toList();
+  List<int> get array_value_u => values[19].asInt32Array().toList();
+  List<int> get array_value_n_ => values[20].asUint32Array().toList();
+  List<int> get array_value_x => values[21].asInt64Array().toList();
+  List<int> get array_value_t => values[22].asUint64Array().toList();
+  List<double> get array_value_d => values[23].asDoubleArray().toList();
+  List<String> get array_value_s => values[24].asStringArray().toList();
+  List<String> get array_value_o => values[25].asObjectPathArray().toList();
+  List<DBusSignature> get array_value_g => values[26].asSignatureArray().toList();
+  List<DBusValue> get array_value_v => values[27].asVariantArray().toList();
+  List<ResourceHandle> get array_value_h => values[28].asUnixFdArray().toList();
+  List<DBusStruct> get array_value_struct => values[29].asArray().map((child) => child.asStruct()).toList();
+  List<List<String>> get array_value_array => values[30].asArray().map((child) => child.asStringArray().toList()).toList();
+  Map<String, DBusValue> get dict_value_sv => values[31].asStringVariantDict();
+  Map<int, String> get dict_value_us => values[32].asDict().map((key, value) => MapEntry(key.asUint32(), value.asString()));
+  Map<String, Map<String, DBusValue>> get dict_value_dict => values[33].asDict().map((key, value) => MapEntry(key.asString(), value.asStringVariantDict()));
 
   ComExampleTestEvent(DBusSignal signal) : super(sender: signal.sender, path: signal.path, interface: signal.interface, name: signal.name, values: signal.values);
 }
@@ -43,6 +45,6 @@ class ComExampleTest extends DBusRemoteObject {
   late final Stream<ComExampleTestEvent> event;
 
   ComExampleTest(DBusClient client, String destination, DBusObjectPath path) : super(client, name: destination, path: path) {
-    event = DBusRemoteObjectSignalStream(object: this, interface: 'com.example.Test', name: 'Event', signature: DBusSignature('ybnqiuxtdsogv(si)ayabanaqaiauaxatadasaoagava(si)aasa{sv}a{us}a{sa{sv}}')).asBroadcastStream().map((signal) => ComExampleTestEvent(signal));
+    event = DBusRemoteObjectSignalStream(object: this, interface: 'com.example.Test', name: 'Event', signature: DBusSignature('ybnqiuxtdsogvh(si)ayabanaqaiauaxatadasaoagavaha(si)aasa{sv}a{us}a{sa{sv}}')).asBroadcastStream().map((signal) => ComExampleTestEvent(signal));
   }
 }
