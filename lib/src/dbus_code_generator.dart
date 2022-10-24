@@ -332,7 +332,7 @@ class DBusCodeGenerator {
         return makeIntrospectObject('DBusIntrospectMethod', args);
       }
 
-      String _makeSignal(DBusIntrospectSignal signal) {
+      String makeSignal(DBusIntrospectSignal signal) {
         var args = ["'${signal.name}'"];
         if (signal.args.isNotEmpty) {
           args.add('args: [${makeArgs(signal.args)}]');
@@ -359,7 +359,7 @@ class DBusCodeGenerator {
       if (methodArgs.isNotEmpty) {
         args.add('methods: [${methodArgs.join(', ')}]');
       }
-      var signalArgs = interface.signals.map((m) => _makeSignal(m));
+      var signalArgs = interface.signals.map((m) => makeSignal(m));
       if (signalArgs.isNotEmpty) {
         args.add('signals: [${signalArgs.join(', ')}]');
       }
