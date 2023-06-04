@@ -9,7 +9,7 @@ import 'package:dbus/src/dbus_match_rule.dart';
 import 'package:dbus/src/dbus_member_name.dart';
 import 'package:dbus/src/dbus_message.dart';
 import 'package:dbus/src/dbus_uuid.dart';
-import 'package:dbus/src/getuid.dart';
+import 'package:posix/posix.dart';
 import 'package:test/test.dart';
 
 // Test server that exposes an activatable service.

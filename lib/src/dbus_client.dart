@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:posix/posix.dart';
+
 import 'dbus_address.dart';
 import 'dbus_auth_client.dart';
 import 'dbus_bus_name.dart';
@@ -22,7 +24,6 @@ import 'dbus_read_buffer.dart';
 import 'dbus_signal.dart';
 import 'dbus_value.dart';
 import 'dbus_write_buffer.dart';
-import 'getuid.dart';
 
 /// Reply received when calling [DBusClient.requestName].
 enum DBusRequestNameReply { primaryOwner, inQueue, exists, alreadyOwner }

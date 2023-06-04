@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:posix/posix.dart';
+
 import 'dbus_uuid.dart';
-import 'getsid.dart';
-import 'getuid.dart';
+import 'getsid.dart' as getsid;
 
 /// A client for D-Bus authentication.
 class DBusAuthClient {
@@ -129,7 +130,7 @@ class DBusAuthClient {
     if (Platform.isLinux) {
       authId = getuid().toString();
     } else if (Platform.isWindows) {
-      authId = getsid();
+      authId = getsid.getsid();
     } else {
       throw 'Authentication not supported on ${Platform.operatingSystem}';
     }

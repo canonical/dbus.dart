@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:posix/posix.dart';
+
 import 'dbus_address.dart';
 import 'dbus_auth_server.dart';
 import 'dbus_bus_name.dart';
@@ -20,7 +22,6 @@ import 'dbus_read_buffer.dart';
 import 'dbus_uuid.dart';
 import 'dbus_value.dart';
 import 'dbus_write_buffer.dart';
-import 'getuid.dart';
 
 /// Results of starting a service.
 enum DBusServerStartServiceResult { success, alreadyRunning, notFound }
