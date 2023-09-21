@@ -3,7 +3,7 @@ import 'dbus_value.dart';
 /// A D-Bus method call.
 class DBusMethodCall {
   /// Client that called the method.
-  final String sender;
+  final String? sender;
 
   /// Interface method is on.
   final String? interface;
@@ -29,7 +29,7 @@ class DBusMethodCall {
       .fold(DBusSignature(''), (a, b) => a + b);
 
   const DBusMethodCall(
-      {required this.sender,
+      {this.sender,
       this.interface,
       required this.name,
       this.values = const [],

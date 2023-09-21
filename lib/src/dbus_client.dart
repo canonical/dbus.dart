@@ -226,6 +226,9 @@ class DBusClient {
   // Names owned by this client. e.g. [ 'com.example.Foo', 'com.example.Bar' ].
   final _ownedNames = <DBusBusName>{};
 
+  // True if this client registers a name on this bus.
+  final bool _acquireName;
+
   // Unique name of this client, e.g. ':42'.
   DBusBusName? _uniqueName;
 
@@ -233,8 +236,14 @@ class DBusClient {
   final bool introspectable;
 
   /// Creates a new DBus client to connect on [address].
-  DBusClient(DBusAddress address, {this.introspectable = true})
-      : _address = address;
+  /// If [acquireName] is false, then no name is acquired from the server.
+  /// This is useful if the server is not a standard bus with multiple clients
+  /// but rather using D-Bus for client to server communication and not client
+  /// to client.
+  DBusClient(DBusAddress address,
+      {this.introspectable = true, bool acquireName = true})
+      : _address = address,
+        _acquireName = acquireName;
 
   /// Creates a new DBus client to communicate with the system bus.
   factory DBusClient.system({bool introspectable = true}) {
@@ -797,13 +806,15 @@ class DBusClient {
     // The first message to the bus must be this call, note requireConnect is
     // false as the _connect call hasn't yet completed and would otherwise have
     // been called again.
-    var result = await _callMethod(
-        destination: DBusBusName('org.freedesktop.DBus'),
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: DBusInterfaceName('org.freedesktop.DBus'),
-        name: DBusMemberName('Hello'),
-        replySignature: DBusSignature('s'));
-    _uniqueName = DBusBusName(result.returnValues[0].asString());
+    if (_acquireName) {
+      var result = await _callMethod(
+          destination: DBusBusName('org.freedesktop.DBus'),
+          path: DBusObjectPath('/org/freedesktop/DBus'),
+          interface: DBusInterfaceName('org.freedesktop.DBus'),
+          name: DBusMemberName('Hello'),
+          replySignature: DBusSignature('s'));
+      _uniqueName = DBusBusName(result.returnValues[0].asString());
+    }
 
     // Notify anyone else awaiting connection.
     _connectCompleter?.complete();
@@ -811,7 +822,9 @@ class DBusClient {
     // Monitor name ownership so we know what names we have, and can match incoming signals from other clients.
     _nameAcquiredSubscription = nameAcquired.listen((name) {
       var busName = DBusBusName(name);
-      _nameOwners[busName] = _uniqueName!;
+      if (_acquireName) {
+        _nameOwners[busName] = _uniqueName!;
+      }
       _ownedNames.add(busName);
     });
     _nameLostSubscription = nameLost.listen((name) {

@@ -13,7 +13,10 @@ import 'dbus_introspectable.dart';
 import 'dbus_match_rule.dart';
 import 'dbus_member_name.dart';
 import 'dbus_message.dart';
+import 'dbus_method_call.dart';
 import 'dbus_method_response.dart';
+import 'dbus_object.dart';
+import 'dbus_object_tree.dart';
 import 'dbus_peer.dart';
 import 'dbus_properties.dart';
 import 'dbus_read_buffer.dart';
@@ -326,6 +329,9 @@ class DBusServer {
   /// Next serial number to use for messages from the server.
   int _nextSerial = 1;
 
+  /// True if clients are required to use names on this server.
+  final bool _requireNames;
+
   /// Queues for name ownership.
   final _nameQueues = <DBusBusName, _DBusNameQueue>{};
 
@@ -335,8 +341,15 @@ class DBusServer {
   /// Interfaces supported by the server.
   final _interfaces = <String>[];
 
+  /// Objects provided by the server.
+  final _objectTree = DBusObjectTree();
+
   /// Creates a new DBus server.
-  DBusServer();
+  /// If [requireNames] is false, clients don't need to acquire a names.
+  /// This is useful if the server is not a standard bus with multiple clients
+  /// but rather using D-Bus for client to server communication and not client
+  /// to client.
+  DBusServer({bool requireNames = true}) : _requireNames = requireNames;
 
   /// Start a service that uses [name].
   /// Override this method to enable this feature.
@@ -486,6 +499,29 @@ class DBusServer {
     }
   }
 
+  /// Registers a server [object] on the bus.
+  /// This is useful if this server is being used for .
+  void registerObject(DBusObject object) async {
+    if (object.client != null) {
+      throw Exception('Object already registered');
+    }
+
+    _objectTree.add(object.path, object);
+  }
+
+  /// Unregisters an [object] on the bus.
+  void unregisterObject(DBusObject object) async {
+    if (object.client != null) {
+      throw 'Object registered on other client';
+    }
+
+    var node = _objectTree.lookup(object.path);
+    if (node == null) {
+      return;
+    }
+    _objectTree.remove(object.path);
+  }
+
   /// Get the client that is currently owning [name].
   _DBusRemoteClient? _getClientByName(DBusBusName name) {
     for (var client in _clients) {
@@ -511,7 +547,9 @@ class DBusServer {
 
     // Process requests for the server.
     DBusMethodResponse? response;
-    if (client != null &&
+    _DBusRemoteClient? responseClient;
+    if (_requireNames &&
+        client != null &&
         !client.receivedHello &&
         !(message.destination?.value == 'org.freedesktop.DBus' &&
             message.interface?.value == 'org.freedesktop.DBus' &&
@@ -522,6 +560,11 @@ class DBusServer {
     } else if (message.destination?.value == 'org.freedesktop.DBus') {
       if (client != null && message.type == DBusMessageType.methodCall) {
         response = await _processServerMethodCall(client, message);
+      }
+    } else if (message.destination == null) {
+      if (client != null && message.type == DBusMessageType.methodCall) {
+        response = await _processServerObjectMethodCall(message);
+        responseClient = client;
       }
     } else {
       // No-one is going to handle this message.
@@ -555,7 +598,7 @@ class DBusServer {
           values: values);
       _nextSerial++;
       // ignore: unawaited_futures
-      _processMessage(null, responseMessage);
+      _processMessage(responseClient, responseMessage);
     }
   }
 
@@ -1228,6 +1271,32 @@ class DBusServer {
           DBusSignature('s'), _interfaces.map((value) => DBusString(value)));
     }
     return DBusGetAllPropertiesResponse(properties);
+  }
+
+  /// Process a method call requested on the D-Bus server.
+  Future<DBusMethodResponse> _processServerObjectMethodCall(
+      DBusMessage message) async {
+    if (message.path == null || message.member == null) {
+      return DBusMethodErrorResponse.failed();
+    }
+
+    var node = _objectTree.lookup(message.path!);
+    if (node == null || node.object == null) {
+      return DBusMethodErrorResponse.unknownObject();
+    }
+    var object = node.object!;
+
+    var methodCall = DBusMethodCall(
+        sender: message.sender?.value,
+        interface: message.interface?.value,
+        name: message.member!.value,
+        values: message.values,
+        noReplyExpected:
+            message.flags.contains(DBusMessageFlag.noReplyExpected),
+        noAutoStart: message.flags.contains(DBusMessageFlag.noAutoStart),
+        allowInteractiveAuthorization: message.flags
+            .contains(DBusMessageFlag.allowInteractiveAuthorization));
+    return await object.handleMethodCall(methodCall);
   }
 
   /// Emits org.freedesktop.DBus.NameOwnerChanged.

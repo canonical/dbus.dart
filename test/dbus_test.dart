@@ -1512,6 +1512,38 @@ void main() {
         () => client2.ping(name1), throwsA(isA<DBusServiceUnknownException>()));
   });
 
+  test('no acquire name', () async {
+    var server = DBusServer(requireNames: false);
+    var address =
+        await server.listenAddress(DBusAddress.unix(abstract: 'abstract'));
+    var client = DBusClient(address, acquireName: false);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    var object = TestObject(
+        path: DBusObjectPath('/com/example/Object1'),
+        expectedMethodName: 'Foo',
+        methodResponses: {
+          'Foo': DBusMethodSuccessResponse([DBusString('Hello World')])
+        });
+    server.registerObject(object);
+
+    // Call method on server.
+    var response = await client.callMethod(
+        path: DBusObjectPath('/com/example/Object1'), name: 'Foo');
+    expect(response.values, equals([DBusString('Hello World')]));
+
+    // Try and access an unknown object.
+    expect(
+        () => client.callMethod(
+            path: DBusObjectPath('/no/such/object'), name: 'Test'),
+        throwsA(isA<DBusUnknownObjectException>()));
+
+    server.unregisterObject(object);
+  });
+
   test('list names', () async {
     var server = DBusServer();
     var address =
