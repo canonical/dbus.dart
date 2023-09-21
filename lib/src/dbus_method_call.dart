@@ -3,7 +3,7 @@ import 'dbus_value.dart';
 /// A D-Bus method call.
 class DBusMethodCall {
   /// Client that called the method.
-  final String sender;
+  final String? sender;
 
   /// Interface method is on.
   final String? interface;
