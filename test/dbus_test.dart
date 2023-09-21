@@ -1535,6 +1535,12 @@ void main() {
         path: DBusObjectPath('/com/example/Object1'), name: 'Foo');
     expect(response.values, equals([DBusString('Hello World')]));
 
+    // Call method on server using remote object.
+    var remoteObject =
+        DBusRemoteObject(client, path: DBusObjectPath('/com/example/Object1'));
+    var remoteObjectResponse = await remoteObject.callMethod(null, 'Foo', []);
+    expect(remoteObjectResponse.values, equals([DBusString('Hello World')]));
+
     // Try and access an unknown object.
     expect(
         () => client.callMethod(

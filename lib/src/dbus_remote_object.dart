@@ -67,7 +67,7 @@ class DBusRemoteObject {
   final DBusClient client;
 
   /// The name of the client providing this object.
-  final String name;
+  final String? name;
 
   /// The path to the object.
   final DBusObjectPath path;
@@ -76,7 +76,7 @@ class DBusRemoteObject {
   late final Stream<DBusPropertiesChangedSignal> propertiesChanged;
 
   /// Creates an object that access accesses a remote D-Bus object using bus [name] with [path].
-  DBusRemoteObject(this.client, {required this.name, required this.path}) {
+  DBusRemoteObject(this.client, {this.name, required this.path}) {
     var rawPropertiesChanged = DBusRemoteObjectSignalStream(
         object: this,
         interface: 'org.freedesktop.DBus.Properties',
