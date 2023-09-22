@@ -98,7 +98,9 @@ class _DBusRemoteClient {
       // If the subscription is for an owned name, check if that matches the unique name in the message.
       var sender = message.sender;
       if (rule.sender != null &&
-          server._messageBusObject._getClientByName(rule.sender!)?.uniqueName ==
+          server._messageBusObject
+                  ?._getClientByName(rule.sender!)
+                  ?.uniqueName ==
               sender) {
         sender = rule.sender;
       }
@@ -224,7 +226,7 @@ class _DBusServerSocket {
   /// Handle a client disconnecting.
   void _clientDisconnected(_DBusRemoteClient client) {
     _clients.remove(client);
-    server._messageBusObject._releaseAllNames(client);
+    server._messageBusObject?._releaseAllNames(client);
   }
 
   Future<void> close() async {
@@ -355,11 +357,13 @@ class DBusServer {
   final _interfaces = <String>[];
 
   /// Message bus functionality.
-  late final _MessageBusObject _messageBusObject;
+  _MessageBusObject? _messageBusObject;
 
   /// Creates a new DBus server.
-  DBusServer() {
-    _messageBusObject = _MessageBusObject(this);
+  DBusServer({bool messageBus = true}) {
+    if (messageBus) {
+      _messageBusObject = _MessageBusObject(this);
+    }
   }
 
   /// Start a service that uses [name].
@@ -514,18 +518,21 @@ class DBusServer {
   Future<void> _processMessage(
       _DBusRemoteClient? client, DBusMessage message) async {
     // Forward to any clients that are listening to this message.
-    var targetClient = message.destination != null
-        ? _messageBusObject._getClientByName(message.destination!)
-        : null;
-    for (var client in _clients) {
-      if (client == targetClient || client.matchMessage(message)) {
-        client.sendMessage(message);
+    if (_messageBusObject != null) {
+      var targetClient = message.destination != null
+          ? _messageBusObject!._getClientByName(message.destination!)
+          : null;
+      for (var client in _clients) {
+        if (client == targetClient || client.matchMessage(message)) {
+          client.sendMessage(message);
+        }
       }
     }
 
     // Process requests for the server.
     DBusMethodResponse? response;
-    if (client != null &&
+    if (_messageBusObject != null &&
+        client != null &&
         !client.receivedHello &&
         !(message.destination?.value == 'org.freedesktop.DBus' &&
             message.interface?.value == 'org.freedesktop.DBus' &&
@@ -540,7 +547,7 @@ class DBusServer {
     } else {
       // No-one is going to handle this message.
       if (message.destination != null &&
-          _messageBusObject._getClientByName(message.destination!) == null) {
+          _messageBusObject?._getClientByName(message.destination!) == null) {
         response = _DBusServerErrorResponse.serviceUnknown(
             'The name ${message.destination} is not registered');
       }
@@ -568,8 +575,13 @@ class DBusServer {
           sender: DBusBusName('org.freedesktop.DBus'),
           values: values);
       _nextSerial++;
-      // ignore: unawaited_futures
-      _processMessage(null, responseMessage);
+
+      if (_messageBusObject != null) {
+        // ignore: unawaited_futures
+        _processMessage(null, responseMessage);
+      } else {
+        client?.sendMessage(responseMessage);
+      }
     }
   }
 
@@ -580,19 +592,26 @@ class DBusServer {
       return DBusMethodErrorResponse.failed();
     }
 
-    var object = _messageBusObject;
     var methodCall = _ServerMethodCall(client, message);
 
     if (methodCall.interface == 'org.freedesktop.DBus.Peer') {
       return await handlePeerMethodCall(methodCall);
     } else if (methodCall.interface == 'org.freedesktop.DBus.Introspectable') {
       var objectTree = DBusObjectTree();
-      var node = objectTree.add(message.path ?? DBusObjectPath('/'), object);
-      return handleIntrospectableMethodCall(node, methodCall);
-    } else if (methodCall.interface == 'org.freedesktop.DBus.Properties') {
-      return await handlePropertiesMethodCall(object, methodCall);
+      if (_messageBusObject != null) {
+        objectTree.add(message.path ?? DBusObjectPath('/'), _messageBusObject!);
+      }
+      return handleIntrospectableMethodCall(
+          message.path != null ? objectTree.lookup(message.path!) : null,
+          methodCall);
+    } else if (_messageBusObject != null) {
+      if (methodCall.interface == 'org.freedesktop.DBus.Properties') {
+        return await handlePropertiesMethodCall(_messageBusObject!, methodCall);
+      } else {
+        return await _messageBusObject!.handleMethodCall(methodCall);
+      }
     } else {
-      return await object.handleMethodCall(methodCall);
+      return DBusMethodErrorResponse.unknownObject();
     }
   }
 
