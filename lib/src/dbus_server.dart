@@ -385,6 +385,25 @@ class DBusServer {
     }
   }
 
+  /// Emits a signal from the D-Bus server.
+  void emitSignal(
+      {required DBusObjectPath path,
+      required String interface,
+      required String name,
+      Iterable<DBusValue> values = const []}) {
+    var message = DBusMessage(DBusMessageType.signal,
+        flags: {DBusMessageFlag.noReplyExpected},
+        serial: _nextSerial,
+        path: path,
+        interface: DBusInterfaceName(interface),
+        member: DBusMemberName(name),
+        values: values.toList());
+    _nextSerial++;
+    for (var client in _clients) {
+      client.sendMessage(message);
+    }
+  }
+
   /// Listens for connections on a Unix socket.
   Future<DBusAddress> _listenUnixSocket(DBusAddress address) async {
     var path = address.properties['path'];
