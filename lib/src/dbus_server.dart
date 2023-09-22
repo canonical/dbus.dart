@@ -329,8 +329,8 @@ class DBusServer {
   /// Next serial number to use for messages from the server.
   int _nextSerial = 1;
 
-  /// True if clients are required to use names on this server.
-  final bool _requireNames;
+  /// True if this server is operating as a message bus.
+  final bool _messageBus;
 
   /// Queues for name ownership.
   final _nameQueues = <DBusBusName, _DBusNameQueue>{};
@@ -345,11 +345,9 @@ class DBusServer {
   final _objectTree = DBusObjectTree();
 
   /// Creates a new DBus server.
-  /// If [requireNames] is false, clients don't need to acquire a names.
-  /// This is useful if the server is not a standard bus with multiple clients
-  /// but rather using D-Bus for client to server communication and not client
-  /// to client.
-  DBusServer({bool requireNames = true}) : _requireNames = requireNames;
+  /// If [messageBus] is false, then the server is not running a message bus and
+  /// no adresses or client to client communication is suported.
+  DBusServer({bool messageBus = true}) : _messageBus = messageBus;
 
   /// Start a service that uses [name].
   /// Override this method to enable this feature.
@@ -548,7 +546,7 @@ class DBusServer {
     // Process requests for the server.
     DBusMethodResponse? response;
     _DBusRemoteClient? responseClient;
-    if (_requireNames &&
+    if (_messageBus &&
         client != null &&
         !client.receivedHello &&
         !(message.destination?.value == 'org.freedesktop.DBus' &&
@@ -557,7 +555,8 @@ class DBusServer {
       await client.close();
       response = DBusMethodErrorResponse.accessDenied(
           'Client tried to send a message other than Hello without being registered');
-    } else if (message.destination?.value == 'org.freedesktop.DBus') {
+    } else if (_messageBus &&
+        message.destination?.value == 'org.freedesktop.DBus') {
       if (client != null && message.type == DBusMessageType.methodCall) {
         response = await _processServerMethodCall(client, message);
       }
@@ -568,8 +567,7 @@ class DBusServer {
       }
     } else {
       // No-one is going to handle this message.
-      if (message.destination != null &&
-          _getClientByName(message.destination!) == null) {
+      if (_getClientByName(message.destination!) == null) {
         response = _DBusServerErrorResponse.serviceUnknown(
             'The name ${message.destination} is not registered');
       }

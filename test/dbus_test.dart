@@ -1512,11 +1512,11 @@ void main() {
         () => client2.ping(name1), throwsA(isA<DBusServiceUnknownException>()));
   });
 
-  test('no acquire name', () async {
-    var server = DBusServer(requireNames: false);
+  test('no message bus', () async {
+    var server = DBusServer(messageBus: false);
     var address =
         await server.listenAddress(DBusAddress.unix(abstract: 'abstract'));
-    var client = DBusClient(address, acquireName: false);
+    var client = DBusClient(address, messageBus: false);
     addTearDown(() async {
       await client.close();
       await server.close();
