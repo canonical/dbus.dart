@@ -127,15 +127,19 @@ class DBusSignalStream extends Stream<DBusSignal> {
 
   void _onListen() {
     _client._signalStreams.add(this);
-    if (_rule.sender != null) {
-      _client._findUniqueName(_rule.sender!);
+    if (_client._messageBus) {
+      if (_rule.sender != null) {
+        _client._findUniqueName(_rule.sender!);
+      }
+      _client._addMatch(_rule.toDBusString());
     }
-    _client._addMatch(_rule.toDBusString());
   }
 
   Future<void> _onCancel() async {
-    await _client._removeMatch(_rule.toDBusString());
-    _client._signalStreams.remove(this);
+    if (_client._messageBus) {
+      await _client._removeMatch(_rule.toDBusString());
+      _client._signalStreams.remove(this);
+    }
   }
 }
 
