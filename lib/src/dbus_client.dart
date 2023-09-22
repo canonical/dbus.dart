@@ -127,14 +127,18 @@ class DBusSignalStream extends Stream<DBusSignal> {
 
   void _onListen() {
     _client._signalStreams.add(this);
-    if (_rule.sender != null) {
-      _client._findUniqueName(_rule.sender!);
+    if (_client._messageBus) {
+      if (_rule.sender != null) {
+        _client._findUniqueName(_rule.sender!);
+      }
+      _client._addMatch(_rule.toDBusString());
     }
-    _client._addMatch(_rule.toDBusString());
   }
 
   Future<void> _onCancel() async {
-    await _client._removeMatch(_rule.toDBusString());
+    if (_client._messageBus) {
+      await _client._removeMatch(_rule.toDBusString());
+    }
     _client._signalStreams.remove(this);
   }
 }
@@ -226,6 +230,9 @@ class DBusClient {
   // Names owned by this client. e.g. [ 'com.example.Foo', 'com.example.Bar' ].
   final _ownedNames = <DBusBusName>{};
 
+  // True if this client is connecting to a message bus.
+  final bool _messageBus;
+
   // Unique name of this client, e.g. ':42'.
   DBusBusName? _uniqueName;
 
@@ -233,8 +240,12 @@ class DBusClient {
   final bool introspectable;
 
   /// Creates a new DBus client to connect on [address].
-  DBusClient(DBusAddress address, {this.introspectable = true})
-      : _address = address;
+  /// If [messageBus] is false, then the server is not running a message bus and
+  /// no adresses or client to client communication is suported.
+  DBusClient(DBusAddress address,
+      {this.introspectable = true, bool messageBus = true})
+      : _address = address,
+        _messageBus = messageBus;
 
   /// Creates a new DBus client to communicate with the system bus.
   factory DBusClient.system({bool introspectable = true}) {
@@ -791,6 +802,11 @@ class DBusClient {
     _authComplete = true;
     if (!_authClient.isAuthenticated) {
       await _socket?.close();
+      return;
+    }
+
+    if (!_messageBus) {
+      _connectCompleter?.complete();
       return;
     }
 

@@ -5010,6 +5010,36 @@ void main() {
         throwsA(isA<DBusUnknownMethodException>()));
   });
 
+  test('no message bus', () async {
+    var server = DBusServer(messageBus: false);
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address, messageBus: false);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    await client.ping();
+  });
+
+  test('no message bus - introspect', () async {
+    var server = DBusServer(messageBus: false);
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address, messageBus: false);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    // Read introspection data from the server.
+    var remoteObject = DBusRemoteObject(client,
+        name: 'org.freedesktop.DBus', path: DBusObjectPath('/'));
+    var node = await remoteObject.introspect();
+    expect(node.toXml().toXmlString(), equals('<node/>'));
+  });
+
   test('introspect xml - empty', () {
     expect(() => parseDBusIntrospectXml(''), throwsFormatException);
   });
