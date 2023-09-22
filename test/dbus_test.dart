@@ -5040,6 +5040,36 @@ void main() {
     expect(node.toXml().toXmlString(), equals('<node/>'));
   });
 
+  test('no message bus - subscribe signal', () async {
+    var server = DBusServer(messageBus: false);
+    var address =
+        await server.listenAddress(DBusAddress.unix(dir: Directory.systemTemp));
+    var client = DBusClient(address, messageBus: false);
+    addTearDown(() async {
+      await client.close();
+      await server.close();
+    });
+
+    var signals =
+        DBusSignalStream(client, interface: 'com.example.Test', name: 'Ping');
+    signals.listen(expectAsync1((signal) {
+      expect(signal.sender, isNull);
+      expect(signal.path, equals(DBusObjectPath('/')));
+      expect(signal.interface, equals('com.example.Test'));
+      expect(signal.name, equals('Ping'));
+      expect(signal.values, equals([DBusString('Hello'), DBusUint32(42)]));
+    }));
+
+    // Ensure client is connected.
+    await client.ping();
+
+    server.emitSignal(
+        path: DBusObjectPath('/'),
+        interface: 'com.example.Test',
+        name: 'Ping',
+        values: [DBusString('Hello'), DBusUint32(42)]);
+  });
+
   test('introspect xml - empty', () {
     expect(() => parseDBusIntrospectXml(''), throwsFormatException);
   });

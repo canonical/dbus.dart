@@ -132,6 +132,8 @@ class DBusSignalStream extends Stream<DBusSignal> {
         _client._findUniqueName(_rule.sender!);
       }
       _client._addMatch(_rule.toDBusString());
+    } else {
+      _client._connect();
     }
   }
 
@@ -1043,7 +1045,7 @@ class DBusClient {
       }
 
       var signal = DBusSignal(
-          sender: message.sender?.value ?? '',
+          sender: message.sender?.value,
           path: message.path ?? DBusObjectPath.root,
           interface: message.interface?.value ?? '',
           name: message.member?.value ?? '',

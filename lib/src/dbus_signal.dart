@@ -3,7 +3,7 @@ import 'dbus_value.dart';
 /// A D-Bus signal.
 class DBusSignal {
   /// Client that sent the signal.
-  final String sender;
+  final String? sender;
 
   /// Path of the object emitting the signal.
   final DBusObjectPath path;
