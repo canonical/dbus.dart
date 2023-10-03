@@ -3,3 +3,4 @@
 pubspec.lock
 test/.test_cov.dart
 coverage/
+/test/widget_test.dart
