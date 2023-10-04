@@ -45,7 +45,7 @@ void main() async {
   var test_both = [
     DBusInt32(42),
     DBusArray(DBusSignature('a'), [
-      DBusArray(DBusSignature('y'), [DBusByte(88), DBusByte(88), DBusByte(88)])
+      DBusArray(DBusSignature('y'), [DBusByte(88), DBusByte(88), DBusByte(88)]),
     ]),
     DBusArray(DBusSignature('a'), [
       DBusArray(DBusSignature('s'),
@@ -76,11 +76,12 @@ void main() async {
 
   var test_fail = [
     DBusInt32(42),
-    //DBusArray(DBusSignature('i'),[DBusInt32(42),DBusInt32(42)]),
-    DBusArray(DBusSignature('a'), []),
-    //DBusInt32(69)
+    DBusArray(DBusSignature('a'), [
+      DBusArray(DBusSignature('y'), [DBusByte(88), DBusByte(88), DBusByte(88)]),
+      DBusArray(DBusSignature('y'), [DBusByte(99), DBusByte(99), DBusByte(99)]),
+    ]),
   ];
-  print('TEST Signature [iai]');
+  print('TEST Signature [iaay]');
   dumpAsMessage(test_fail);
 
   print('DONE\n');

@@ -18,18 +18,20 @@ DBusClient systemDBusClient = DBusClient.system();
 //These get filled in in
 late DBusRemoteObject serverObject;
 late DBusRemoteObject entryGroupObject;
-AvahiServiceConfig serviceConfig = AvahiServiceConfig('mycoolservice',8765);
+AvahiServiceConfig serviceConfig = AvahiServiceConfig('trixy',8765);
 
 void main() async {
 
-  print('TEST new array of arrays DBus type by ADDING a NearbyShare service definition using DBus');
-  print('This program first attaches to Avahi Server using the Dart DBus lib.');
-  print('Next, it creates an Avahi EntryGroup object.');
-  print('Next it adds a Nearby Share style service definition.');
-  print('Then it polls the EntryGroup state until it is fully "Established".');
-  print('Finally it uses the same service configuration to resolve its self.');
-  print('BEGIN');
-  print('Platform.hostname: ${Platform.localHostname}');
+  print('TEST Googles NearbyShare (Advertising) using Avahi via DBus on Linux.');
+  print("    *This requires DBus data type='aay' (array of array of bytes).\nSteps.");
+
+  print('1. Attach to Avahi Server using the Dart DBus lib.');
+  print('2. Create an Avahi EntryGroup object.');
+  print('3. Add a NearbyShare Service definition to the new EntryGroup.');
+  print('4. Poll the EntryGroup status until the new service is ESTABLISHED');
+  print('5. Call Avahi ResolveService via DBus to print content of our');
+  print('   newly added NearbyShare (advertising) service.\n');
+  print('BEGIN TEST ON Platform.hostname: ${Platform.localHostname}');
 
   await attachAvahiObjects();
 

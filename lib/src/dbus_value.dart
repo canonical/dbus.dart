@@ -629,6 +629,13 @@ class DBusSignature extends DBusValue {
 
   /// Check [value] contains a valid signature and return the index of the end of the current child signature.
   int _validate(String value, int index) {
+    //RSC REVISIT where this can happen
+    //print('  _validate called val:'+value+' index:'+index.toString());
+    if (index>=value.length) {
+      print('RSC: INDEX EXCEEDED because aa passed to constructor of DBusSignature');
+      return value.length-1;
+    }
+
     if (value.startsWith('(', index)) {
       // Struct.
       var end = _findClosing(value, index, '(', ')');
@@ -659,10 +666,17 @@ class DBusSignature extends DBusValue {
       }
       return end;
     } else if (value.startsWith('a', index)) {
-      // Array.
-      if (index >= value.length - 1) {
-        throw ArgumentError.value(value, 'value', 'Array missing child type');
+      //RSC commented
+      //if (index >= value.length - 1) {
+      //  throw ArgumentError.value(value, 'value', 'Array missing child type');
+      //}
+      if (value.length==1) {
+        //RSC So it can be just an "a" with no follow on type
+        //print('    RSC _validate HACK ALLOW "a"');
+        return 1;
       }
+      //RSC REVISIT:
+      // Shouldnt we else with the original code??? dbus_write_buffer.writeMessage
       return _validate(value, index + 1);
     } else if (value.startsWith('m', index)) {
       // Maybe.
@@ -687,6 +701,14 @@ class DBusSignature extends DBusValue {
     } else if (value.startsWith('a{', index)) {
       return _findClosing(value, index, '{', '}');
     } else if (value.startsWith('a', index)) {
+      //RSC check for aa as in 'aay' or 'aas'
+      String rest = value.substring(index);
+      if (rest.length>1) {
+        if (rest.substring(1,2)=='a') {
+          //print('RSC: dbus_value._findChildSignatureEnd found an array of arrays in signature [${value}] index: ${index}');
+          return index; //only return index because caller will add 1 to it
+        }
+      }
       return _findChildSignatureEnd(value, index + 1);
     } else if (value.startsWith('m', index)) {
       return _findChildSignatureEnd(value, index + 1);
@@ -891,13 +913,16 @@ class DBusArray extends DBusValue {
   /// An exception will be thrown if a DBusValue in [children] doesn't have a signature matching [childSignature].
   DBusArray(this.childSignature, [Iterable<DBusValue> children = const []])
       : children = children.toList() {
-    if (!childSignature.isSingleCompleteType) {
+    //RSC it could be just an 'a'
+    // if (!childSignature.isSingleCompleteType) {
+    if ((childSignature.value != 'a')&&(!childSignature.isSingleCompleteType)) {
       throw ArgumentError.value(childSignature, 'childSignature',
           'Array value type must be a single complete type');
     }
 
     for (var child in children) {
-      if (child.signature.value != childSignature.value) {
+      //RSC same as above
+      if ((childSignature.value != 'a')&&(child.signature.value != childSignature.value)) {
         throw ArgumentError.value(children, 'children',
             "Provided children don't match array signature ${childSignature.value}");
       }

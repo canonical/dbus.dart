@@ -68,7 +68,10 @@ class DBusWriteBuffer extends DBusBuffer {
     if (message.values.isNotEmpty) {
       var signature = '';
       for (var value in message.values) {
-        signature += value.signature.value;
+        //RSC Build sig recursively in the case of aay
+        String walkVal = walkForSignature(value);
+        //signature += value.signature.value;
+        signature = signature + walkVal;
       }
       headers.add(_makeHeader(8, DBusSignature(signature)));
     }
@@ -80,6 +83,23 @@ class DBusWriteBuffer extends DBusBuffer {
     align(8);
     writeBytes(valueBuffer.data);
     _resourceHandles.addAll(valueBuffer.resourceHandles);
+    //RSC
+    //print('            >>>>dbus_write_buffer.writeMessage data\n[${data}]\n');
+  }
+
+  //RSC recurse for signature (but should only do 1 extra level) REVISIT
+  String walkForSignature(DBusValue dval) {
+    //print('     ## RSC:walk runtimeType: ${dval.runtimeType}');
+    if ((dval is DBusArray)&&(dval.childSignature.value == 'a')) {
+      //array of array..e.g. aay or aas would hit here first.
+      //print('     ## RSC:walk adding "a" (array of arrays)');
+      //In writeMessage the DBusValue array of arrays would have children.
+      //if not then there is an error.
+      if ((dval.children).isEmpty) throw "Empty Array of Arrays found...${dval}";
+      return 'a' + walkForSignature(dval.children[0]);
+    }
+    //Something like ay (byte array) or as (string array)
+    return dval.signature.value;
   }
 
   /// Makes a new message header.

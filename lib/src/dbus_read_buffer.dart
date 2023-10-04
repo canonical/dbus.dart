@@ -171,10 +171,28 @@ class DBusReadBuffer extends DBusBuffer {
       return null;
     }
 
+    //RSC reading an aay signature
+    // In the case of a type aay coming from the dbus, the data will occur like this.
+    // Assuming a single "ay" byte array (len 10 of char 'x') inside an "a" we will get
+    // 14,0,0,0,10,0,0,0,x,x,x,x,x,x,x,x,x,x
+    // This makes sense.
+    // If there were multiple 'ay' inside the a it would still work...
+    // e.g. if we had 2 ay's in the a (1 len 4), the other (len 6)
+    // 18,0,0,0,4,0,0,0,x,x,x,x,6,0,0,0,y,y,y,y,y,y
+
+    //print('            <<<< RSC dbus_read_buffer.readMessage signature [${signature}]\n ${_data}\n');
+
+    // The issue here is that we need to calculate that initial length after
+    // iterating over the possible nested array elements to build our DBusValueType's correctly.
+    // e.g. we want DBusArray(DBusSignature('a'),DBusArray.bytes(bytevalues))
+    //      instead of DBusArray(DBusSignature('a'),[]), DBusArray.byte[byte values]
+    //      which is what it currently returns (although this works)
+
     var dataEnd = readOffset + dataLength;
     var values = <DBusValue>[];
     if (signature != null) {
       var signatures = signature.split();
+      List<DBusValue> valueStack = <DBusValue>[];
       for (var s in signatures) {
         var value = readDBusValue(s, endian, fdCount);
         if (value == null) {
@@ -183,8 +201,37 @@ class DBusReadBuffer extends DBusBuffer {
         if (readOffset > dataEnd) {
           throw 'Message data of size $dataLength too small to contain ${signature.value}';
         }
-        values.add(value);
+        if (s.value == 'a') {
+          // Specifically, this indicates an array of arrays. e.g. type='aay'
+          // which we need to translate into
+          // DBusArray(DBusSignature('a'),[DBusArray(DBusSignature(y),[DBusByte(42),DBusByte(99)])])
+          // -or- more succinctly
+          // DBusArray(DBusSignature('a'),[DBusArray.byte([42,99])])
+          //
+          // The 'a' sig value returned above is an empty DBusArray(DBusSignature('a'),[])
+          // This will become the outter array later when they are all combined.
+          valueStack.add(value);
+        } else {
+          //If valueStack has anything in it, this is the second array in an array of arrays.
+          if ((value is DBusArray)&&(valueStack.length>0)) {
+            valueStack.add(value);
+          }
+          //Unwind any array of array values before adding the value to the values
+          if (valueStack.length>0) {
+            //print('    RSC COMBINING ARRAY OF ARRAYS DATA');
+            DBusArray outterArr = valueStack[0] as DBusArray;
+            for (int ndx=1;ndx<valueStack.length;ndx++) {
+              outterArr.children.add(valueStack[ndx]);
+            }
+            values.add(outterArr);
+            valueStack.clear();
+          } else {
+            values.add(value);
+          }
+        }
       }
+      if (valueStack.length>0) throw "SOMEONE DID NOT CLEAN THE valueStack";
+      //RSC REVISIT
       if (readOffset != dataEnd) {
         throw 'Message data of size $dataLength too large to contain ${signature.value}';
       }
@@ -450,12 +497,15 @@ class DBusReadBuffer extends DBusBuffer {
 
     var end = readOffset + length.value;
     var children = <DBusValue>[];
-    while (readOffset < end) {
-      var child = readDBusValue(childSignature, endian, fdCount);
-      if (child == null) {
-        return null;
+    //RSC If it is an a then just return the empty children and they will be filled in later.
+    if (childSignature.value != 'a') {
+      while (readOffset < end) {
+        var child = readDBusValue(childSignature, endian, fdCount);
+        if (child == null) {
+          return null;
+        }
+        children.add(child);
       }
-      children.add(child);
     }
 
     return DBusArray(childSignature, children);
@@ -532,8 +582,14 @@ class DBusReadBuffer extends DBusBuffer {
       }
       return readDBusDict(keySignature, valueSignature, endian, fdCount);
     } else if (s.startsWith('a')) {
-      return readDBusArray(
-          DBusSignature(s.substring(1, s.length)), endian, fdCount);
+      // RSC aay should come in as an a then an ay
+      // So if this is just the 'a' then return just read that.
+      if (s.length==1) {
+        return readDBusArray(
+            DBusSignature(s.substring(0, s.length)), endian, fdCount);
+      } else
+        return readDBusArray(
+            DBusSignature(s.substring(1, s.length)), endian, fdCount);
     } else if (s.startsWith('(') && s.endsWith(')')) {
       return readDBusStruct(
           DBusSignature(s.substring(1, s.length - 1)).split(), endian, fdCount);
