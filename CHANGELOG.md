@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.10
+
+* Fix generated code that uses DBusObjectPath.
+* Add further fix for generated DBusStruct code.
+* Import dart:io in generated code, required for file descriptors.
+
 ## 0.7.9
 
 * Support unix fds in code generator.
