@@ -215,8 +215,13 @@ class DBusStringType extends DBusDartType {
 /// Generates Dart code for the object path D-Bus type.
 class DBusObjectPathType extends DBusStringType {
   @override
+  String get nativeType {
+    return 'DBusObjectPath';
+  }
+
+  @override
   String nativeToDBus(String name) {
-    return 'DBusObjectPath($name)';
+    return name;
   }
 
   @override
