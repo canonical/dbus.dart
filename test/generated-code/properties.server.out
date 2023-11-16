@@ -110,7 +110,7 @@ class ComExampleTest extends DBusObject {
   }
 
   /// Sets property com.example.Test.ObjectPathProperty
-  Future<DBusMethodResponse> setObjectPathProperty(String value) async {
+  Future<DBusMethodResponse> setObjectPathProperty(DBusObjectPath value) async {
     return DBusMethodErrorResponse.failed('Set com.example.Test.ObjectPathProperty not implemented');
   }
 

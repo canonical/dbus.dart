@@ -114,14 +114,14 @@ class ComExampleTest extends DBusRemoteObject {
   }
 
   /// Gets com.example.Test.ObjectPathProperty
-  Future<String> getObjectPathProperty() async {
+  Future<DBusObjectPath> getObjectPathProperty() async {
     var value = await getProperty('com.example.Test', 'ObjectPathProperty', signature: DBusSignature('o'));
     return value.asObjectPath();
   }
 
   /// Sets com.example.Test.ObjectPathProperty
-  Future<void> setObjectPathProperty (String value) async {
-    await setProperty('com.example.Test', 'ObjectPathProperty', DBusObjectPath(value));
+  Future<void> setObjectPathProperty (DBusObjectPath value) async {
+    await setProperty('com.example.Test', 'ObjectPathProperty', value);
   }
 
   /// Gets com.example.Test.SignatureProperty

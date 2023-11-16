@@ -12,7 +12,7 @@ class ComExampleTestEvent extends DBusSignal {
   int get uint64_value => values[7].asUint64();
   double get double_value => values[8].asDouble();
   String get string_value => values[9].asString();
-  String get object_path_value => values[10].asObjectPath();
+  DBusObjectPath get object_path_value => values[10].asObjectPath();
   DBusSignature get signature_value => values[11].asSignature();
   DBusValue get variant_value => values[12].asVariant();
   ResourceHandle get unix_fd_value => values[13].asUnixFd();
@@ -27,7 +27,7 @@ class ComExampleTestEvent extends DBusSignal {
   List<int> get array_value_t => values[22].asUint64Array().toList();
   List<double> get array_value_d => values[23].asDoubleArray().toList();
   List<String> get array_value_s => values[24].asStringArray().toList();
-  List<String> get array_value_o => values[25].asObjectPathArray().toList();
+  List<DBusObjectPath> get array_value_o => values[25].asObjectPathArray().toList();
   List<DBusSignature> get array_value_g => values[26].asSignatureArray().toList();
   List<DBusValue> get array_value_v => values[27].asVariantArray().toList();
   List<ResourceHandle> get array_value_h => values[28].asUnixFdArray().toList();
