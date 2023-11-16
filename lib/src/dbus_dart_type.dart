@@ -293,7 +293,7 @@ class DBusStructType extends DBusDartType {
 
   @override
   String nativeToDBus(String name) {
-    return name;
+    return 'DBusStruct($name)';
   }
 
   @override
