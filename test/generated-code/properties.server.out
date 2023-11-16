@@ -150,7 +150,7 @@ class ComExampleTest extends DBusObject {
   }
 
   /// Sets property com.example.Test.StructProperty
-  Future<DBusMethodResponse> setStructProperty(DBusStruct value) async {
+  Future<DBusMethodResponse> setStructProperty(List<DBusValue> value) async {
     return DBusMethodErrorResponse.failed('Set com.example.Test.StructProperty not implemented');
   }
 
