@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.9
+
+* Support unix fds in code generator.
+* Support using D-Bus without a D-Bus message bus (i.e. point to point).
+* Fix generated code that uses DBusStruct.
+
 ## 0.7.8
 
 * Add helper methods for unix fd arrays.
