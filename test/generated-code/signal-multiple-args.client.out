@@ -16,7 +16,7 @@ class ComExampleTestEvent extends DBusSignal {
   DBusSignature get signature_value => values[11].asSignature();
   DBusValue get variant_value => values[12].asVariant();
   ResourceHandle get unix_fd_value => values[13].asUnixFd();
-  DBusStruct get struct_value => values[14].asStruct();
+  List<DBusValue> get struct_value => values[14].asStruct();
   List<int> get array_value_y => values[15].asByteArray().toList();
   List<bool> get array_value_b => values[16].asBooleanArray().toList();
   List<int> get array_value_n => values[17].asInt16Array().toList();
@@ -31,7 +31,7 @@ class ComExampleTestEvent extends DBusSignal {
   List<DBusSignature> get array_value_g => values[26].asSignatureArray().toList();
   List<DBusValue> get array_value_v => values[27].asVariantArray().toList();
   List<ResourceHandle> get array_value_h => values[28].asUnixFdArray().toList();
-  List<DBusStruct> get array_value_struct => values[29].asArray().map((child) => child.asStruct()).toList();
+  List<List<DBusValue>> get array_value_struct => values[29].asArray().map((child) => child.asStruct()).toList();
   List<List<String>> get array_value_array => values[30].asArray().map((child) => child.asStringArray().toList()).toList();
   Map<String, DBusValue> get dict_value_sv => values[31].asStringVariantDict();
   Map<int, String> get dict_value_us => values[32].asDict().map((key, value) => MapEntry(key.asUint32(), value.asString()));

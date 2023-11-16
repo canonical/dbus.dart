@@ -283,7 +283,7 @@ class DBusUnixFdType extends DBusDartType {
 class DBusStructType extends DBusDartType {
   @override
   String get nativeType {
-    return 'DBusStruct';
+    return 'List<DBusValue>';
   }
 
   @override
