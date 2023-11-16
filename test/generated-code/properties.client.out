@@ -165,7 +165,7 @@ class ComExampleTest extends DBusRemoteObject {
 
   /// Sets com.example.Test.StructProperty
   Future<void> setStructProperty (List<DBusValue> value) async {
-    await setProperty('com.example.Test', 'StructProperty', value);
+    await setProperty('com.example.Test', 'StructProperty', DBusStruct(value));
   }
 
   /// Gets com.example.Test.ArrayProperty
