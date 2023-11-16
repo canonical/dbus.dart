@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dbus/dbus.dart';
 
 class ComExampleTest1 extends DBusObject {

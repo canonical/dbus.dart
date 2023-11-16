@@ -36,6 +36,7 @@ class DBusCodeGenerator {
     var source = '';
 
     source += _generateHeader();
+    source += "import 'dart:io';\n";
     source += "import 'package:dbus/dbus.dart';\n";
     source += '\n';
     source += _generateRemoteObjectClass();
@@ -48,6 +49,7 @@ class DBusCodeGenerator {
     var source = '';
 
     source += _generateHeader();
+    source += "import 'dart:io';\n";
     source += "import 'package:dbus/dbus.dart';\n";
     source += '\n';
     source += _generateObjectClass();
