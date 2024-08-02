@@ -53,7 +53,10 @@ class DBusRemoteObjectManager extends DBusRemoteObject {
       {required String name, required DBusObjectPath path})
       : super(client, name: name, path: path) {
     var rawSignals =
-        DBusSignalStream(client, sender: name, pathNamespace: path);
+        DBusSignalStream(client,
+         sender: name,
+         /// Workaround for https://github.com/bus1/dbus-broker/issues/309
+         pathNamespace: path.value != '/' ? path : null);
     signals = rawSignals.map((signal) {
       if (signal.interface == 'org.freedesktop.DBus.ObjectManager' &&
           signal.name == 'InterfacesAdded' &&
