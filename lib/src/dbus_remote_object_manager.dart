@@ -52,11 +52,13 @@ class DBusRemoteObjectManager extends DBusRemoteObject {
   DBusRemoteObjectManager(DBusClient client,
       {required String name, required DBusObjectPath path})
       : super(client, name: name, path: path) {
+    // Only add path_namespace if it's non-'/'. This removes a no-op key from
+    // the match rule, and also works around a D-Bus bug where
+    // path_namespace='/' matches nothing.
+    // https://github.com/bus1/dbus-broker/issues/309
+    var pathNamespace = path.value != '/' ? path : null;
     var rawSignals =
-        DBusSignalStream(client,
-         sender: name,
-         /// Workaround for https://github.com/bus1/dbus-broker/issues/309
-         pathNamespace: path.value != '/' ? path : null);
+        DBusSignalStream(client, sender: name, pathNamespace: pathNamespace);
     signals = rawSignals.map((signal) {
       if (signal.interface == 'org.freedesktop.DBus.ObjectManager' &&
           signal.name == 'InterfacesAdded' &&
