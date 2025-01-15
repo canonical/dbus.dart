@@ -15,6 +15,7 @@ class DBusAuthClient {
   var _unixFdSupported = false;
   DBusUUID? _uuid;
   String? _errorMessage;
+  final String? _uid;
 
   /// Stream of requests to send to the authentication server.
   Stream<String> get requests => _requestsController.stream;
@@ -35,7 +36,9 @@ class DBusAuthClient {
   String? get errorMessage => _errorMessage;
 
   /// Creates a new authentication client.
-  DBusAuthClient({bool requestUnixFd = true}) : _requestUnixFd = requestUnixFd {
+  DBusAuthClient({bool requestUnixFd = true, String? uid})
+      : _requestUnixFd = requestUnixFd,
+        _uid = uid {
     // On start, end an empty byte, as this is required if sending the credentials as a socket control message.
     // We rely on the server using SO_PEERCRED to check out credentials.
     // Then request the supported mechanisms.
@@ -126,7 +129,9 @@ class DBusAuthClient {
   /// Start authentication using the EXTERNAL mechanism.
   void _authenticateExternal() {
     String authId;
-    if (Platform.isLinux) {
+    if (_uid != null) {
+      authId = _uid!;
+    } else if (Platform.isLinux) {
       authId = getuid().toString();
     } else if (Platform.isWindows) {
       authId = getsid();

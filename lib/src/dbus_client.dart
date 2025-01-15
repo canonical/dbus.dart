@@ -214,7 +214,7 @@ class DBusClient {
   RawSocket? _socket;
   var _socketClosed = false;
   final _readBuffer = DBusReadBuffer();
-  final _authClient = DBusAuthClient();
+  final DBusAuthClient _authClient;
   var _authComplete = false;
   Completer? _connectCompleter;
   var _lastSerial = 0;
@@ -243,11 +243,15 @@ class DBusClient {
 
   /// Creates a new DBus client to connect on [address].
   /// If [messageBus] is false, then the server is not running a message bus and
-  /// no adresses or client to client communication is suported.
+  /// no addresses or client to client communication is supported.
+  /// If [authClient] is provided, it will be used instead of creating a new one.
   DBusClient(DBusAddress address,
-      {this.introspectable = true, bool messageBus = true})
+      {this.introspectable = true,
+      bool messageBus = true,
+      DBusAuthClient? authClient})
       : _address = address,
-        _messageBus = messageBus;
+        _messageBus = messageBus,
+        _authClient = authClient ?? DBusAuthClient();
 
   /// Creates a new DBus client to communicate with the system bus.
   factory DBusClient.system({bool introspectable = true}) {
