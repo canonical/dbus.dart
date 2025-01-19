@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.11
+
+* Work around a dbus-broker bug with path_namespace='/' match rules.
+* Optionally pass auth client to dbus client.
+
 ## 0.7.10
 
 * Fix generated code that uses DBusObjectPath.
