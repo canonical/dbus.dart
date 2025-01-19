@@ -110,7 +110,9 @@ class _DBusRemoteClient {
           sender: sender,
           interface: message.interface,
           member: message.member,
-          path: message.path)) return true;
+          path: message.path)) {
+        return true;
+      }
     }
     return false;
   }
