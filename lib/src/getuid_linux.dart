@@ -7,7 +7,8 @@ typedef _GetuidDart = int Function();
 /// Gets the user ID of the current user.
 int getuid() {
   if (!Platform.isLinux) {
-    throw 'Unable to determine UID on this system';
+    throw UnsupportedError(
+        'Unable to determine UID on: ${Platform.operatingSystem}');
   }
 
   final dylib = DynamicLibrary.open('libc.so.6');
