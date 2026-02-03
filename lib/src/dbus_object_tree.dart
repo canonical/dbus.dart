@@ -54,7 +54,7 @@ class DBusObjectTree {
 
     var parent = node.parent;
     if (parent != null) {
-      parent.children.remove(node);
+      parent.children.remove(node.name);
       _prune(parent);
     }
   }
