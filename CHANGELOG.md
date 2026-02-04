@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.12
+
+* Fix removed objects remaining in memory.
+* Throw an explicit Dart error when running on non-Linux systems.
+* Update SDK constraint to allow Dart 3.0
+
 ## 0.7.11
 
 * Work around a dbus-broker bug with path_namespace='/' match rules.
