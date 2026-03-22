@@ -893,13 +893,8 @@ class DBusClient {
 
   /// Read incoming data from the D-Bus server.
   void _readData() {
-    var message = _socket?.readMessage();
-    if (message == null) {
+    if (!_readFromSocket()) {
       return;
-    }
-    _readBuffer.writeBytes(message.data);
-    for (var message in message.controlMessages) {
-      _readBuffer.addResourceHandles(message.extractHandles());
     }
 
     var complete = false;
@@ -911,6 +906,29 @@ class DBusClient {
       }
       _readBuffer.flush();
     }
+  }
+
+  /// Read available data from the socket into the read buffer.
+  bool _readFromSocket() {
+    if (Platform.isWindows) {
+      final bytes = _socket?.read();
+      if (bytes == null) {
+        return false;
+      }
+      _readBuffer.writeBytes(bytes);
+      return true;
+    }
+
+    final socketMessage = _socket?.readMessage();
+    if (socketMessage == null) {
+      return false;
+    }
+
+    _readBuffer.writeBytes(socketMessage.data);
+    for (final controlMessage in socketMessage.controlMessages) {
+      _readBuffer.addResourceHandles(controlMessage.extractHandles());
+    }
+    return true;
   }
 
   /// Processes authentication messages received from the D-Bus server.
@@ -1208,6 +1226,12 @@ class DBusClient {
 
     var buffer = DBusWriteBuffer();
     buffer.writeMessage(message);
+
+    if (Platform.isWindows) {
+      _socket?.write(buffer.data);
+      return;
+    }
+
     var controlMessages = <SocketControlMessage>[];
     if (buffer.resourceHandles.isNotEmpty) {
       controlMessages
