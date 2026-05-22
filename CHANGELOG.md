@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.13
+
+* Make able to work on Windows by not supporting control messages there (they are not supported).
+* Depend on xml 7.x.
+
 ## 0.7.12
 
 * Fix removed objects remaining in memory.
