@@ -52,12 +52,12 @@ class DBusIntrospectNode {
   XmlNode toXml() {
     var attributes = <XmlAttribute>[];
     if (name != null) {
-      attributes.add(XmlAttribute(XmlName('name'), name!));
+      attributes.add(XmlAttribute(XmlName.parts('name'), name!));
     }
     var children_ = <XmlNode>[];
     children_.addAll(interfaces.map((i) => i.toXml()));
     children_.addAll(children.map((c) => c.toXml()));
-    return XmlElement(XmlName('node'), attributes, children_);
+    return XmlElement(XmlName.parts('node'), attributes, children_);
   }
 
   @override
@@ -142,8 +142,8 @@ class DBusIntrospectInterface {
     children.addAll(signals.map((s) => s.toXml()));
     children.addAll(properties.map((p) => p.toXml()));
     children.addAll(annotations.map((a) => a.toXml()));
-    return XmlElement(
-        XmlName('interface'), [XmlAttribute(XmlName('name'), name)], children);
+    return XmlElement(XmlName.parts('interface'),
+        [XmlAttribute(XmlName.parts('name'), name)], children);
   }
 
   @override
@@ -222,8 +222,8 @@ class DBusIntrospectMethod {
     var children = <XmlNode>[];
     children.addAll(args.map((a) => a.toXml()));
     children.addAll(annotations.map((a) => a.toXml()));
-    return XmlElement(
-        XmlName('method'), [XmlAttribute(XmlName('name'), name)], children);
+    return XmlElement(XmlName.parts('method'),
+        [XmlAttribute(XmlName.parts('name'), name)], children);
   }
 
   @override
@@ -290,8 +290,8 @@ class DBusIntrospectSignal {
     var children = <XmlNode>[];
     children.addAll(args.map((a) => a.toXml(writeDirection: false)));
     children.addAll(annotations.map((a) => a.toXml()));
-    return XmlElement(
-        XmlName('signal'), [XmlAttribute(XmlName('name'), name)], children);
+    return XmlElement(XmlName.parts('signal'),
+        [XmlAttribute(XmlName.parts('name'), name)], children);
   }
 
   @override
@@ -367,16 +367,16 @@ class DBusIntrospectProperty {
 
   XmlNode toXml() {
     var attributes = <XmlAttribute>[];
-    attributes.add(XmlAttribute(XmlName('name'), name));
-    attributes.add(XmlAttribute(XmlName('type'), type.value));
+    attributes.add(XmlAttribute(XmlName.parts('name'), name));
+    attributes.add(XmlAttribute(XmlName.parts('type'), type.value));
     if (access == DBusPropertyAccess.readwrite) {
-      attributes.add(XmlAttribute(XmlName('access'), 'readwrite'));
+      attributes.add(XmlAttribute(XmlName.parts('access'), 'readwrite'));
     } else if (access == DBusPropertyAccess.read) {
-      attributes.add(XmlAttribute(XmlName('access'), 'read'));
+      attributes.add(XmlAttribute(XmlName.parts('access'), 'read'));
     } else if (access == DBusPropertyAccess.write) {
-      attributes.add(XmlAttribute(XmlName('access'), 'write'));
+      attributes.add(XmlAttribute(XmlName.parts('access'), 'write'));
     }
-    return XmlElement(XmlName('property'), attributes,
+    return XmlElement(XmlName.parts('property'), attributes,
         annotations.map((a) => a.toXml()).toList());
   }
 
@@ -452,18 +452,18 @@ class DBusIntrospectArgument {
   XmlNode toXml({bool writeDirection = true}) {
     var attributes = <XmlAttribute>[];
     if (name != null) {
-      attributes.add(XmlAttribute(XmlName('name'), name!));
+      attributes.add(XmlAttribute(XmlName.parts('name'), name!));
     }
-    attributes.add(XmlAttribute(XmlName('type'), type.value));
+    attributes.add(XmlAttribute(XmlName.parts('type'), type.value));
     if (writeDirection) {
       if (direction == DBusArgumentDirection.in_) {
-        attributes.add(XmlAttribute(XmlName('direction'), 'in'));
+        attributes.add(XmlAttribute(XmlName.parts('direction'), 'in'));
       } else if (direction == DBusArgumentDirection.out) {
-        attributes.add(XmlAttribute(XmlName('direction'), 'out'));
+        attributes.add(XmlAttribute(XmlName.parts('direction'), 'out'));
       }
     }
-    return XmlElement(
-        XmlName('arg'), attributes, annotations.map((a) => a.toXml()).toList());
+    return XmlElement(XmlName.parts('arg'), attributes,
+        annotations.map((a) => a.toXml()).toList());
   }
 
   @override
@@ -515,9 +515,9 @@ class DBusIntrospectAnnotation {
   }
 
   XmlNode toXml() {
-    return XmlElement(XmlName('annotation'), [
-      XmlAttribute(XmlName('name'), name),
-      XmlAttribute(XmlName('value'), value)
+    return XmlElement(XmlName.parts('annotation'), [
+      XmlAttribute(XmlName.parts('name'), name),
+      XmlAttribute(XmlName.parts('value'), value)
     ]);
   }
 
