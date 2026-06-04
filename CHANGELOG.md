@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.14
+
+* Drop xml dependency to 6.6.1, which is the version that Flutter is using.
+
 ## 0.7.13
 
 * Make able to work on Windows by not supporting control messages there (they are not supported).
