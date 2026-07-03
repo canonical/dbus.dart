@@ -13,7 +13,7 @@ class DBusAuthClient {
   var _isAuthenticated = false;
   final bool _requestUnixFd;
   var _unixFdSupported = false;
-  DBusUUID? _uuid;
+  late DBusUUID _uuid;
   String? _errorMessage;
   final String? _uid;
 
@@ -27,7 +27,7 @@ class DBusAuthClient {
   bool get isAuthenticated => _isAuthenticated;
 
   /// The UUID of the connection. Only available if successfully authenticated.
-  DBusUUID get uuid => _uuid!;
+  DBusUUID get uuid => _uuid;
 
   /// True if Unix file descriptor passing is supported.
   bool get unixFdSupported => _unixFdSupported;
@@ -130,7 +130,7 @@ class DBusAuthClient {
   void _authenticateExternal() {
     String authId;
     if (_uid != null) {
-      authId = _uid!;
+      authId = _uid;
     } else if (Platform.isLinux) {
       authId = getuid().toString();
     } else if (Platform.isWindows) {

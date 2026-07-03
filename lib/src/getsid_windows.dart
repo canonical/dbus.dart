@@ -3,13 +3,13 @@ import 'dart:io';
 
 import 'package:ffi/ffi.dart';
 
-class _SidAndAttributes extends Struct {
+final class _SidAndAttributes extends Struct {
   external Pointer<Void> sid;
   @Uint32()
   external int attributes;
 }
 
-class _TokenUser extends Struct {
+final class _TokenUser extends Struct {
   external _SidAndAttributes user;
 }
 

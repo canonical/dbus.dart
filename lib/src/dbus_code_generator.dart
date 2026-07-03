@@ -62,7 +62,7 @@ class DBusCodeGenerator {
     var source = '';
 
     if (_comment != null) {
-      var escapedComment = _comment!.split('\n').join('\n// ');
+      var escapedComment = _comment.split('\n').join('\n// ');
       source += '// $escapedComment\n\n';
     }
 

@@ -68,79 +68,72 @@ class DBusErrorException extends DBusMethodResponseException {
 
 /// Exception when a general failure occurs.
 class DBusFailedException extends DBusErrorException {
-  DBusFailedException(DBusMethodErrorResponse response) : super(response);
+  DBusFailedException(super.response);
 }
 
 /// Exception when there is no service providing the requested bus name.
 class DBusServiceUnknownException extends DBusErrorException {
-  DBusServiceUnknownException(DBusMethodErrorResponse response)
-      : super(response);
+  DBusServiceUnknownException(super.response);
 }
 
 /// Exception when an unknown object was requested.
 class DBusUnknownObjectException extends DBusErrorException {
-  DBusUnknownObjectException(DBusMethodErrorResponse response)
-      : super(response);
+  DBusUnknownObjectException(super.response);
 }
 
 /// Exception when an unknown interface was requested.
 class DBusUnknownInterfaceException extends DBusErrorException {
-  DBusUnknownInterfaceException(DBusMethodErrorResponse response)
-      : super(response);
+  DBusUnknownInterfaceException(super.response);
 }
 
 /// Exception when an unknown method was requested.
 class DBusUnknownMethodException extends DBusErrorException {
-  DBusUnknownMethodException(DBusMethodErrorResponse response)
-      : super(response);
+  DBusUnknownMethodException(super.response);
 }
 
 /// Exception when a request times out.
 class DBusTimeoutException extends DBusErrorException {
-  DBusTimeoutException(DBusMethodErrorResponse response) : super(response);
+  DBusTimeoutException(super.response);
 }
 
 /// Exception when a request times out.
 class DBusTimedOutException extends DBusErrorException {
-  DBusTimedOutException(DBusMethodErrorResponse response) : super(response);
+  DBusTimedOutException(super.response);
 }
 
 /// Exception when invalid arguments were provided to a method call.
 class DBusInvalidArgsException extends DBusErrorException {
-  DBusInvalidArgsException(DBusMethodErrorResponse response) : super(response);
+  DBusInvalidArgsException(super.response);
 }
 
 /// Exception when an unknown property was requested.
 class DBusUnknownPropertyException extends DBusErrorException {
-  DBusUnknownPropertyException(DBusMethodErrorResponse response)
-      : super(response);
+  DBusUnknownPropertyException(super.response);
 }
 
 /// Exception when a read-only property was written to.
 class DBusPropertyReadOnlyException extends DBusErrorException {
-  DBusPropertyReadOnlyException(DBusMethodErrorResponse response)
-      : super(response);
+  DBusPropertyReadOnlyException(super.response);
 }
 
 /// Exception when a write-only property was read from.
 class DBusPropertyWriteOnlyException extends DBusErrorException {
-  DBusPropertyWriteOnlyException(DBusMethodErrorResponse response)
-      : super(response);
+  DBusPropertyWriteOnlyException(super.response);
 }
 
 /// Exception when accessing a feature that is not supported.
 class DBusNotSupportedException extends DBusErrorException {
-  DBusNotSupportedException(DBusMethodErrorResponse response) : super(response);
+  DBusNotSupportedException(super.response);
 }
 
 /// Exception when access was denied to the requested resource.
 class DBusAccessDeniedException extends DBusErrorException {
-  DBusAccessDeniedException(DBusMethodErrorResponse response) : super(response);
+  DBusAccessDeniedException(super.response);
 }
 
 /// Exception when authentication failed accessing the requested resource.
 class DBusAuthFailedException extends DBusErrorException {
-  DBusAuthFailedException(DBusMethodErrorResponse response) : super(response);
+  DBusAuthFailedException(super.response);
 }
 
 /// An error response to a method call.
