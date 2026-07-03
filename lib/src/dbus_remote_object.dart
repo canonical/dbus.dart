@@ -11,17 +11,19 @@ class DBusRemoteObjectSignalStream extends DBusSignalStream {
   /// If [signature] is provided this causes the stream to throw a
   /// [DBusSignalSignatureException] if a signal is received that does not
   /// match the provided signature.
-  DBusRemoteObjectSignalStream(
-      {required DBusRemoteObject object,
-      required String interface,
-      required String name,
-      DBusSignature? signature})
-      : super(object.client,
-            sender: object.name,
-            path: object.path,
-            interface: interface,
-            name: name,
-            signature: signature);
+  DBusRemoteObjectSignalStream({
+    required DBusRemoteObject object,
+    required String interface,
+    required String name,
+    DBusSignature? signature,
+  }) : super(
+         object.client,
+         sender: object.name,
+         path: object.path,
+         interface: interface,
+         name: name,
+         signature: signature,
+       );
 }
 
 /// Signal received when properties are changed.
@@ -37,12 +39,13 @@ class DBusPropertiesChangedSignal extends DBusSignal {
   List<String> get invalidatedProperties => values[2].asStringArray().toList();
 
   DBusPropertiesChangedSignal(DBusSignal signal)
-      : super(
-            sender: signal.sender,
-            path: signal.path,
-            interface: signal.interface,
-            name: signal.name,
-            values: signal.values);
+    : super(
+        sender: signal.sender,
+        path: signal.path,
+        interface: signal.interface,
+        name: signal.name,
+        values: signal.values,
+      );
 }
 
 /// Exception thrown when a D-Bus property returns a value that don't match the expected signature.
@@ -78,9 +81,10 @@ class DBusRemoteObject {
   /// Creates an object that access accesses a remote D-Bus object using bus [name] with [path].
   DBusRemoteObject(this.client, {required this.name, required this.path}) {
     var rawPropertiesChanged = DBusRemoteObjectSignalStream(
-        object: this,
-        interface: 'org.freedesktop.DBus.Properties',
-        name: 'PropertiesChanged');
+      object: this,
+      interface: 'org.freedesktop.DBus.Properties',
+      name: 'PropertiesChanged',
+    );
     propertiesChanged = rawPropertiesChanged.map((signal) {
       if (signal.signature == DBusSignature('sa{sv}as')) {
         return DBusPropertiesChangedSignal(signal);
@@ -97,11 +101,12 @@ class DBusRemoteObject {
   /// Throws [DBusUnknownInterfaceException] if introspection is not supported by this object.
   Future<DBusIntrospectNode> introspect() async {
     var result = await client.callMethod(
-        destination: name,
-        path: path,
-        interface: 'org.freedesktop.DBus.Introspectable',
-        name: 'Introspect',
-        replySignature: DBusSignature('s'));
+      destination: name,
+      path: path,
+      interface: 'org.freedesktop.DBus.Introspectable',
+      name: 'Introspect',
+      replySignature: DBusSignature('s'),
+    );
     var xml = result.returnValues[0].asString();
     return parseDBusIntrospectXml(xml);
   }
@@ -117,15 +122,19 @@ class DBusRemoteObject {
   /// Throws [DBusUnknownInterfaceException] if properties are not supported by this object.
   /// Throws [DBusUnknownPropertyException] if the property doesn't exist.
   /// Throws [DBusPropertyWriteOnlyException] if the property can't be read.
-  Future<DBusValue> getProperty(String interface, String name,
-      {DBusSignature? signature}) async {
+  Future<DBusValue> getProperty(
+    String interface,
+    String name, {
+    DBusSignature? signature,
+  }) async {
     var result = await client.callMethod(
-        destination: this.name,
-        path: path,
-        interface: 'org.freedesktop.DBus.Properties',
-        name: 'Get',
-        values: [DBusString(interface), DBusString(name)],
-        replySignature: DBusSignature('v'));
+      destination: this.name,
+      path: path,
+      interface: 'org.freedesktop.DBus.Properties',
+      name: 'Get',
+      values: [DBusString(interface), DBusString(name)],
+      replySignature: DBusSignature('v'),
+    );
     var value = result.returnValues[0].asVariant();
     if (signature != null && value.signature != signature) {
       throw DBusPropertySignatureException('$interface.$name', value);
@@ -140,12 +149,13 @@ class DBusRemoteObject {
   /// Throws [DBusUnknownInterfaceException] if properties are not supported by this object.
   Future<Map<String, DBusValue>> getAllProperties(String interface) async {
     var result = await client.callMethod(
-        destination: name,
-        path: path,
-        interface: 'org.freedesktop.DBus.Properties',
-        name: 'GetAll',
-        values: [DBusString(interface)],
-        replySignature: DBusSignature('a{sv}'));
+      destination: name,
+      path: path,
+      interface: 'org.freedesktop.DBus.Properties',
+      name: 'GetAll',
+      values: [DBusString(interface)],
+      replySignature: DBusSignature('a{sv}'),
+    );
     return result.returnValues[0].asStringVariantDict();
   }
 
@@ -157,14 +167,18 @@ class DBusRemoteObject {
   /// Throws [DBusUnknownPropertyException] if the property doesn't exist.
   /// Throws [DBusPropertyReadOnlyException] if the property can't be written.
   Future<void> setProperty(
-      String interface, String name, DBusValue value) async {
+    String interface,
+    String name,
+    DBusValue value,
+  ) async {
     await client.callMethod(
-        destination: this.name,
-        path: path,
-        interface: 'org.freedesktop.DBus.Properties',
-        name: 'Set',
-        values: [DBusString(interface), DBusString(name), DBusVariant(value)],
-        replySignature: DBusSignature(''));
+      destination: this.name,
+      path: path,
+      interface: 'org.freedesktop.DBus.Properties',
+      name: 'Set',
+      values: [DBusString(interface), DBusString(name), DBusVariant(value)],
+      replySignature: DBusSignature(''),
+    );
   }
 
   /// Invokes a method on this object.
@@ -180,21 +194,25 @@ class DBusRemoteObject {
   /// Throws [DBusUnknownMethodException] if the method with [name] is not available.
   /// Throws [DBusInvalidArgsException] if [args] aren't correct.
   Future<DBusMethodSuccessResponse> callMethod(
-      String? interface, String name, Iterable<DBusValue> values,
-      {DBusSignature? replySignature,
-      bool noReplyExpected = false,
-      bool noAutoStart = false,
-      bool allowInteractiveAuthorization = false}) async {
+    String? interface,
+    String name,
+    Iterable<DBusValue> values, {
+    DBusSignature? replySignature,
+    bool noReplyExpected = false,
+    bool noAutoStart = false,
+    bool allowInteractiveAuthorization = false,
+  }) async {
     return client.callMethod(
-        destination: this.name,
-        path: path,
-        interface: interface,
-        name: name,
-        values: values,
-        replySignature: replySignature,
-        noReplyExpected: noReplyExpected,
-        noAutoStart: noAutoStart,
-        allowInteractiveAuthorization: allowInteractiveAuthorization);
+      destination: this.name,
+      path: path,
+      interface: interface,
+      name: name,
+      values: values,
+      replySignature: replySignature,
+      noReplyExpected: noReplyExpected,
+      noAutoStart: noAutoStart,
+      allowInteractiveAuthorization: allowInteractiveAuthorization,
+    );
   }
 
   @override

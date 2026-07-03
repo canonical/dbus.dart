@@ -37,8 +37,8 @@ class DBusAuthClient {
 
   /// Creates a new authentication client.
   DBusAuthClient({bool requestUnixFd = true, String? uid})
-      : _requestUnixFd = requestUnixFd,
-        _uid = uid {
+    : _requestUnixFd = requestUnixFd,
+      _uid = uid {
     // On start, end an empty byte, as this is required if sending the credentials as a socket control message.
     // We rely on the server using SO_PEERCRED to check out credentials.
     // Then request the supported mechanisms.

@@ -39,7 +39,10 @@ class DBusObject {
 
   /// Called when a property is set on this object. On success, return [DBusMethodSuccessResponse].
   Future<DBusMethodResponse> setProperty(
-      String interface, String name, DBusValue value) async {
+    String interface,
+    String name,
+    DBusValue value,
+  ) async {
     return DBusMethodErrorResponse.unknownProperty();
   }
 
@@ -49,53 +52,77 @@ class DBusObject {
   }
 
   /// Emits a signal on this object.
-  Future<void> emitSignal(String interface, String name,
-      [Iterable<DBusValue> values = const []]) async {
+  Future<void> emitSignal(
+    String interface,
+    String name, [
+    Iterable<DBusValue> values = const [],
+  ]) async {
     await client?.emitSignal(
-        path: path, interface: interface, name: name, values: values);
+      path: path,
+      interface: interface,
+      name: name,
+      values: values,
+    );
   }
 
   /// Emits org.freedesktop.DBus.Properties.PropertiesChanged on this object.
-  Future<void> emitPropertiesChanged(String interface,
-      {Map<String, DBusValue> changedProperties = const {},
-      List<String> invalidatedProperties = const []}) async {
+  Future<void> emitPropertiesChanged(
+    String interface, {
+    Map<String, DBusValue> changedProperties = const {},
+    List<String> invalidatedProperties = const [],
+  }) async {
     await emitSignal('org.freedesktop.DBus.Properties', 'PropertiesChanged', [
       DBusString(interface),
       DBusDict.stringVariant(changedProperties),
-      DBusArray(DBusSignature('s'),
-          invalidatedProperties.map((name) => DBusString(name)))
+      DBusArray(
+        DBusSignature('s'),
+        invalidatedProperties.map((name) => DBusString(name)),
+      ),
     ]);
   }
 
   /// Emits org.freedesktop.DBus.ObjectManager.InterfacesAdded on this object.
   /// [path] is the path to the object that has been added or changed.
   /// [interfacesAndProperties] is the interfaces added to the object at [path] and the properties this object has.
-  Future<void> emitInterfacesAdded(DBusObjectPath path,
-      Map<String, Map<String, DBusValue>> interfacesAndProperties) async {
+  Future<void> emitInterfacesAdded(
+    DBusObjectPath path,
+    Map<String, Map<String, DBusValue>> interfacesAndProperties,
+  ) async {
     DBusValue encodeProperties(Map<String, DBusValue> properties) =>
         DBusDict.stringVariant(properties);
     DBusValue encodeInterfacesAndProperties(
-            Map<String, Map<String, DBusValue>> interfacesAndProperties) =>
-        DBusDict(
-            DBusSignature('s'),
-            DBusSignature('a{sv}'),
-            interfacesAndProperties.map<DBusValue, DBusValue>(
-                (name, properties) =>
-                    MapEntry(DBusString(name), encodeProperties(properties))));
-    await emitSignal('org.freedesktop.DBus.ObjectManager', 'InterfacesAdded',
-        [path, encodeInterfacesAndProperties(interfacesAndProperties)]);
+      Map<String, Map<String, DBusValue>> interfacesAndProperties,
+    ) => DBusDict(
+      DBusSignature('s'),
+      DBusSignature('a{sv}'),
+      interfacesAndProperties.map<DBusValue, DBusValue>(
+        (name, properties) =>
+            MapEntry(DBusString(name), encodeProperties(properties)),
+      ),
+    );
+    await emitSignal('org.freedesktop.DBus.ObjectManager', 'InterfacesAdded', [
+      path,
+      encodeInterfacesAndProperties(interfacesAndProperties),
+    ]);
   }
 
   /// Emits org.freedesktop.DBus.ObjectManager.InterfacesRemoved on this object.
   /// [path] is the path to the object is being removed or changed.
   /// [interfaces] is the names of the interfaces being removed from the object at [path].
   Future<void> emitInterfacesRemoved(
-      DBusObjectPath path, Iterable<String> interfaces) async {
+    DBusObjectPath path,
+    Iterable<String> interfaces,
+  ) async {
     await emitSignal(
-        'org.freedesktop.DBus.ObjectManager', 'InterfacesRemoved', [
-      path,
-      DBusArray(DBusSignature('s'),
-          interfaces.map((interface) => DBusString(interface)))
-    ]);
+      'org.freedesktop.DBus.ObjectManager',
+      'InterfacesRemoved',
+      [
+        path,
+        DBusArray(
+          DBusSignature('s'),
+          interfaces.map((interface) => DBusString(interface)),
+        ),
+      ],
+    );
   }
 }

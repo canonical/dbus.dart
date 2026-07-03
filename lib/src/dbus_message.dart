@@ -11,7 +11,7 @@ enum DBusMessageType { methodCall, methodReturn, error, signal }
 enum DBusMessageFlag {
   noReplyExpected,
   noAutoStart,
-  allowInteractiveAuthorization
+  allowInteractiveAuthorization,
 }
 
 /// A message sent to/from the D-Bus server.
@@ -54,17 +54,19 @@ class DBusMessage {
       DBusSignature(values.map((value) => value.signature.value).join());
 
   /// Creates a new D-Bus message.
-  DBusMessage(this.type,
-      {this.flags = const {},
-      this.serial = 0,
-      this.path,
-      this.interface,
-      this.member,
-      this.errorName,
-      this.replySerial,
-      this.destination,
-      this.sender,
-      this.values = const []});
+  DBusMessage(
+    this.type, {
+    this.flags = const {},
+    this.serial = 0,
+    this.path,
+    this.interface,
+    this.member,
+    this.errorName,
+    this.replySerial,
+    this.destination,
+    this.sender,
+    this.values = const [],
+  });
 
   @override
   String toString() {
@@ -79,7 +81,7 @@ class DBusMessage {
       'replySerial': replySerial?.toString(),
       'destination': destination?.toString(),
       'sender': sender?.toString(),
-      'values': values.isNotEmpty ? values.toString() : null
+      'values': values.isNotEmpty ? values.toString() : null,
     };
     var parameterString = parameters.keys
         .where((key) => parameters[key] != null)

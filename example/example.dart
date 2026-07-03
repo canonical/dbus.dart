@@ -2,9 +2,11 @@ import 'package:dbus/dbus.dart';
 
 void main() async {
   var client = DBusClient.session();
-  var object = DBusRemoteObject(client,
-      name: 'org.freedesktop.Notifications',
-      path: DBusObjectPath('/org/freedesktop/Notifications'));
+  var object = DBusRemoteObject(
+    client,
+    name: 'org.freedesktop.Notifications',
+    path: DBusObjectPath('/org/freedesktop/Notifications'),
+  );
   var values = [
     DBusString(''), // App name
     DBusUint32(0), // Replaces
@@ -17,8 +19,11 @@ void main() async {
   ];
   try {
     var result = await object.callMethod(
-        'org.freedesktop.Notifications', 'Notify', values,
-        replySignature: DBusSignature('u'));
+      'org.freedesktop.Notifications',
+      'Notify',
+      values,
+      replySignature: DBusSignature('u'),
+    );
     var id = result.returnValues[0];
     print('notify ${id.toNative()}');
   } on DBusServiceUnknownException {

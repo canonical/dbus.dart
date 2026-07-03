@@ -7,8 +7,11 @@ class DBusUUID {
   /// Creates a new random UUID.
   DBusUUID() {
     var random = Random();
-    value =
-        List<int>.generate(16, (index) => random.nextInt(256), growable: false);
+    value = List<int>.generate(
+      16,
+      (index) => random.nextInt(256),
+      growable: false,
+    );
   }
 
   /// Creates a new UUID from a hexadecimal encoded string.
@@ -17,10 +20,11 @@ class DBusUUID {
       throw FormatException('Invalid UUID');
     }
     this.value = List<int>.generate(
-        16,
-        (index) =>
-            int.parse(value.substring(index * 2, index * 2 + 2), radix: 16),
-        growable: false);
+      16,
+      (index) =>
+          int.parse(value.substring(index * 2, index * 2 + 2), radix: 16),
+      growable: false,
+    );
   }
 
   /// Converts the UUID into a hexadecimal encoded string.

@@ -148,7 +148,7 @@ class DBusByte extends DBusValue {
 
   /// Creates a new byte with the given [value].
   const DBusByte(this.value)
-      : assert(value >= 0 && value <= 255, 'Byte must be in range [0, 255]');
+    : assert(value >= 0 && value <= 255, 'Byte must be in range [0, 255]');
 
   @override
   DBusSignature get signature {
@@ -205,8 +205,10 @@ class DBusInt16 extends DBusValue {
 
   /// Creates a new signed 16 bit integer with the given [value].
   const DBusInt16(this.value)
-      : assert(value >= -32768 && value <= 32767,
-            'Int16 must be in range [-32768, 32767]');
+    : assert(
+        value >= -32768 && value <= 32767,
+        'Int16 must be in range [-32768, 32767]',
+      );
 
   @override
   DBusSignature get signature {
@@ -235,8 +237,10 @@ class DBusUint16 extends DBusValue {
 
   /// Creates a new unsigned 16 bit integer with the given [value].
   const DBusUint16(this.value)
-      : assert(
-            value >= 0 && value <= 65535, 'Uint16 must be in range [0, 65535]');
+    : assert(
+        value >= 0 && value <= 65535,
+        'Uint16 must be in range [0, 65535]',
+      );
 
   @override
   DBusSignature get signature {
@@ -265,8 +269,10 @@ class DBusInt32 extends DBusValue {
 
   /// Creates a new signed 32 bit integer with the given [value].
   const DBusInt32(this.value)
-      : assert(value >= -2147483648 && value <= 2147483647,
-            'Int32 must be in range [-2147483648, 2147483647]');
+    : assert(
+        value >= -2147483648 && value <= 2147483647,
+        'Int32 must be in range [-2147483648, 2147483647]',
+      );
 
   @override
   DBusSignature get signature {
@@ -295,8 +301,10 @@ class DBusUint32 extends DBusValue {
 
   /// Creates a new unsigned 32 bit integer with the given [value].
   const DBusUint32(this.value)
-      : assert(value >= 0 && value <= 4294967295,
-            'Uint32 must be in range [0, 4294967295]');
+    : assert(
+        value >= 0 && value <= 4294967295,
+        'Uint32 must be in range [0, 4294967295]',
+      );
 
   @override
   DBusSignature get signature {
@@ -325,8 +333,10 @@ class DBusInt64 extends DBusValue {
 
   /// Creates a new signed 64 bit integer with the given [value].
   const DBusInt64(this.value)
-      : assert(value >= -(1 << 63) && value <= (1 << 63) - 1,
-            'Int64 must be in range [-9223372036854775808, 9223372036854775807]');
+    : assert(
+        value >= -(1 << 63) && value <= (1 << 63) - 1,
+        'Int64 must be in range [-9223372036854775808, 9223372036854775807]',
+      );
 
   @override
   DBusSignature get signature {
@@ -538,7 +548,10 @@ class DBusSignature extends DBusValue {
   DBusSignature(this.value) {
     if (value.length > 255) {
       throw ArgumentError.value(
-          value, 'value', 'Signature maximum length is 255 characters');
+        value,
+        'value',
+        'Signature maximum length is 255 characters',
+      );
     }
     var index = 0;
     while (index < value.length) {
@@ -634,7 +647,10 @@ class DBusSignature extends DBusValue {
       var end = _findClosing(value, index, '(', ')');
       if (end < 0) {
         throw ArgumentError.value(
-            value, 'value', 'Struct missing closing parenthesis');
+          value,
+          'value',
+          'Struct missing closing parenthesis',
+        );
       }
       var childIndex = index + 1;
       while (childIndex < end) {
@@ -654,8 +670,11 @@ class DBusSignature extends DBusValue {
         childCount++;
       }
       if (childCount != 2) {
-        throw ArgumentError.value(value, 'value',
-            "Dict doesn't have correct number of child signatures");
+        throw ArgumentError.value(
+          value,
+          'value',
+          "Dict doesn't have correct number of child signatures",
+        );
       }
       return end;
     } else if (value.startsWith('a', index)) {
@@ -674,7 +693,10 @@ class DBusSignature extends DBusValue {
       return index;
     } else {
       throw ArgumentError.value(
-          value, 'value', 'Signature contains unknown characters');
+        value,
+        'value',
+        'Signature contains unknown characters',
+      );
     }
   }
 
@@ -775,13 +797,19 @@ class DBusMaybe extends DBusValue {
   /// Creates a new D-Bus maybe containing [value].
   DBusMaybe(this.valueSignature, this.value) {
     if (!valueSignature.isSingleCompleteType) {
-      throw ArgumentError.value(valueSignature, 'valueSignature',
-          'Maybe value type must be a single complete type');
+      throw ArgumentError.value(
+        valueSignature,
+        'valueSignature',
+        'Maybe value type must be a single complete type',
+      );
     }
 
     if (value != null && value!.signature.value != valueSignature.value) {
       throw ArgumentError.value(
-          value, 'value', "Value doesn't match signature $valueSignature");
+        value,
+        'value',
+        "Value doesn't match signature $valueSignature",
+      );
     }
   }
 
@@ -890,16 +918,22 @@ class DBusArray extends DBusValue {
   /// [childSignature] must contain a single type.
   /// An exception will be thrown if a DBusValue in [children] doesn't have a signature matching [childSignature].
   DBusArray(this.childSignature, [Iterable<DBusValue> children = const []])
-      : children = children.toList() {
+    : children = children.toList() {
     if (!childSignature.isSingleCompleteType) {
-      throw ArgumentError.value(childSignature, 'childSignature',
-          'Array value type must be a single complete type');
+      throw ArgumentError.value(
+        childSignature,
+        'childSignature',
+        'Array value type must be a single complete type',
+      );
     }
 
     for (var child in children) {
       if (child.signature.value != childSignature.value) {
-        throw ArgumentError.value(children, 'children',
-            "Provided children don't match array signature ${childSignature.value}");
+        throw ArgumentError.value(
+          children,
+          'children',
+          "Provided children don't match array signature ${childSignature.value}",
+        );
       }
     }
   }
@@ -909,68 +943,89 @@ class DBusArray extends DBusValue {
   /// No checking is performed on the validity of [children].
   /// This function is useful when you need a constant value (e.g. for a
   /// parameter default value). In all other cases use the standard constructor.
-  DBusArray.unchecked(this.childSignature,
-      [Iterable<DBusValue> children = const []])
-      : children = children.toList();
+  DBusArray.unchecked(
+    this.childSignature, [
+    Iterable<DBusValue> children = const [],
+  ]) : children = children.toList();
 
   /// Creates a new array of unsigned 8 bit values.
   factory DBusArray.byte(Iterable<int> values) {
     return DBusArray(
-        DBusSignature('y'), values.map((value) => DBusByte(value)));
+      DBusSignature('y'),
+      values.map((value) => DBusByte(value)),
+    );
   }
 
   /// Creates a new array of boolean values.
   factory DBusArray.boolean(Iterable<bool> values) {
     return DBusArray(
-        DBusSignature('b'), values.map((value) => DBusBoolean(value)));
+      DBusSignature('b'),
+      values.map((value) => DBusBoolean(value)),
+    );
   }
 
   /// Creates a new array of signed 16 bit values.
   factory DBusArray.int16(Iterable<int> values) {
     return DBusArray(
-        DBusSignature('n'), values.map((value) => DBusInt16(value)));
+      DBusSignature('n'),
+      values.map((value) => DBusInt16(value)),
+    );
   }
 
   /// Creates a new array of unsigned 16 bit values.
   factory DBusArray.uint16(Iterable<int> values) {
     return DBusArray(
-        DBusSignature('q'), values.map((value) => DBusUint16(value)));
+      DBusSignature('q'),
+      values.map((value) => DBusUint16(value)),
+    );
   }
 
   /// Creates a new array of signed 32 bit values.
   factory DBusArray.int32(Iterable<int> values) {
     return DBusArray(
-        DBusSignature('i'), values.map((value) => DBusInt32(value)));
+      DBusSignature('i'),
+      values.map((value) => DBusInt32(value)),
+    );
   }
 
   /// Creates a new array of unsigned 32 bit values.
   factory DBusArray.uint32(Iterable<int> values) {
     return DBusArray(
-        DBusSignature('u'), values.map((value) => DBusUint32(value)));
+      DBusSignature('u'),
+      values.map((value) => DBusUint32(value)),
+    );
   }
 
   /// Creates a new array of signed 64 bit values.
   factory DBusArray.int64(Iterable<int> values) {
     return DBusArray(
-        DBusSignature('x'), values.map((value) => DBusInt64(value)));
+      DBusSignature('x'),
+      values.map((value) => DBusInt64(value)),
+    );
   }
 
   /// Creates a new array of unsigned 64 bit values.
   factory DBusArray.uint64(Iterable<int> values) {
     return DBusArray(
-        DBusSignature('t'), values.map((value) => DBusUint64(value)));
+      DBusSignature('t'),
+      values.map((value) => DBusUint64(value)),
+    );
   }
 
   /// Creates a new array of 64 bit floating point values.
   factory DBusArray.double(Iterable<double> values) {
     return DBusArray(
-        DBusSignature('d'), values.map((value) => DBusDouble(value)));
+      DBusSignature('d'),
+      values.map((value) => DBusDouble(value)),
+    );
   }
 
   /// Creates a new array of Unicode text strings.
   factory DBusArray.string(Iterable<String> values) {
     return DBusArray(
-        DBusSignature('s'), values.map((value) => DBusString(value)));
+      DBusSignature('s'),
+      values.map((value) => DBusString(value)),
+    );
   }
 
   /// Creates a new array of D-Bus object paths.
@@ -986,13 +1041,17 @@ class DBusArray extends DBusValue {
   /// Creates a new array of D-Bus variants.
   factory DBusArray.variant(Iterable<DBusValue> values) {
     return DBusArray(
-        DBusSignature('v'), values.map((value) => DBusVariant(value)));
+      DBusSignature('v'),
+      values.map((value) => DBusVariant(value)),
+    );
   }
 
   /// Creates a new array of Unix file descriptors.
   factory DBusArray.unixFd(Iterable<ResourceHandle> values) {
     return DBusArray(
-        DBusSignature('h'), values.map((value) => DBusUnixFd(value)));
+      DBusSignature('h'),
+      values.map((value) => DBusUnixFd(value)),
+    );
   }
 
   @override
@@ -1091,16 +1150,19 @@ class DBusArray extends DBusValue {
         var values = children.map((child) => child.asDouble()).join(', ');
         return 'DBusArray.double([$values])';
       case 's':
-        var values =
-            children.map((child) => "'${child.asString()}'").join(', ');
+        var values = children
+            .map((child) => "'${child.asString()}'")
+            .join(', ');
         return 'DBusArray.string([$values])';
       case 'o':
-        var values =
-            children.map((child) => child.asObjectPath().toString()).join(', ');
+        var values = children
+            .map((child) => child.asObjectPath().toString())
+            .join(', ');
         return 'DBusArray.objectPath([$values])';
       case 'g':
-        var values =
-            children.map((child) => child.asSignature().toString()).join(', ');
+        var values = children
+            .map((child) => child.asSignature().toString())
+            .join(', ');
         return 'DBusArray.signature([$values])';
       case 'v':
         var values = children.map((child) => child.asVariant()).join(', ');
@@ -1137,22 +1199,34 @@ class DBusDict extends DBusValue {
   /// An exception will be thrown if the DBusValues in [children] don't have signatures matching [keySignature] and [valueSignature].
   DBusDict(this.keySignature, this.valueSignature, [this.children = const {}]) {
     if (!keySignature.isSingleCompleteType) {
-      throw ArgumentError.value(keySignature, 'keySignature',
-          'Dict key type must be a single complete type');
+      throw ArgumentError.value(
+        keySignature,
+        'keySignature',
+        'Dict key type must be a single complete type',
+      );
     }
     if (!valueSignature.isSingleCompleteType) {
-      throw ArgumentError.value(valueSignature, 'valueSignature',
-          'Dict value type must be a single complete type');
+      throw ArgumentError.value(
+        valueSignature,
+        'valueSignature',
+        'Dict value type must be a single complete type',
+      );
     }
 
     children.forEach((key, value) {
       if (key.signature.value != keySignature.value) {
-        throw ArgumentError.value(key, 'children',
-            "Provided key doesn't match signature ${keySignature.value}");
+        throw ArgumentError.value(
+          key,
+          'children',
+          "Provided key doesn't match signature ${keySignature.value}",
+        );
       }
       if (value.signature.value != valueSignature.value) {
-        throw ArgumentError.value(value, 'children',
-            "Provided value doesn't match signature ${valueSignature.value}");
+        throw ArgumentError.value(
+          value,
+          'children',
+          "Provided value doesn't match signature ${valueSignature.value}",
+        );
       }
     });
   }
@@ -1162,16 +1236,21 @@ class DBusDict extends DBusValue {
   /// No checking is performed on the validity of [children].
   /// This function is useful when you need a constant value (e.g. for a
   /// parameter default value). In all other cases use the standard constructor.
-  const DBusDict.unchecked(this.keySignature, this.valueSignature,
-      [this.children = const {}]);
+  const DBusDict.unchecked(
+    this.keySignature,
+    this.valueSignature, [
+    this.children = const {},
+  ]);
 
   /// Creates a new dictionary of string keys mapping to variant values.
   factory DBusDict.stringVariant(Map<String, DBusValue> children) {
     return DBusDict(
-        DBusSignature('s'),
-        DBusSignature('v'),
-        children.map(
-            (key, value) => MapEntry(DBusString(key), DBusVariant(value))));
+      DBusSignature('s'),
+      DBusSignature('v'),
+      children.map(
+        (key, value) => MapEntry(DBusString(key), DBusVariant(value)),
+      ),
+    );
   }
 
   @override
@@ -1181,8 +1260,9 @@ class DBusDict extends DBusValue {
 
   @override
   dynamic toNative() {
-    return children
-        .map((key, value) => MapEntry(key.toNative(), value.toNative()));
+    return children.map(
+      (key, value) => MapEntry(key.toNative(), value.toNative()),
+    );
   }
 
   /// Maps the contents of this array into native types. Only works if [keySignature] is 's' and [valueSignature] is 'v'.
@@ -1198,14 +1278,17 @@ class DBusDict extends DBusValue {
 
   @override
   int get hashCode => Object.hashAll(
-      children.entries.map((entry) => Object.hash(entry.key, entry.value)));
+    children.entries.map((entry) => Object.hash(entry.key, entry.value)),
+  );
 
   @override
   String toString() {
     if (keySignature.value == 's' && valueSignature.value == 'v') {
       var values = children.entries
-          .map((entry) =>
-              "'${entry.key.asString()}': ${entry.value.asVariant().toString()}")
+          .map(
+            (entry) =>
+                "'${entry.key.asString()}': ${entry.value.asVariant().toString()}",
+          )
           .join(', ');
       return 'DBusDict.stringVariant({$values})';
     } else {

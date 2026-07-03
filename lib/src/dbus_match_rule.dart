@@ -32,13 +32,14 @@ class DBusMatchRule {
   final DBusObjectPath? pathNamespace;
 
   /// Creates a new D-Bus rule to match messages.
-  const DBusMatchRule(
-      {this.type,
-      this.sender,
-      this.interface,
-      this.member,
-      this.path,
-      this.pathNamespace});
+  const DBusMatchRule({
+    this.type,
+    this.sender,
+    this.interface,
+    this.member,
+    this.path,
+    this.pathNamespace,
+  });
 
   /// Creates a match rule from the string [rule] which is in the format used by D-Bus messages.
   factory DBusMatchRule.fromDBusString(String rule) {
@@ -50,14 +51,16 @@ class DBusMatchRule {
       if (rule[offset] == '=' || rule[offset] == ',') {
         throw DBusMatchRuleException('Invalid D-Bus rule, missing key');
       }
-      while (
-          offset < rule.length && rule[offset] != '=' && rule[offset] != ',') {
+      while (offset < rule.length &&
+          rule[offset] != '=' &&
+          rule[offset] != ',') {
         offset++;
       }
       var key = rule.substring(keyStart, offset);
       if (offset >= rule.length || rule[offset] != '=') {
         throw DBusMatchRuleException(
-            'Invalid D-Bus rule, key $key missing value');
+          'Invalid D-Bus rule, key $key missing value',
+        );
       }
       offset++;
 
@@ -79,7 +82,8 @@ class DBusMatchRule {
           offset++;
           if (offset >= rule.length) {
             throw DBusMatchRuleException(
-                'Invalid D-Bus rule, missing key after comma');
+              'Invalid D-Bus rule, missing key after comma',
+            );
           }
           break;
         }
@@ -100,7 +104,7 @@ class DBusMatchRule {
         'method_call': DBusMessageType.methodCall,
         'method_return': DBusMessageType.methodReturn,
         'error': DBusMessageType.error,
-        'signal': DBusMessageType.signal
+        'signal': DBusMessageType.signal,
       }[valueType];
       if (type == null) {
         throw DBusMatchRuleException('Invalid message type $valueType');
@@ -109,7 +113,8 @@ class DBusMatchRule {
 
     if (values['path'] != null && values['path_namespace'] != null) {
       throw DBusMatchRuleException(
-          "Match rule can't contain both path and path_namespace");
+        "Match rule can't contain both path and path_namespace",
+      );
     }
 
     return DBusMatchRule(
@@ -118,8 +123,9 @@ class DBusMatchRule {
       interface: values['interface'] != null
           ? DBusInterfaceName(values['interface']!)
           : null,
-      member:
-          values['member'] != null ? DBusMemberName(values['member']!) : null,
+      member: values['member'] != null
+          ? DBusMemberName(values['member']!)
+          : null,
       path: values['path'] != null ? DBusObjectPath(values['path']!) : null,
       pathNamespace: values['path_namespace'] != null
           ? DBusObjectPath(values['path_namespace']!)
@@ -131,11 +137,12 @@ class DBusMatchRule {
   String toDBusString() {
     var matches = <String, String>{};
     if (type != null) {
-      matches['type'] = {
+      matches['type'] =
+          {
             DBusMessageType.methodCall: 'method_call',
             DBusMessageType.methodReturn: 'method_return',
             DBusMessageType.error: 'error',
-            DBusMessageType.signal: 'signal'
+            DBusMessageType.signal: 'signal',
           }[type] ??
           '';
     }
@@ -167,12 +174,13 @@ class DBusMatchRule {
   }
 
   /// True if the rule matches the supplied values.
-  bool match(
-      {DBusMessageType? type,
-      DBusBusName? sender,
-      DBusInterfaceName? interface,
-      DBusMemberName? member,
-      DBusObjectPath? path}) {
+  bool match({
+    DBusMessageType? type,
+    DBusBusName? sender,
+    DBusInterfaceName? interface,
+    DBusMemberName? member,
+    DBusObjectPath? path,
+  }) {
     if (this.type != null && this.type != type) {
       return false;
     }
@@ -219,7 +227,7 @@ class DBusMatchRule {
       'interface': interface?.toString(),
       'member': member?.toString(),
       'path': path?.toString(),
-      'pathNamespace': pathNamespace?.toString()
+      'pathNamespace': pathNamespace?.toString(),
     };
     var parameterString = parameters.keys
         .where((key) => parameters[key] != null)

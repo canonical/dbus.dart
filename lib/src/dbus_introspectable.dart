@@ -9,19 +9,28 @@ import 'dbus_value.dart';
 
 /// Returns introspection data for the org.freedesktop.DBus.Introspectable interface.
 DBusIntrospectInterface introspectIntrospectable() {
-  final introspectMethod = DBusIntrospectMethod('Introspect', args: [
-    DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out,
-        name: 'xml_data')
-  ]);
+  final introspectMethod = DBusIntrospectMethod(
+    'Introspect',
+    args: [
+      DBusIntrospectArgument(
+        DBusSignature('s'),
+        DBusArgumentDirection.out,
+        name: 'xml_data',
+      ),
+    ],
+  );
   final introspectable = DBusIntrospectInterface(
-      'org.freedesktop.DBus.Introspectable',
-      methods: [introspectMethod]);
+    'org.freedesktop.DBus.Introspectable',
+    methods: [introspectMethod],
+  );
   return introspectable;
 }
 
 /// Handles method calls on the org.freedesktop.DBus.Introspectable interface.
 DBusMethodResponse handleIntrospectableMethodCall(
-    DBusObjectTreeNode? node, DBusMethodCall methodCall) {
+  DBusObjectTreeNode? node,
+  DBusMethodCall methodCall,
+) {
   if (methodCall.name == 'Introspect') {
     if (methodCall.signature != DBusSignature('')) {
       return DBusMethodErrorResponse.invalidArgs();
@@ -41,11 +50,13 @@ DBusMethodResponse handleIntrospectableMethodCall(
     var children = <DBusIntrospectNode>[];
     if (node != null) {
       children.addAll(
-          node.children.keys.map((name) => DBusIntrospectNode(name: name)));
+        node.children.keys.map((name) => DBusIntrospectNode(name: name)),
+      );
     }
-    var xml = DBusIntrospectNode(interfaces: interfaces, children: children)
-        .toXml()
-        .toXmlString();
+    var xml = DBusIntrospectNode(
+      interfaces: interfaces,
+      children: children,
+    ).toXml().toXmlString();
     return DBusMethodSuccessResponse([DBusString(xml)]);
   } else {
     return DBusMethodErrorResponse.unknownMethod();

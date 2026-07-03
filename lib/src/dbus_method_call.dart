@@ -28,14 +28,15 @@ class DBusMethodCall {
       .map((value) => value.signature)
       .fold(DBusSignature(''), (a, b) => a + b);
 
-  const DBusMethodCall(
-      {required this.sender,
-      this.interface,
-      required this.name,
-      this.values = const [],
-      this.noReplyExpected = false,
-      this.noAutoStart = false,
-      this.allowInteractiveAuthorization = false});
+  const DBusMethodCall({
+    required this.sender,
+    this.interface,
+    required this.name,
+    this.values = const [],
+    this.noReplyExpected = false,
+    this.noAutoStart = false,
+    this.allowInteractiveAuthorization = false,
+  });
 
   @override
   String toString() {
@@ -46,8 +47,9 @@ class DBusMethodCall {
       'values': values.isNotEmpty ? values.toString() : null,
       'noReplyExpected': noReplyExpected ? 'true' : null,
       'noAutoStart': noAutoStart ? 'true' : null,
-      'allowInteractiveAuthorization':
-          allowInteractiveAuthorization ? 'true' : null
+      'allowInteractiveAuthorization': allowInteractiveAuthorization
+          ? 'true'
+          : null,
     };
     var parameterString = parameters.keys
         .where((key) => parameters[key] != null)

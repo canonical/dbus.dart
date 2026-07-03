@@ -6,14 +6,14 @@ void main() async {
   var client = DBusClient.system();
   var names = await client.listNames();
   var rows = [
-    ['Name', 'PID', 'UID']
+    ['Name', 'PID', 'UID'],
   ];
   for (var name in names) {
     var credentials = await client.getConnectionCredentials(name);
     rows.add([
       name,
       credentials.processId.toString(),
-      credentials.unixUserId.toString()
+      credentials.unixUserId.toString(),
     ]);
   }
   var rowLengths = [0, 0, 0];
@@ -24,7 +24,8 @@ void main() async {
   }
   for (var row in rows) {
     print(
-        '${row[0].padRight(rowLengths[0])} ${row[1].padLeft(rowLengths[1])} ${row[2].padLeft(rowLengths[2])}');
+      '${row[0].padRight(rowLengths[0])} ${row[1].padLeft(rowLengths[1])} ${row[2].padLeft(rowLengths[2])}',
+    );
   }
   await client.close();
 }

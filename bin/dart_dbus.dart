@@ -12,25 +12,35 @@ class GenerateObjectCommand extends Command {
   final description = 'Generates a DBusObject to register on the D-Bus.';
 
   GenerateObjectCommand() {
-    argParser.addOption('output',
-        abbr: 'o', valueHelp: 'filename', help: 'Dart file to write to');
-    argParser.addOption('class-name',
-        valueHelp: 'ClassName', help: 'Class name to use');
+    argParser.addOption(
+      'output',
+      abbr: 'o',
+      valueHelp: 'filename',
+      help: 'Dart file to write to',
+    );
+    argParser.addOption(
+      'class-name',
+      valueHelp: 'ClassName',
+      help: 'Class name to use',
+    );
   }
 
   @override
   void run() async {
     if (argResults?.rest.length != 1) {
       usageException(
-          '$name requires a single D-Bus interface file to be provided.');
+        '$name requires a single D-Bus interface file to be provided.',
+      );
     }
     var filename = argResults!.rest[0];
     var node = await loadNode(filename);
     var comment =
         'This file was generated using the following command and may be overwritten.\ndart-dbus $name $filename';
-    var source = DBusCodeGenerator(node,
-            comment: comment, className: argResults?['class-name'])
-        .generateServerSource();
+    var source = DBusCodeGenerator(
+      node,
+      comment: comment,
+      className: argResults?['class-name'],
+    ).generateServerSource();
     await writeSource(source, argResults?['output']);
   }
 }
@@ -45,32 +55,44 @@ class GenerateRemoteObjectCommand extends Command {
       'Generates a DBusRemoteObject to access an object on the D-Bus.';
 
   GenerateRemoteObjectCommand() {
-    argParser.addOption('output',
-        abbr: 'o', valueHelp: 'filename', help: 'Dart file to write to');
-    argParser.addOption('class-name',
-        valueHelp: 'ClassName', help: 'Class name to use');
+    argParser.addOption(
+      'output',
+      abbr: 'o',
+      valueHelp: 'filename',
+      help: 'Dart file to write to',
+    );
+    argParser.addOption(
+      'class-name',
+      valueHelp: 'ClassName',
+      help: 'Class name to use',
+    );
   }
 
   @override
   void run() async {
     if (argResults?.rest.length != 1) {
       usageException(
-          '$name requires a single D-Bus interface file to be provided.');
+        '$name requires a single D-Bus interface file to be provided.',
+      );
     }
     var filename = argResults!.rest[0];
     var node = await loadNode(filename);
     var comment =
         'This file was generated using the following command and may be overwritten.\ndart-dbus $name $filename';
-    var source = DBusCodeGenerator(node,
-            comment: comment, className: argResults?['class-name'])
-        .generateClientSource();
+    var source = DBusCodeGenerator(
+      node,
+      comment: comment,
+      className: argResults?['class-name'],
+    ).generateClientSource();
     await writeSource(source, argResults?['output']);
   }
 }
 
 void main(List<String> args) async {
-  var runner = CommandRunner('dart-dbus',
-      'A tool to generate Dart classes from D-Bus interface defintions.');
+  var runner = CommandRunner(
+    'dart-dbus',
+    'A tool to generate Dart classes from D-Bus interface defintions.',
+  );
   runner.addCommand(GenerateObjectCommand());
   runner.addCommand(GenerateRemoteObjectCommand());
   await runner.run(args).catchError((error) {

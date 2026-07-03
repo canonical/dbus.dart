@@ -32,8 +32,11 @@ class DBusIntrospectNode {
   /// Child nodes.
   final List<DBusIntrospectNode> children;
 
-  DBusIntrospectNode(
-      {this.name, this.interfaces = const [], this.children = const []});
+  DBusIntrospectNode({
+    this.name,
+    this.interfaces = const [],
+    this.children = const [],
+  });
 
   factory DBusIntrospectNode.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
@@ -46,7 +49,10 @@ class DBusIntrospectNode {
         .map((n) => DBusIntrospectNode.fromXml(n))
         .toList();
     return DBusIntrospectNode(
-        name: name, interfaces: interfaces, children: children);
+      name: name,
+      interfaces: interfaces,
+      children: children,
+    );
   }
 
   XmlNode toXml() {
@@ -65,7 +71,7 @@ class DBusIntrospectNode {
     var parameters = <String, String?>{
       'name': name != null ? '$name' : null,
       'interfaces': interfaces.isNotEmpty ? interfaces.toString() : null,
-      'children': children.isNotEmpty ? children.toString() : null
+      'children': children.isNotEmpty ? children.toString() : null,
     };
     var parameterString = parameters.keys
         .where((key) => parameters[key] != null)
@@ -102,11 +108,13 @@ class DBusIntrospectInterface {
   /// Annotations for this interface.
   final List<DBusIntrospectAnnotation> annotations;
 
-  DBusIntrospectInterface(this.name,
-      {this.methods = const [],
-      this.signals = const [],
-      this.properties = const [],
-      this.annotations = const []});
+  DBusIntrospectInterface(
+    this.name, {
+    this.methods = const [],
+    this.signals = const [],
+    this.properties = const [],
+    this.annotations = const [],
+  });
 
   factory DBusIntrospectInterface.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
@@ -129,11 +137,13 @@ class DBusIntrospectInterface {
         .findElements('annotation')
         .map((n) => DBusIntrospectAnnotation.fromXml(n))
         .toList();
-    return DBusIntrospectInterface(name,
-        methods: methods,
-        signals: signals,
-        properties: properties,
-        annotations: annotations);
+    return DBusIntrospectInterface(
+      name,
+      methods: methods,
+      signals: signals,
+      properties: properties,
+      annotations: annotations,
+    );
   }
 
   XmlNode toXml() {
@@ -154,12 +164,14 @@ class DBusIntrospectInterface {
     var parameters = <String, String?>{
       'methods': methods.isNotEmpty ? methods.toString() : null,
       'signals': signals.isNotEmpty ? signals.toString() : null,
-      'properties': properties.isNotEmpty ? properties.toString() : null
+      'properties': properties.isNotEmpty ? properties.toString() : null,
     };
     var parameterString = ["'$name'"]
-        .followedBy(parameters.keys
-            .where((key) => parameters[key] != null)
-            .map((key) => '$key: ${parameters[key]}'))
+        .followedBy(
+          parameters.keys
+              .where((key) => parameters[key] != null)
+              .map((key) => '$key: ${parameters[key]}'),
+        )
         .join(', ');
     return '$runtimeType($parameterString)';
   }
@@ -201,8 +213,11 @@ class DBusIntrospectMethod {
       .map((arg) => arg.type)
       .fold(DBusSignature(''), (a, b) => a + b);
 
-  DBusIntrospectMethod(this.name,
-      {this.args = const [], this.annotations = const []});
+  DBusIntrospectMethod(
+    this.name, {
+    this.args = const [],
+    this.annotations = const [],
+  });
 
   factory DBusIntrospectMethod.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
@@ -212,7 +227,8 @@ class DBusIntrospectMethod {
     var args = node
         .findElements('arg')
         .map(
-            (n) => DBusIntrospectArgument.fromXml(n, DBusArgumentDirection.in_))
+          (n) => DBusIntrospectArgument.fromXml(n, DBusArgumentDirection.in_),
+        )
         .toList();
     var annotations = node
         .findElements('annotation')
@@ -236,12 +252,14 @@ class DBusIntrospectMethod {
   String toString() {
     var parameters = <String, String?>{
       'args': args.isNotEmpty ? args.toString() : null,
-      'annotations': annotations.isNotEmpty ? annotations.toString() : null
+      'annotations': annotations.isNotEmpty ? annotations.toString() : null,
     };
     var parameterString = ["'$name'"]
-        .followedBy(parameters.keys
-            .where((key) => parameters[key] != null)
-            .map((key) => '$key: ${parameters[key]}'))
+        .followedBy(
+          parameters.keys
+              .where((key) => parameters[key] != null)
+              .map((key) => '$key: ${parameters[key]}'),
+        )
         .join(', ');
     return '$runtimeType($parameterString)';
   }
@@ -272,8 +290,11 @@ class DBusIntrospectSignal {
   DBusSignature get signature =>
       args.map((arg) => arg.type).fold(DBusSignature(''), (a, b) => a + b);
 
-  DBusIntrospectSignal(this.name,
-      {this.args = const [], this.annotations = const []});
+  DBusIntrospectSignal(
+    this.name, {
+    this.args = const [],
+    this.annotations = const [],
+  });
 
   factory DBusIntrospectSignal.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
@@ -283,7 +304,8 @@ class DBusIntrospectSignal {
     var args = node
         .findElements('arg')
         .map(
-            (n) => DBusIntrospectArgument.fromXml(n, DBusArgumentDirection.out))
+          (n) => DBusIntrospectArgument.fromXml(n, DBusArgumentDirection.out),
+        )
         .toList();
     var annotations = node
         .findElements('annotation')
@@ -307,12 +329,14 @@ class DBusIntrospectSignal {
   String toString() {
     var parameters = <String, String?>{
       'args': args.isNotEmpty ? args.toString() : null,
-      'annotations': annotations.isNotEmpty ? annotations.toString() : null
+      'annotations': annotations.isNotEmpty ? annotations.toString() : null,
     };
     var parameterString = ["'$name'"]
-        .followedBy(parameters.keys
-            .where((key) => parameters[key] != null)
-            .map((key) => '$key: ${parameters[key]}'))
+        .followedBy(
+          parameters.keys
+              .where((key) => parameters[key] != null)
+              .map((key) => '$key: ${parameters[key]}'),
+        )
         .join(', ');
     return '$runtimeType($parameterString)';
   }
@@ -342,9 +366,12 @@ class DBusIntrospectProperty {
   /// Annotations for this property.
   final List<DBusIntrospectAnnotation> annotations;
 
-  DBusIntrospectProperty(this.name, this.type,
-      {this.access = DBusPropertyAccess.readwrite,
-      this.annotations = const []});
+  DBusIntrospectProperty(
+    this.name,
+    this.type, {
+    this.access = DBusPropertyAccess.readwrite,
+    this.annotations = const [],
+  });
 
   factory DBusIntrospectProperty.fromXml(XmlNode node) {
     var name = node.getAttribute('name');
@@ -361,7 +388,7 @@ class DBusIntrospectProperty {
       null: DBusPropertyAccess.readwrite,
       'readwrite': DBusPropertyAccess.readwrite,
       'read': DBusPropertyAccess.read,
-      'write': DBusPropertyAccess.write
+      'write': DBusPropertyAccess.write,
     }[accessText];
     if (access == null) {
       throw FormatException("Unknown property access '$accessText'");
@@ -370,8 +397,12 @@ class DBusIntrospectProperty {
         .findElements('annotation')
         .map((n) => DBusIntrospectAnnotation.fromXml(n))
         .toList();
-    return DBusIntrospectProperty(name, type,
-        access: access, annotations: annotations);
+    return DBusIntrospectProperty(
+      name,
+      type,
+      access: access,
+      annotations: annotations,
+    );
   }
 
   XmlNode toXml() {
@@ -395,14 +426,17 @@ class DBusIntrospectProperty {
   @override
   String toString() {
     var parameters = <String, String?>{
-      'access':
-          access != DBusPropertyAccess.readwrite ? access.toString() : null,
-      'annotations': annotations.isNotEmpty ? annotations.toString() : null
+      'access': access != DBusPropertyAccess.readwrite
+          ? access.toString()
+          : null,
+      'annotations': annotations.isNotEmpty ? annotations.toString() : null,
     };
     var parameterString = ["'$name'", type.toString()]
-        .followedBy(parameters.keys
-            .where((key) => parameters[key] != null)
-            .map((key) => '$key: ${parameters[key]}'))
+        .followedBy(
+          parameters.keys
+              .where((key) => parameters[key] != null)
+              .map((key) => '$key: ${parameters[key]}'),
+        )
         .join(', ');
     return '$runtimeType($parameterString)';
   }
@@ -433,11 +467,17 @@ class DBusIntrospectArgument {
   /// Annotations for this argument.
   final List<DBusIntrospectAnnotation> annotations;
 
-  DBusIntrospectArgument(this.type, this.direction,
-      {this.name, this.annotations = const []});
+  DBusIntrospectArgument(
+    this.type,
+    this.direction, {
+    this.name,
+    this.annotations = const [],
+  });
 
   factory DBusIntrospectArgument.fromXml(
-      XmlNode node, DBusArgumentDirection defaultDirection) {
+    XmlNode node,
+    DBusArgumentDirection defaultDirection,
+  ) {
     var name = node.getAttribute('name');
     var typeString = node.getAttribute('type');
     if (typeString == null) {
@@ -448,7 +488,7 @@ class DBusIntrospectArgument {
     var direction = {
       null: defaultDirection,
       'in': DBusArgumentDirection.in_,
-      'out': DBusArgumentDirection.out
+      'out': DBusArgumentDirection.out,
     }[directionText];
     if (direction == null) {
       throw FormatException("Unknown argument direction '$directionText'");
@@ -457,8 +497,12 @@ class DBusIntrospectArgument {
         .findElements('annotation')
         .map((n) => DBusIntrospectAnnotation.fromXml(n))
         .toList();
-    return DBusIntrospectArgument(type, direction,
-        name: name, annotations: annotations);
+    return DBusIntrospectArgument(
+      type,
+      direction,
+      name: name,
+      annotations: annotations,
+    );
   }
 
   XmlNode toXml({bool writeDirection = true}) {
@@ -485,12 +529,14 @@ class DBusIntrospectArgument {
   String toString() {
     var parameters = <String, String?>{
       'name': name != null ? "'$name'" : null,
-      'annotations': annotations.isNotEmpty ? annotations.toString() : null
+      'annotations': annotations.isNotEmpty ? annotations.toString() : null,
     };
     var parameterString = [type.toString(), direction.toString()]
-        .followedBy(parameters.keys
-            .where((key) => parameters[key] != null)
-            .map((key) => '$key: ${parameters[key]}'))
+        .followedBy(
+          parameters.keys
+              .where((key) => parameters[key] != null)
+              .map((key) => '$key: ${parameters[key]}'),
+        )
         .join(', ');
     return '$runtimeType($parameterString)';
   }
@@ -565,7 +611,8 @@ DBusIntrospectNode parseDBusIntrospectXml(String xml) {
   var nodeName = document.rootElement.name.local;
   if (nodeName != 'node') {
     throw FormatException(
-        "D-Bus Introspection XML has invalid root element '$nodeName', expected 'node'");
+      "D-Bus Introspection XML has invalid root element '$nodeName', expected 'node'",
+    );
   }
   return DBusIntrospectNode.fromXml(document.rootElement);
 }

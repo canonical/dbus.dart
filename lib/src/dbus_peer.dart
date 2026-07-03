@@ -7,19 +7,28 @@ import 'dbus_value.dart';
 
 /// Returns introspection data for the org.freedesktop.DBus.Peer interface.
 DBusIntrospectInterface introspectPeer() {
-  final getMachineIdMethod = DBusIntrospectMethod('GetMachineId', args: [
-    DBusIntrospectArgument(DBusSignature('s'), DBusArgumentDirection.out,
-        name: 'machine_uuid')
-  ]);
+  final getMachineIdMethod = DBusIntrospectMethod(
+    'GetMachineId',
+    args: [
+      DBusIntrospectArgument(
+        DBusSignature('s'),
+        DBusArgumentDirection.out,
+        name: 'machine_uuid',
+      ),
+    ],
+  );
   final pingMethod = DBusIntrospectMethod('Ping');
-  final peer = DBusIntrospectInterface('org.freedesktop.DBus.Peer',
-      methods: [getMachineIdMethod, pingMethod]);
+  final peer = DBusIntrospectInterface(
+    'org.freedesktop.DBus.Peer',
+    methods: [getMachineIdMethod, pingMethod],
+  );
   return peer;
 }
 
 /// Handles method calls on the org.freedesktop.DBus.Peer interface.
 Future<DBusMethodResponse> handlePeerMethodCall(
-    DBusMethodCall methodCall) async {
+  DBusMethodCall methodCall,
+) async {
   if (methodCall.name == 'GetMachineId') {
     if (methodCall.signature != DBusSignature('')) {
       return DBusMethodErrorResponse.invalidArgs();

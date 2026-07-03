@@ -22,36 +22,54 @@ String getsid() {
   final kernel32 = DynamicLibrary.open('kernel32.dll');
   final getCurrentProcess = kernel32
       .lookupFunction<IntPtr Function(), int Function()>('GetCurrentProcess');
-  final closeHandle = kernel32.lookupFunction<Int32 Function(IntPtr hObject),
-      int Function(int hObject)>('CloseHandle');
+  final closeHandle = kernel32
+      .lookupFunction<
+        Int32 Function(IntPtr hObject),
+        int Function(int hObject)
+      >('CloseHandle');
   final getLastError = kernel32
       .lookupFunction<Uint32 Function(), int Function()>('GetLastError');
-  final localFree = kernel32.lookupFunction<IntPtr Function(IntPtr hMem),
-      int Function(int hMem)>('LocalFree');
+  final localFree = kernel32
+      .lookupFunction<IntPtr Function(IntPtr hMem), int Function(int hMem)>(
+        'LocalFree',
+      );
 
   final advapi32 = DynamicLibrary.open('advapi32.dll');
-  final openProcessToken = advapi32.lookupFunction<
-      Int32 Function(IntPtr processHandle, Uint32 desiredAccess,
-          Pointer<IntPtr> tokenHandle),
-      int Function(int processHandle, int desiredAccess,
-          Pointer<IntPtr> tokenHandle)>('OpenProcessToken');
-  final getTokenInformation = advapi32.lookupFunction<
-      Int32 Function(
+  final openProcessToken = advapi32
+      .lookupFunction<
+        Int32 Function(
+          IntPtr processHandle,
+          Uint32 desiredAccess,
+          Pointer<IntPtr> tokenHandle,
+        ),
+        int Function(
+          int processHandle,
+          int desiredAccess,
+          Pointer<IntPtr> tokenHandle,
+        )
+      >('OpenProcessToken');
+  final getTokenInformation = advapi32
+      .lookupFunction<
+        Int32 Function(
           IntPtr tokenHandle,
           Uint32 tokenInformationClass,
           Pointer tokenInformation,
           Uint32 tokenInformationLength,
-          Pointer<Uint32> returnLength),
-      int Function(
+          Pointer<Uint32> returnLength,
+        ),
+        int Function(
           int tokenHandle,
           int tokenInformationClass,
           Pointer tokenInformation,
           int tokenInformationLength,
-          Pointer<Uint32> returnLength)>('GetTokenInformation');
-  final convertSidToStringSidA = advapi32.lookupFunction<
-      Int32 Function(Pointer<Void> sid, Pointer<Pointer<Utf8>> stringSid),
-      int Function(Pointer<Void> sid,
-          Pointer<Pointer<Utf8>> stringSid)>('ConvertSidToStringSidA');
+          Pointer<Uint32> returnLength,
+        )
+      >('GetTokenInformation');
+  final convertSidToStringSidA = advapi32
+      .lookupFunction<
+        Int32 Function(Pointer<Void> sid, Pointer<Pointer<Utf8>> stringSid),
+        int Function(Pointer<Void> sid, Pointer<Pointer<Utf8>> stringSid)
+      >('ConvertSidToStringSidA');
 
   const tokenQuery = 0x0008;
   var h = calloc<IntPtr>();

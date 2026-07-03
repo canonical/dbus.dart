@@ -11,7 +11,7 @@ class TestObject extends DBusObject {
       DBusIntrospectInterface(
         'com.canonical.DBusDart',
         signals: [DBusIntrospectSignal('Ping')],
-      )
+      ),
     ];
   }
 }
@@ -30,7 +30,10 @@ void main(List<String> args) async {
       path: DBusObjectPath('/com/canonical/DBusDart'),
     );
     var signals = DBusRemoteObjectSignalStream(
-        object: object, interface: 'com.canonical.DBusDart', name: 'Ping');
+      object: object,
+      interface: 'com.canonical.DBusDart',
+      name: 'Ping',
+    );
     await for (var signal in signals) {
       var count = signal.values[0].asUint64();
       print('Ping $count!');

@@ -2,9 +2,11 @@ import 'package:dbus/dbus.dart';
 
 void main() async {
   var client = DBusClient.system();
-  var object = DBusRemoteObjectManager(client,
-      name: 'org.freedesktop.NetworkManager',
-      path: DBusObjectPath('/org/freedesktop'));
+  var object = DBusRemoteObjectManager(
+    client,
+    name: 'org.freedesktop.NetworkManager',
+    path: DBusObjectPath('/org/freedesktop'),
+  );
 
   object.signals.listen((signal) {
     if (signal is DBusObjectManagerInterfacesAddedSignal) {
@@ -16,8 +18,9 @@ void main() async {
       }
     } else if (signal is DBusPropertiesChangedSignal) {
       print(signal.path.value);
-      printInterfacesAndProperties(
-          {signal.propertiesInterface: signal.changedProperties});
+      printInterfacesAndProperties({
+        signal.propertiesInterface: signal.changedProperties,
+      });
     }
   });
 
@@ -29,7 +32,8 @@ void main() async {
 }
 
 void printInterfacesAndProperties(
-    Map<String, Map<String, DBusValue>> interfacesAndProperties) {
+  Map<String, Map<String, DBusValue>> interfacesAndProperties,
+) {
   interfacesAndProperties.forEach((interface, properties) {
     print('  $interface');
     properties.forEach((name, value) {

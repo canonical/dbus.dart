@@ -26,7 +26,8 @@ class DBusAddress {
     var index = address.indexOf(':');
     if (index < 0) {
       throw FormatException(
-          'Unable to determine transport of D-Bus address: $address');
+        'Unable to determine transport of D-Bus address: $address',
+      );
     }
 
     var transport = address.substring(0, index);
@@ -38,12 +39,13 @@ class DBusAddress {
   DBusAddress.withTransport(this.transport, this.properties);
 
   /// Creates a new D-Bus address connecting to a Unix socket.
-  factory DBusAddress.unix(
-      {String? path,
-      Directory? dir,
-      Directory? tmpdir,
-      String? abstract,
-      bool runtime = false}) {
+  factory DBusAddress.unix({
+    String? path,
+    Directory? dir,
+    Directory? tmpdir,
+    String? abstract,
+    bool runtime = false,
+  }) {
     var properties = <String, String>{};
     if (path != null) {
       properties['path'] = path;
@@ -64,8 +66,12 @@ class DBusAddress {
   }
 
   /// Creates a new D-Bus address connecting to a TCP socket.
-  factory DBusAddress.tcp(String host,
-      {String? bind, int? port, DBusAddressTcpFamily? family}) {
+  factory DBusAddress.tcp(
+    String host, {
+    String? bind,
+    int? port,
+    DBusAddressTcpFamily? family,
+  }) {
     var properties = <String, String>{'host': host};
     if (bind != null) {
       properties['bind'] = bind;
@@ -76,7 +82,7 @@ class DBusAddress {
     if (family != null) {
       properties['family'] = {
         DBusAddressTcpFamily.ipv4: 'ipv4',
-        DBusAddressTcpFamily.ipv6: 'ipv6'
+        DBusAddressTcpFamily.ipv6: 'ipv6',
       }[family]!;
     }
     return DBusAddress.withTransport('tcp', properties);
@@ -101,7 +107,8 @@ class DBusAddress {
         value = _decodeValue(property.substring(index + 1));
       } on FormatException {
         throw FormatException(
-            'Invalid value in D-Bus address property: $property');
+          'Invalid value in D-Bus address property: $property',
+        );
       }
 
       if (properties.containsKey(key)) {

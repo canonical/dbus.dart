@@ -9,12 +9,21 @@ class TestObject extends DBusObject {
   @override
   List<DBusIntrospectInterface> introspect() {
     return [
-      DBusIntrospectInterface('com.canonical.DBusDart', methods: [
-        DBusIntrospectMethod('Open', args: [
-          DBusIntrospectArgument(DBusSignature('h'), DBusArgumentDirection.out,
-              name: 'fd')
-        ])
-      ])
+      DBusIntrospectInterface(
+        'com.canonical.DBusDart',
+        methods: [
+          DBusIntrospectMethod(
+            'Open',
+            args: [
+              DBusIntrospectArgument(
+                DBusSignature('h'),
+                DBusArgumentDirection.out,
+                name: 'fd',
+              ),
+            ],
+          ),
+        ],
+      ),
     ];
   }
 
@@ -30,8 +39,9 @@ class TestObject extends DBusObject {
 
       print('Client opens file for reading');
       var file = await File('FD_TEST').open();
-      return DBusMethodSuccessResponse(
-          [DBusUnixFd(ResourceHandle.fromFile(file))]);
+      return DBusMethodSuccessResponse([
+        DBusUnixFd(ResourceHandle.fromFile(file)),
+      ]);
     } else {
       return DBusMethodErrorResponse.unknownMethod();
     }
@@ -46,12 +56,18 @@ void main(List<String> args) async {
     mode = args[0];
   }
   if (mode == 'client') {
-    var object = DBusRemoteObject(client,
-        name: 'com.canonical.DBusDart',
-        path: DBusObjectPath('/com/canonical/DBusDart'));
+    var object = DBusRemoteObject(
+      client,
+      name: 'com.canonical.DBusDart',
+      path: DBusObjectPath('/com/canonical/DBusDart'),
+    );
 
-    var result = await object.callMethod('com.canonical.DBusDart', 'Open', [],
-        replySignature: DBusSignature('h'));
+    var result = await object.callMethod(
+      'com.canonical.DBusDart',
+      'Open',
+      [],
+      replySignature: DBusSignature('h'),
+    );
     var handle = result.returnValues[0].asUnixFd();
     var file = handle.toFile();
 

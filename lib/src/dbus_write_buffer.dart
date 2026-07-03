@@ -23,19 +23,24 @@ class DBusWriteBuffer extends DBusBuffer {
     }
 
     writeValue(DBusByte(108)); // Little endian (ASCII 'l')
-    writeValue(DBusByte({
-          DBusMessageType.methodCall: 1,
-          DBusMessageType.methodReturn: 2,
-          DBusMessageType.error: 3,
-          DBusMessageType.signal: 4
-        }[message.type] ??
-        0));
+    writeValue(
+      DBusByte(
+        {
+              DBusMessageType.methodCall: 1,
+              DBusMessageType.methodReturn: 2,
+              DBusMessageType.error: 3,
+              DBusMessageType.signal: 4,
+            }[message.type] ??
+            0,
+      ),
+    );
     var flagsValue = 0;
     for (var flag in message.flags) {
-      flagsValue |= {
+      flagsValue |=
+          {
             DBusMessageFlag.noReplyExpected: 0x01,
             DBusMessageFlag.noAutoStart: 0x02,
-            DBusMessageFlag.allowInteractiveAuthorization: 0x04
+            DBusMessageFlag.allowInteractiveAuthorization: 0x04,
           }[flag] ??
           0;
     }
@@ -73,8 +78,9 @@ class DBusWriteBuffer extends DBusBuffer {
       headers.add(_makeHeader(8, DBusSignature(signature)));
     }
     if (valueBuffer.resourceHandles.isNotEmpty) {
-      headers
-          .add(_makeHeader(9, DBusUint32(valueBuffer.resourceHandles.length)));
+      headers.add(
+        _makeHeader(9, DBusUint32(valueBuffer.resourceHandles.length)),
+      );
     }
     writeValue(DBusArray(DBusSignature('(yv)'), headers));
     align(8);
@@ -184,7 +190,8 @@ class DBusWriteBuffer extends DBusBuffer {
     } else if (value is DBusSignature) {
       if (value.value.contains('m')) {
         throw UnsupportedError(
-            "D-Bus doesn't support reserved maybe type in signatures");
+          "D-Bus doesn't support reserved maybe type in signatures",
+        );
       }
       var data = utf8.encode(value.value);
       writeByte(data.length);
@@ -227,7 +234,8 @@ class DBusWriteBuffer extends DBusBuffer {
     } else if (value is DBusDict) {
       if (!value.keySignature.isBasic) {
         throw UnsupportedError(
-            "D-Bus doesn't support dicts with non basic key types");
+          "D-Bus doesn't support dicts with non basic key types",
+        );
       }
 
       // Length will be overwritten later.

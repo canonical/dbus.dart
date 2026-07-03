@@ -56,13 +56,14 @@ class DBusProcessCredentials {
   /// Non-standard credentials.
   final Map<String, DBusValue> otherCredentials;
 
-  const DBusProcessCredentials(
-      {this.unixUserId,
-      this.unixGroupIds,
-      this.processId,
-      this.windowsSid,
-      this.linuxSecurityLabel,
-      this.otherCredentials = const {}});
+  const DBusProcessCredentials({
+    this.unixUserId,
+    this.unixGroupIds,
+    this.processId,
+    this.windowsSid,
+    this.linuxSecurityLabel,
+    this.otherCredentials = const {},
+  });
 
   @override
   String toString() {
@@ -72,8 +73,9 @@ class DBusProcessCredentials {
       'processId': processId?.toString(),
       'windowsSid': windowsSid?.toString(),
       'linuxSecurityLabel': linuxSecurityLabel?.toString(),
-      'otherCredentials':
-          otherCredentials.isNotEmpty ? otherCredentials.toString() : null
+      'otherCredentials': otherCredentials.isNotEmpty
+          ? otherCredentials.toString()
+          : null,
     };
     var parameterString = parameters.keys
         .where((key) => parameters[key] != null)
@@ -95,34 +97,41 @@ class DBusSignalStream extends Stream<DBusSignal> {
   /// If [signature] is provided this causes the stream to throw a
   /// [DBusSignalSignatureException] if a signal is received that does not
   /// match the provided signature.
-  DBusSignalStream(DBusClient client,
-      {String? sender,
-      String? interface,
-      String? name,
-      DBusObjectPath? path,
-      DBusObjectPath? pathNamespace,
-      DBusSignature? signature})
-      : _client = client,
-        _rule = DBusMatchRule(
-            type: DBusMessageType.signal,
-            sender: sender != null ? DBusBusName(sender) : null,
-            interface: interface != null ? DBusInterfaceName(interface) : null,
-            member: name != null ? DBusMemberName(name) : null,
-            path: path,
-            pathNamespace: pathNamespace),
-        _signature = signature {
+  DBusSignalStream(
+    DBusClient client, {
+    String? sender,
+    String? interface,
+    String? name,
+    DBusObjectPath? path,
+    DBusObjectPath? pathNamespace,
+    DBusSignature? signature,
+  }) : _client = client,
+       _rule = DBusMatchRule(
+         type: DBusMessageType.signal,
+         sender: sender != null ? DBusBusName(sender) : null,
+         interface: interface != null ? DBusInterfaceName(interface) : null,
+         member: name != null ? DBusMemberName(name) : null,
+         path: path,
+         pathNamespace: pathNamespace,
+       ),
+       _signature = signature {
     _controller.onListen = _onListen;
     _controller.onCancel = _onCancel;
   }
 
   @override
   StreamSubscription<DBusSignal> listen(
-      void Function(DBusSignal signal)? onData,
-      {Function? onError,
-      void Function()? onDone,
-      bool? cancelOnError}) {
-    return _controller.stream.listen(onData,
-        onError: onError, onDone: onDone, cancelOnError: cancelOnError);
+    void Function(DBusSignal signal)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) {
+    return _controller.stream.listen(
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    );
   }
 
   void _onListen() {
@@ -245,20 +254,22 @@ class DBusClient {
   /// If [messageBus] is false, then the server is not running a message bus and
   /// no addresses or client to client communication is supported.
   /// If [authClient] is provided, it will be used instead of creating a new one.
-  DBusClient(DBusAddress address,
-      {this.introspectable = true,
-      bool messageBus = true,
-      DBusAuthClient? authClient})
-      : _address = address,
-        _messageBus = messageBus,
-        _authClient = authClient ?? DBusAuthClient();
+  DBusClient(
+    DBusAddress address, {
+    this.introspectable = true,
+    bool messageBus = true,
+    DBusAuthClient? authClient,
+  }) : _address = address,
+       _messageBus = messageBus,
+       _authClient = authClient ?? DBusAuthClient();
 
   /// Creates a new DBus client to communicate with the system bus.
   factory DBusClient.system({bool introspectable = true}) {
     var address = Platform.environment['DBUS_SYSTEM_BUS_ADDRESS'];
     return DBusClient(
-        DBusAddress(address ??= 'unix:path=/var/run/dbus/system_bus_socket'),
-        introspectable: introspectable);
+      DBusAddress(address ??= 'unix:path=/var/run/dbus/system_bus_socket'),
+      introspectable: introspectable,
+    );
   }
 
   /// Creates a new DBus client to communicate with the session bus.
@@ -298,40 +309,47 @@ class DBusClient {
   Iterable<String> get ownedNames => _ownedNames.map((name) => name.value);
 
   /// Stream of names as they are acquired by this client.
-  Stream<String> get nameAcquired => DBusSignalStream(this,
-          sender: 'org.freedesktop.DBus',
-          interface: 'org.freedesktop.DBus',
-          name: 'NameAcquired',
-          signature: DBusSignature('s'))
-      .map((signal) => signal.values[0].asString());
+  Stream<String> get nameAcquired => DBusSignalStream(
+    this,
+    sender: 'org.freedesktop.DBus',
+    interface: 'org.freedesktop.DBus',
+    name: 'NameAcquired',
+    signature: DBusSignature('s'),
+  ).map((signal) => signal.values[0].asString());
 
   /// Stream of names as this client loses them.
-  Stream<String> get nameLost => DBusSignalStream(this,
-          sender: 'org.freedesktop.DBus',
-          interface: 'org.freedesktop.DBus',
-          name: 'NameLost',
-          signature: DBusSignature('s'))
-      .map((signal) => signal.values[0].asString());
+  Stream<String> get nameLost => DBusSignalStream(
+    this,
+    sender: 'org.freedesktop.DBus',
+    interface: 'org.freedesktop.DBus',
+    name: 'NameLost',
+    signature: DBusSignature('s'),
+  ).map((signal) => signal.values[0].asString());
 
   /// Stream of name change events.
   Stream<DBusNameOwnerChangedEvent> get nameOwnerChanged =>
-      DBusSignalStream(this,
-              sender: 'org.freedesktop.DBus',
-              interface: 'org.freedesktop.DBus',
-              name: 'NameOwnerChanged',
-              signature: DBusSignature('sss'))
-          .map((signal) {
+      DBusSignalStream(
+        this,
+        sender: 'org.freedesktop.DBus',
+        interface: 'org.freedesktop.DBus',
+        name: 'NameOwnerChanged',
+        signature: DBusSignature('sss'),
+      ).map((signal) {
         var name = signal.values[0].asString();
         var oldOwner = signal.values[1].asString();
         var newOwner = signal.values[2].asString();
-        return DBusNameOwnerChangedEvent(name,
-            oldOwner: oldOwner != '' ? oldOwner : null,
-            newOwner: newOwner != '' ? newOwner : null);
+        return DBusNameOwnerChangedEvent(
+          name,
+          oldOwner: oldOwner != '' ? oldOwner : null,
+          newOwner: newOwner != '' ? newOwner : null,
+        );
       });
 
   /// Requests usage of [name] as a D-Bus object name.
-  Future<DBusRequestNameReply> requestName(String name,
-      {Set<DBusRequestNameFlag> flags = const {}}) async {
+  Future<DBusRequestNameReply> requestName(
+    String name, {
+    Set<DBusRequestNameFlag> flags = const {},
+  }) async {
     var flagsValue = 0;
     for (var flag in flags) {
       switch (flag) {
@@ -347,12 +365,13 @@ class DBusClient {
       }
     }
     var result = await callMethod(
-        destination: 'org.freedesktop.DBus',
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: 'org.freedesktop.DBus',
-        name: 'RequestName',
-        values: [DBusString(name), DBusUint32(flagsValue)],
-        replySignature: DBusSignature('u'));
+      destination: 'org.freedesktop.DBus',
+      path: DBusObjectPath('/org/freedesktop/DBus'),
+      interface: 'org.freedesktop.DBus',
+      name: 'RequestName',
+      values: [DBusString(name), DBusUint32(flagsValue)],
+      replySignature: DBusSignature('u'),
+    );
     var returnCode = result.returnValues[0].asUint32();
     switch (returnCode) {
       case 1:
@@ -372,12 +391,13 @@ class DBusClient {
   /// Releases the D-Bus object name previously acquired using requestName().
   Future<DBusReleaseNameReply> releaseName(String name) async {
     var result = await callMethod(
-        destination: 'org.freedesktop.DBus',
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: 'org.freedesktop.DBus',
-        name: 'ReleaseName',
-        values: [DBusString(name)],
-        replySignature: DBusSignature('u'));
+      destination: 'org.freedesktop.DBus',
+      path: DBusObjectPath('/org/freedesktop/DBus'),
+      interface: 'org.freedesktop.DBus',
+      name: 'ReleaseName',
+      values: [DBusString(name)],
+      replySignature: DBusSignature('u'),
+    );
     var returnCode = result.returnValues[0].asUint32();
     switch (returnCode) {
       case 1:
@@ -395,46 +415,50 @@ class DBusClient {
   /// Lists the unique bus names of the clients queued to own the well-known bus [name].
   Future<List<String>> listQueuedOwners(String name) async {
     var result = await callMethod(
-        destination: 'org.freedesktop.DBus',
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: 'org.freedesktop.DBus',
-        name: 'ListQueuedOwners',
-        values: [DBusString(name)],
-        replySignature: DBusSignature('as'));
+      destination: 'org.freedesktop.DBus',
+      path: DBusObjectPath('/org/freedesktop/DBus'),
+      interface: 'org.freedesktop.DBus',
+      name: 'ListQueuedOwners',
+      values: [DBusString(name)],
+      replySignature: DBusSignature('as'),
+    );
     return result.returnValues[0].asStringArray().toList();
   }
 
   /// Lists the registered names on the bus.
   Future<List<String>> listNames() async {
     var result = await callMethod(
-        destination: 'org.freedesktop.DBus',
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: 'org.freedesktop.DBus',
-        name: 'ListNames',
-        replySignature: DBusSignature('as'));
+      destination: 'org.freedesktop.DBus',
+      path: DBusObjectPath('/org/freedesktop/DBus'),
+      interface: 'org.freedesktop.DBus',
+      name: 'ListNames',
+      replySignature: DBusSignature('as'),
+    );
     return result.returnValues[0].asStringArray().toList();
   }
 
   /// Returns a list of names that activate services.
   Future<List<String>> listActivatableNames() async {
     var result = await callMethod(
-        destination: 'org.freedesktop.DBus',
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: 'org.freedesktop.DBus',
-        name: 'ListActivatableNames',
-        replySignature: DBusSignature('as'));
+      destination: 'org.freedesktop.DBus',
+      path: DBusObjectPath('/org/freedesktop/DBus'),
+      interface: 'org.freedesktop.DBus',
+      name: 'ListActivatableNames',
+      replySignature: DBusSignature('as'),
+    );
     return result.returnValues[0].asStringArray().toList();
   }
 
   /// Starts the service with [name].
   Future<DBusStartServiceByNameReply> startServiceByName(String name) async {
     var result = await callMethod(
-        destination: 'org.freedesktop.DBus',
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: 'org.freedesktop.DBus',
-        name: 'StartServiceByName',
-        values: [DBusString(name), DBusUint32(0)],
-        replySignature: DBusSignature('u'));
+      destination: 'org.freedesktop.DBus',
+      path: DBusObjectPath('/org/freedesktop/DBus'),
+      interface: 'org.freedesktop.DBus',
+      name: 'StartServiceByName',
+      values: [DBusString(name), DBusUint32(0)],
+      replySignature: DBusSignature('u'),
+    );
     var returnCode = result.returnValues[0].asUint32();
     switch (returnCode) {
       case 1:
@@ -449,12 +473,13 @@ class DBusClient {
   /// Returns true if the [name] is currently registered on the bus.
   Future<bool> nameHasOwner(String name) async {
     var result = await callMethod(
-        destination: 'org.freedesktop.DBus',
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: 'org.freedesktop.DBus',
-        name: 'NameHasOwner',
-        values: [DBusString(name)],
-        replySignature: DBusSignature('b'));
+      destination: 'org.freedesktop.DBus',
+      path: DBusObjectPath('/org/freedesktop/DBus'),
+      interface: 'org.freedesktop.DBus',
+      name: 'NameHasOwner',
+      values: [DBusString(name)],
+      replySignature: DBusSignature('b'),
+    );
     return result.returnValues[0].asBoolean();
   }
 
@@ -463,12 +488,13 @@ class DBusClient {
     DBusMethodSuccessResponse result;
     try {
       result = await callMethod(
-          destination: 'org.freedesktop.DBus',
-          path: DBusObjectPath('/org/freedesktop/DBus'),
-          interface: 'org.freedesktop.DBus',
-          name: 'GetNameOwner',
-          values: [DBusString(name)],
-          replySignature: DBusSignature('s'));
+        destination: 'org.freedesktop.DBus',
+        path: DBusObjectPath('/org/freedesktop/DBus'),
+        interface: 'org.freedesktop.DBus',
+        name: 'GetNameOwner',
+        values: [DBusString(name)],
+        replySignature: DBusSignature('s'),
+      );
     } on DBusMethodResponseException catch (e) {
       if (e.response.errorName == 'org.freedesktop.DBus.Error.NameHasNoOwner') {
         return null;
@@ -481,36 +507,39 @@ class DBusClient {
   /// Returns the Unix user ID of the process running the client that owns [name].
   Future<int> getConnectionUnixUser(String name) async {
     var result = await callMethod(
-        destination: 'org.freedesktop.DBus',
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: 'org.freedesktop.DBus',
-        name: 'GetConnectionUnixUser',
-        values: [DBusString(name)],
-        replySignature: DBusSignature('u'));
+      destination: 'org.freedesktop.DBus',
+      path: DBusObjectPath('/org/freedesktop/DBus'),
+      interface: 'org.freedesktop.DBus',
+      name: 'GetConnectionUnixUser',
+      values: [DBusString(name)],
+      replySignature: DBusSignature('u'),
+    );
     return result.returnValues[0].asUint32();
   }
 
   /// Returns the Unix process ID of the process running the client that owns [name].
   Future<int> getConnectionUnixProcessId(String name) async {
     var result = await callMethod(
-        destination: 'org.freedesktop.DBus',
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: 'org.freedesktop.DBus',
-        name: 'GetConnectionUnixProcessID',
-        values: [DBusString(name)],
-        replySignature: DBusSignature('u'));
+      destination: 'org.freedesktop.DBus',
+      path: DBusObjectPath('/org/freedesktop/DBus'),
+      interface: 'org.freedesktop.DBus',
+      name: 'GetConnectionUnixProcessID',
+      values: [DBusString(name)],
+      replySignature: DBusSignature('u'),
+    );
     return result.returnValues[0].asUint32();
   }
 
   /// Returns credentials for the process running the client that owns [name].
   Future<DBusProcessCredentials> getConnectionCredentials(String name) async {
     var result = await callMethod(
-        destination: 'org.freedesktop.DBus',
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: 'org.freedesktop.DBus',
-        name: 'GetConnectionCredentials',
-        values: [DBusString(name)],
-        replySignature: DBusSignature('a{sv}'));
+      destination: 'org.freedesktop.DBus',
+      path: DBusObjectPath('/org/freedesktop/DBus'),
+      interface: 'org.freedesktop.DBus',
+      name: 'GetConnectionCredentials',
+      values: [DBusString(name)],
+      replySignature: DBusSignature('a{sv}'),
+    );
     var credentials = result.returnValues[0].asStringVariantDict();
     int? unixUserId;
     List<int>? unixGroupIds;
@@ -556,22 +585,24 @@ class DBusClient {
       }
     });
     return DBusProcessCredentials(
-        unixUserId: unixUserId,
-        unixGroupIds: unixGroupIds,
-        processId: processId,
-        windowsSid: windowsSid,
-        linuxSecurityLabel: linuxSecurityLabel,
-        otherCredentials: otherCredentials);
+      unixUserId: unixUserId,
+      unixGroupIds: unixGroupIds,
+      processId: processId,
+      windowsSid: windowsSid,
+      linuxSecurityLabel: linuxSecurityLabel,
+      otherCredentials: otherCredentials,
+    );
   }
 
   /// Gets the unique ID of the bus.
   Future<String> getId() async {
     var result = await callMethod(
-        destination: 'org.freedesktop.DBus',
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: 'org.freedesktop.DBus',
-        name: 'GetId',
-        replySignature: DBusSignature('s'));
+      destination: 'org.freedesktop.DBus',
+      path: DBusObjectPath('/org/freedesktop/DBus'),
+      interface: 'org.freedesktop.DBus',
+      name: 'GetId',
+      replySignature: DBusSignature('s'),
+    );
     return result.returnValues[0].asString();
   }
 
@@ -579,23 +610,26 @@ class DBusClient {
   /// If [destination] is not set, pings the D-Bus server.
   Future<void> ping([String destination = 'org.freedesktop.DBus']) async {
     await callMethod(
-        destination: destination,
-        path: DBusObjectPath.root,
-        interface: 'org.freedesktop.DBus.Peer',
-        name: 'Ping',
-        replySignature: DBusSignature(''));
+      destination: destination,
+      path: DBusObjectPath.root,
+      interface: 'org.freedesktop.DBus.Peer',
+      name: 'Ping',
+      replySignature: DBusSignature(''),
+    );
   }
 
   /// Gets the machine ID of the client at the given [destination].
   /// If [destination] is not set, gets the machine the D-Bus server is running on.
-  Future<String> getMachineId(
-      [String destination = 'org.freedesktop.DBus']) async {
+  Future<String> getMachineId([
+    String destination = 'org.freedesktop.DBus',
+  ]) async {
     var result = await callMethod(
-        destination: destination,
-        path: DBusObjectPath.root,
-        interface: 'org.freedesktop.DBus.Peer',
-        name: 'GetMachineId',
-        replySignature: DBusSignature('s'));
+      destination: destination,
+      path: DBusObjectPath.root,
+      interface: 'org.freedesktop.DBus.Peer',
+      name: 'GetMachineId',
+      replySignature: DBusSignature('s'),
+    );
     return result.returnValues[0].asString();
   }
 
@@ -611,27 +645,29 @@ class DBusClient {
   /// Throws [DBusUnknownInterfaceException] if [interface] is not provided by this object.
   /// Throws [DBusUnknownMethodException] if the method with [name] is not available.
   /// Throws [DBusInvalidArgsException] if [values] aren't correct.
-  Future<DBusMethodSuccessResponse> callMethod(
-      {String? destination,
-      required DBusObjectPath path,
-      String? interface,
-      required String name,
-      Iterable<DBusValue> values = const [],
-      DBusSignature? replySignature,
-      bool noReplyExpected = false,
-      bool noAutoStart = false,
-      bool allowInteractiveAuthorization = false}) async {
+  Future<DBusMethodSuccessResponse> callMethod({
+    String? destination,
+    required DBusObjectPath path,
+    String? interface,
+    required String name,
+    Iterable<DBusValue> values = const [],
+    DBusSignature? replySignature,
+    bool noReplyExpected = false,
+    bool noAutoStart = false,
+    bool allowInteractiveAuthorization = false,
+  }) async {
     await _connect();
     return await _callMethod(
-        destination: destination != null ? DBusBusName(destination) : null,
-        path: path,
-        interface: interface != null ? DBusInterfaceName(interface) : null,
-        name: DBusMemberName(name),
-        values: values,
-        replySignature: replySignature,
-        noReplyExpected: noReplyExpected,
-        noAutoStart: noAutoStart,
-        allowInteractiveAuthorization: allowInteractiveAuthorization);
+      destination: destination != null ? DBusBusName(destination) : null,
+      path: path,
+      interface: interface != null ? DBusInterfaceName(interface) : null,
+      name: DBusMemberName(name),
+      values: values,
+      replySignature: replySignature,
+      noReplyExpected: noReplyExpected,
+      noAutoStart: noAutoStart,
+      allowInteractiveAuthorization: allowInteractiveAuthorization,
+    );
   }
 
   /// Find the unique name for a D-Bus client.
@@ -649,15 +685,21 @@ class DBusClient {
   }
 
   /// Emits a signal from a D-Bus object.
-  Future<void> emitSignal(
-      {String? destination,
-      required DBusObjectPath path,
-      required String interface,
-      required String name,
-      Iterable<DBusValue> values = const []}) async {
+  Future<void> emitSignal({
+    String? destination,
+    required DBusObjectPath path,
+    required String interface,
+    required String name,
+    Iterable<DBusValue> values = const [],
+  }) async {
     await _connect();
-    _sendSignal(destination != null ? DBusBusName(destination) : null, path,
-        DBusInterfaceName(interface), DBusMemberName(name), values);
+    _sendSignal(
+      destination != null ? DBusBusName(destination) : null,
+      path,
+      DBusInterfaceName(interface),
+      DBusMemberName(name),
+      values,
+    );
   }
 
   /// Searches for an object manager in [node] or any of its parents.
@@ -692,10 +734,14 @@ class DBusClient {
     // If has an object manager as a parent, emit a signal to indicate this was added.
     var objectManager = _findObjectManager(node.parent);
     if (objectManager != null) {
-      var interfacesAndProperties = expandObjectInterfaceAndProperties(object,
-          introspectable: introspectable);
+      var interfacesAndProperties = expandObjectInterfaceAndProperties(
+        object,
+        introspectable: introspectable,
+      );
       await objectManager.emitInterfacesAdded(
-          object.path, interfacesAndProperties);
+        object.path,
+        interfacesAndProperties,
+      );
     }
   }
 
@@ -717,10 +763,14 @@ class DBusClient {
     // If has an object manager as a parent, emit a signal to indicate this was removed.
     var objectManager = _findObjectManager(node.parent);
     if (objectManager != null) {
-      var interfacesAndProperties = expandObjectInterfaceAndProperties(object,
-          introspectable: introspectable);
+      var interfacesAndProperties = expandObjectInterfaceAndProperties(
+        object,
+        introspectable: introspectable,
+      );
       await objectManager.emitInterfacesRemoved(
-          object.path, interfacesAndProperties.keys);
+        object.path,
+        interfacesAndProperties.keys,
+      );
     }
   }
 
@@ -802,8 +852,9 @@ class DBusClient {
     _connectCompleter = Completer();
 
     await _openSocket();
-    _authClient.requests
-        .listen((message) => _socket?.write(utf8.encode('$message\r\n')));
+    _authClient.requests.listen(
+      (message) => _socket?.write(utf8.encode('$message\r\n')),
+    );
     await _authClient.done;
     _authComplete = true;
     if (!_authClient.isAuthenticated) {
@@ -820,11 +871,12 @@ class DBusClient {
     // false as the _connect call hasn't yet completed and would otherwise have
     // been called again.
     var result = await _callMethod(
-        destination: DBusBusName('org.freedesktop.DBus'),
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: DBusInterfaceName('org.freedesktop.DBus'),
-        name: DBusMemberName('Hello'),
-        replySignature: DBusSignature('s'));
+      destination: DBusBusName('org.freedesktop.DBus'),
+      path: DBusObjectPath('/org/freedesktop/DBus'),
+      interface: DBusInterfaceName('org.freedesktop.DBus'),
+      name: DBusMemberName('Hello'),
+      replySignature: DBusSignature('s'),
+    );
     _uniqueName = DBusBusName(result.returnValues[0].asString());
 
     // Notify anyone else awaiting connection.
@@ -857,12 +909,13 @@ class DBusClient {
     if (count == null) {
       _matchRules[rule] = 1;
       await callMethod(
-          destination: 'org.freedesktop.DBus',
-          path: DBusObjectPath('/org/freedesktop/DBus'),
-          interface: 'org.freedesktop.DBus',
-          name: 'AddMatch',
-          values: [DBusString(rule)],
-          replySignature: DBusSignature(''));
+        destination: 'org.freedesktop.DBus',
+        path: DBusObjectPath('/org/freedesktop/DBus'),
+        interface: 'org.freedesktop.DBus',
+        name: 'AddMatch',
+        values: [DBusString(rule)],
+        replySignature: DBusSignature(''),
+      );
     } else {
       _matchRules[rule] = count + 1;
     }
@@ -879,12 +932,13 @@ class DBusClient {
       _matchRules.remove(rule);
       if (!_socketClosed) {
         await callMethod(
-            destination: 'org.freedesktop.DBus',
-            path: DBusObjectPath('/org/freedesktop/DBus'),
-            interface: 'org.freedesktop.DBus',
-            name: 'RemoveMatch',
-            values: [DBusString(rule)],
-            replySignature: DBusSignature(''));
+          destination: 'org.freedesktop.DBus',
+          path: DBusObjectPath('/org/freedesktop/DBus'),
+          interface: 'org.freedesktop.DBus',
+          name: 'RemoveMatch',
+          values: [DBusString(rule)],
+          replySignature: DBusSignature(''),
+        );
       }
     } else {
       _matchRules[rule] = count - 1;
@@ -972,15 +1026,16 @@ class DBusClient {
     var object = node?.object;
 
     var methodCall = DBusMethodCall(
-        sender: message.sender?.value ?? '',
-        interface: message.interface?.value,
-        name: message.member?.value ?? '',
-        values: message.values,
-        noReplyExpected:
-            message.flags.contains(DBusMessageFlag.noReplyExpected),
-        noAutoStart: message.flags.contains(DBusMessageFlag.noAutoStart),
-        allowInteractiveAuthorization: message.flags
-            .contains(DBusMessageFlag.allowInteractiveAuthorization));
+      sender: message.sender?.value ?? '',
+      interface: message.interface?.value,
+      name: message.member?.value ?? '',
+      values: message.values,
+      noReplyExpected: message.flags.contains(DBusMessageFlag.noReplyExpected),
+      noAutoStart: message.flags.contains(DBusMessageFlag.noAutoStart),
+      allowInteractiveAuthorization: message.flags.contains(
+        DBusMessageFlag.allowInteractiveAuthorization,
+      ),
+    );
 
     DBusMethodResponse response;
     if (message.member == null) {
@@ -996,8 +1051,11 @@ class DBusClient {
       response = await handlePropertiesMethodCall(object, methodCall);
     } else if (object.isObjectManager &&
         message.interface?.value == 'org.freedesktop.DBus.ObjectManager') {
-      response = handleObjectManagerMethodCall(_objectTree, methodCall,
-          introspectable: introspectable);
+      response = handleObjectManagerMethodCall(
+        _objectTree,
+        methodCall,
+        introspectable: introspectable,
+      );
     } else {
       response = await object.handleMethodCall(methodCall);
     }
@@ -1012,7 +1070,11 @@ class DBusClient {
 
     if (response is DBusMethodErrorResponse) {
       _sendError(
-          message.serial, message.sender, response.errorName, response.values);
+        message.serial,
+        message.sender,
+        response.errorName,
+        response.values,
+      );
     } else if (response is DBusMethodSuccessResponse) {
       _sendReturn(message.serial, message.sender, response.values);
     }
@@ -1034,7 +1096,9 @@ class DBusClient {
     DBusMethodResponse response;
     if (message.type == DBusMessageType.error) {
       response = DBusMethodErrorResponse(
-          message.errorName?.value ?? '(missing error name)', message.values);
+        message.errorName?.value ?? '(missing error name)',
+        message.values,
+      );
     } else {
       response = DBusMethodSuccessResponse(message.values);
     }
@@ -1058,23 +1122,29 @@ class DBusClient {
       }
 
       if (!stream._rule.match(
-          type: DBusMessageType.signal,
-          sender: sender,
-          interface: message.interface,
-          member: message.member,
-          path: message.path)) {
+        type: DBusMessageType.signal,
+        sender: sender,
+        interface: message.interface,
+        member: message.member,
+        path: message.path,
+      )) {
         continue;
       }
 
       var signal = DBusSignal(
-          sender: message.sender?.value,
-          path: message.path ?? DBusObjectPath.root,
-          interface: message.interface?.value ?? '',
-          name: message.member?.value ?? '',
-          values: message.values);
+        sender: message.sender?.value,
+        path: message.path ?? DBusObjectPath.root,
+        interface: message.interface?.value ?? '',
+        name: message.member?.value ?? '',
+        values: message.values,
+      );
       if (stream._signature != null && message.signature != stream._signature) {
-        stream._controller.addError(DBusSignalSignatureException(
-            '${message.interface?.value}.${message.member?.value}', signal));
+        stream._controller.addError(
+          DBusSignalSignatureException(
+            '${message.interface?.value}.${message.member?.value}',
+            signal,
+          ),
+        );
       } else {
         stream._controller.add(signal);
       }
@@ -1082,16 +1152,17 @@ class DBusClient {
   }
 
   /// Invokes a method on a D-Bus object.
-  Future<DBusMethodSuccessResponse> _callMethod(
-      {DBusBusName? destination,
-      required DBusObjectPath path,
-      DBusInterfaceName? interface,
-      required DBusMemberName name,
-      Iterable<DBusValue> values = const {},
-      DBusSignature? replySignature,
-      bool noReplyExpected = false,
-      bool noAutoStart = false,
-      bool allowInteractiveAuthorization = false}) async {
+  Future<DBusMethodSuccessResponse> _callMethod({
+    DBusBusName? destination,
+    required DBusObjectPath path,
+    DBusInterfaceName? interface,
+    required DBusMemberName name,
+    Iterable<DBusValue> values = const {},
+    DBusSignature? replySignature,
+    bool noReplyExpected = false,
+    bool noAutoStart = false,
+    bool allowInteractiveAuthorization = false,
+  }) async {
     _lastSerial++;
     var serial = _lastSerial;
     Future<DBusMethodResponse> response;
@@ -1113,22 +1184,25 @@ class DBusClient {
     if (allowInteractiveAuthorization) {
       flags.add(DBusMessageFlag.allowInteractiveAuthorization);
     }
-    var message = DBusMessage(DBusMessageType.methodCall,
-        serial: _lastSerial,
-        destination: destination,
-        path: path,
-        interface: interface,
-        member: name,
-        values: values.toList(),
-        flags: flags);
+    var message = DBusMessage(
+      DBusMessageType.methodCall,
+      serial: _lastSerial,
+      destination: destination,
+      path: path,
+      interface: interface,
+      member: name,
+      values: values.toList(),
+      flags: flags,
+    );
     _sendMessage(message);
 
     var r = await response;
     if (r is DBusMethodSuccessResponse) {
       /// Check returned values match expected signature.
       if (replySignature != null && r.signature != replySignature) {
-        var fullName =
-            interface != null ? '${interface.value}.${name.value}' : name.value;
+        var fullName = interface != null
+            ? '${interface.value}.${name.value}'
+            : name.value;
         throw DBusReplySignatureException(fullName, r);
       }
 
@@ -1177,44 +1251,58 @@ class DBusClient {
 
   /// Sends a method return to the D-Bus server.
   void _sendReturn(
-      int serial, DBusBusName? destination, Iterable<DBusValue> values) {
+    int serial,
+    DBusBusName? destination,
+    Iterable<DBusValue> values,
+  ) {
     _lastSerial++;
-    var message = DBusMessage(DBusMessageType.methodReturn,
-        serial: _lastSerial,
-        replySerial: serial,
-        destination: destination,
-        values: values.toList());
+    var message = DBusMessage(
+      DBusMessageType.methodReturn,
+      serial: _lastSerial,
+      replySerial: serial,
+      destination: destination,
+      values: values.toList(),
+    );
     _sendMessage(message);
   }
 
   /// Sends an error to the D-Bus server.
-  void _sendError(int serial, DBusBusName? destination, String errorName,
-      Iterable<DBusValue> values) {
+  void _sendError(
+    int serial,
+    DBusBusName? destination,
+    String errorName,
+    Iterable<DBusValue> values,
+  ) {
     _lastSerial++;
-    var message = DBusMessage(DBusMessageType.error,
-        serial: _lastSerial,
-        errorName: DBusErrorName(errorName),
-        replySerial: serial,
-        destination: destination,
-        values: values.toList());
+    var message = DBusMessage(
+      DBusMessageType.error,
+      serial: _lastSerial,
+      errorName: DBusErrorName(errorName),
+      replySerial: serial,
+      destination: destination,
+      values: values.toList(),
+    );
     _sendMessage(message);
   }
 
   /// Sends a signal to the D-Bus server.
   void _sendSignal(
-      DBusBusName? destination,
-      DBusObjectPath path,
-      DBusInterfaceName interface,
-      DBusMemberName name,
-      Iterable<DBusValue> values) {
+    DBusBusName? destination,
+    DBusObjectPath path,
+    DBusInterfaceName interface,
+    DBusMemberName name,
+    Iterable<DBusValue> values,
+  ) {
     _lastSerial++;
-    var message = DBusMessage(DBusMessageType.signal,
-        serial: _lastSerial,
-        destination: destination,
-        path: path,
-        interface: interface,
-        member: name,
-        values: values.toList());
+    var message = DBusMessage(
+      DBusMessageType.signal,
+      serial: _lastSerial,
+      destination: destination,
+      path: path,
+      interface: interface,
+      member: name,
+      values: values.toList(),
+    );
     _sendMessage(message);
   }
 
@@ -1234,8 +1322,9 @@ class DBusClient {
 
     var controlMessages = <SocketControlMessage>[];
     if (buffer.resourceHandles.isNotEmpty) {
-      controlMessages
-          .add(SocketControlMessage.fromHandles(buffer.resourceHandles));
+      controlMessages.add(
+        SocketControlMessage.fromHandles(buffer.resourceHandles),
+      );
     }
 
     _socket?.sendMessage(controlMessages, buffer.data);

@@ -23,7 +23,7 @@ class DBusCodeGenerator {
   /// [className] is the name of the generated class, if not provided it will be inferred from [node].
   /// If provided [comment] is added to the top of the source.
   DBusCodeGenerator(this.node, {String? comment, String? className})
-      : _comment = comment {
+    : _comment = comment {
     var className_ = className ?? _nodeToClassName();
     if (className_ == null) {
       throw 'Unable to determine class name';
@@ -81,7 +81,7 @@ class DBusCodeGenerator {
       'emitSignal',
       'getAllProperties',
       'getProperty',
-      'setProperty'
+      'setProperty',
     ];
     var getMethodNames = <String, String>{};
     var setMethodNames = <String, String>{};
@@ -92,12 +92,20 @@ class DBusCodeGenerator {
     // Generate all the methods for this object.
     for (var interface in node.interfaces) {
       for (var property in interface.properties) {
-        methods.addAll(_generatePropertyImplementationMethods(
-            memberNames, getMethodNames, setMethodNames, interface, property));
+        methods.addAll(
+          _generatePropertyImplementationMethods(
+            memberNames,
+            getMethodNames,
+            setMethodNames,
+            interface,
+            property,
+          ),
+        );
       }
       for (var method in interface.methods) {
-        methods
-            .add(_generateMethodImplementation(memberNames, interface, method));
+        methods.add(
+          _generateMethodImplementation(memberNames, interface, method),
+        );
       }
       for (var signal in interface.signals) {
         methods.add(_generateSignalEmitMethod(memberNames, interface, signal));
@@ -153,11 +161,12 @@ class DBusCodeGenerator {
 
   // Generates a stub implementation of [property].
   List<String> _generatePropertyImplementationMethods(
-      List<String> memberNames,
-      Map<String, String> getMethodNames,
-      Map<String, String> setMethodNames,
-      DBusIntrospectInterface interface,
-      DBusIntrospectProperty property) {
+    List<String> memberNames,
+    Map<String, String> getMethodNames,
+    Map<String, String> setMethodNames,
+    DBusIntrospectInterface interface,
+    DBusIntrospectProperty property,
+  ) {
     var methods = <String>[];
 
     var type = getDartType(property.type);
@@ -195,8 +204,11 @@ class DBusCodeGenerator {
   }
 
   // Generates a stub implementation of [method].
-  String _generateMethodImplementation(List<String> memberNames,
-      DBusIntrospectInterface interface, DBusIntrospectMethod method) {
+  String _generateMethodImplementation(
+    List<String> memberNames,
+    DBusIntrospectInterface interface,
+    DBusIntrospectMethod method,
+  ) {
     var argValues = <String>[];
     var argsList = <String>[];
     var index = 0;
@@ -212,7 +224,9 @@ class DBusCodeGenerator {
     }
 
     var isNoReply = _getBooleanAnnotation(
-        method.annotations, 'org.freedesktop.DBus.Method.NoReply');
+      method.annotations,
+      'org.freedesktop.DBus.Method.NoReply',
+    );
     var returnType = isNoReply ? 'void' : 'DBusMethodResponse';
 
     var methodName = _getUniqueMethodName(memberNames, 'do${method.name}');
@@ -231,8 +245,11 @@ class DBusCodeGenerator {
   }
 
   // Generates a method to emit a signal.
-  String _generateSignalEmitMethod(List<String> memberNames,
-      DBusIntrospectInterface interface, DBusIntrospectSignal signal) {
+  String _generateSignalEmitMethod(
+    List<String> memberNames,
+    DBusIntrospectInterface interface,
+    DBusIntrospectSignal signal,
+  ) {
     var argNames = [
       // Dart keywords that aren't allowed.
       'assert',
@@ -268,7 +285,7 @@ class DBusCodeGenerator {
       'var',
       'void',
       'while',
-      'with'
+      'with',
     ];
 
     var argValues = <String>[];
@@ -345,7 +362,7 @@ class DBusCodeGenerator {
       String makeProperty(DBusIntrospectProperty property) {
         var args = [
           "'${property.name}'",
-          "DBusSignature('${property.type.value}')"
+          "DBusSignature('${property.type.value}')",
         ];
         if (property.access == DBusPropertyAccess.readwrite) {
           args.add('access: DBusPropertyAccess.readwrite');
@@ -393,8 +410,9 @@ class DBusCodeGenerator {
       var methodBranches = <_SwitchBranch>[];
       for (var method in interface.methods) {
         var argValues = <String>[];
-        var inputArgs = method.args
-            .where((arg) => arg.direction == DBusArgumentDirection.in_);
+        var inputArgs = method.args.where(
+          (arg) => arg.direction == DBusArgumentDirection.in_,
+        );
         String argCheck;
         if (inputArgs.isEmpty) {
           argCheck = 'methodCall.values.isNotEmpty';
@@ -411,7 +429,9 @@ class DBusCodeGenerator {
 
         var methodImplementation = 'do${method.name}(${argValues.join(', ')})';
         var isNoReply = _getBooleanAnnotation(
-            method.annotations, 'org.freedesktop.DBus.Method.NoReply');
+          method.annotations,
+          'org.freedesktop.DBus.Method.NoReply',
+        );
 
         var source = '';
         source += 'if ($argCheck) {\n';
@@ -423,13 +443,17 @@ class DBusCodeGenerator {
         } else {
           source += 'return $methodImplementation;\n';
         }
-        methodBranches
-            .add(_SwitchBranch("methodCall.name == '${method.name}'", source));
+        methodBranches.add(
+          _SwitchBranch("methodCall.name == '${method.name}'", source),
+        );
       }
       var source = _makeSwitch(
-          methodBranches, 'return DBusMethodErrorResponse.unknownMethod();\n');
+        methodBranches,
+        'return DBusMethodErrorResponse.unknownMethod();\n',
+      );
       interfaceBranches.add(
-          _SwitchBranch("methodCall.interface == '${interface.name}'", source));
+        _SwitchBranch("methodCall.interface == '${interface.name}'", source),
+      );
     }
 
     if (interfaceBranches.isEmpty) {
@@ -441,9 +465,12 @@ class DBusCodeGenerator {
     source +=
         '  Future<DBusMethodResponse> handleMethodCall(DBusMethodCall methodCall) async {\n';
     source += _indentSource(
-        2,
-        _makeSwitch(interfaceBranches,
-            'return DBusMethodErrorResponse.unknownInterface();\n'));
+      2,
+      _makeSwitch(
+        interfaceBranches,
+        'return DBusMethodErrorResponse.unknownInterface();\n',
+      ),
+    );
     source += '  }\n';
 
     return source;
@@ -451,7 +478,9 @@ class DBusCodeGenerator {
 
   // Generates a method that overrides DBusObject.getProperty().
   String _generateGetProperty(
-      Map<String, String> getMethodNames, DBusIntrospectNode node) {
+    Map<String, String> getMethodNames,
+    DBusIntrospectNode node,
+  ) {
     // Override DBusObject.getProperty().
     var interfaceBranches = <_SwitchBranch>[];
     for (var interface in node.interfaces) {
@@ -465,13 +494,17 @@ class DBusCodeGenerator {
         } else {
           source = 'return DBusMethodErrorResponse.propertyWriteOnly();\n';
         }
-        propertyBranches
-            .add(_SwitchBranch("name == '${property.name}'", source));
+        propertyBranches.add(
+          _SwitchBranch("name == '${property.name}'", source),
+        );
       }
-      var source = _makeSwitch(propertyBranches,
-          'return DBusMethodErrorResponse.unknownProperty();\n');
-      interfaceBranches
-          .add(_SwitchBranch("interface == '${interface.name}'", source));
+      var source = _makeSwitch(
+        propertyBranches,
+        'return DBusMethodErrorResponse.unknownProperty();\n',
+      );
+      interfaceBranches.add(
+        _SwitchBranch("interface == '${interface.name}'", source),
+      );
     }
 
     if (interfaceBranches.isEmpty) {
@@ -483,9 +516,12 @@ class DBusCodeGenerator {
     source +=
         '  Future<DBusMethodResponse> getProperty(String interface, String name) async {\n';
     source += _indentSource(
-        2,
-        _makeSwitch(interfaceBranches,
-            'return DBusMethodErrorResponse.unknownProperty();\n'));
+      2,
+      _makeSwitch(
+        interfaceBranches,
+        'return DBusMethodErrorResponse.unknownProperty();\n',
+      ),
+    );
     source += '  }\n';
 
     return source;
@@ -493,7 +529,9 @@ class DBusCodeGenerator {
 
   // Generates a method that overrides DBusObject.setProperty().
   String _generateSetProperty(
-      Map<String, String> setMethodNames, DBusIntrospectNode node) {
+    Map<String, String> setMethodNames,
+    DBusIntrospectNode node,
+  ) {
     var interfaceBranches = <_SwitchBranch>[];
     for (var interface in node.interfaces) {
       var propertyBranches = <_SwitchBranch>[];
@@ -513,13 +551,17 @@ class DBusCodeGenerator {
         } else {
           source = 'return DBusMethodErrorResponse.propertyReadOnly();\n';
         }
-        propertyBranches
-            .add(_SwitchBranch("name == '${property.name}'", source));
+        propertyBranches.add(
+          _SwitchBranch("name == '${property.name}'", source),
+        );
       }
-      var source = _makeSwitch(propertyBranches,
-          'return DBusMethodErrorResponse.unknownProperty();\n');
-      interfaceBranches
-          .add(_SwitchBranch("interface == '${interface.name}'", source));
+      var source = _makeSwitch(
+        propertyBranches,
+        'return DBusMethodErrorResponse.unknownProperty();\n',
+      );
+      interfaceBranches.add(
+        _SwitchBranch("interface == '${interface.name}'", source),
+      );
     }
 
     if (interfaceBranches.isEmpty) {
@@ -531,9 +573,12 @@ class DBusCodeGenerator {
     source +=
         '  Future<DBusMethodResponse> setProperty(String interface, String name, DBusValue value) async {\n';
     source += _indentSource(
-        2,
-        _makeSwitch(interfaceBranches,
-            'return DBusMethodErrorResponse.unknownProperty();\n'));
+      2,
+      _makeSwitch(
+        interfaceBranches,
+        'return DBusMethodErrorResponse.unknownProperty();\n',
+      ),
+    );
     source += '  }\n';
 
     return source;
@@ -552,8 +597,9 @@ class DBusCodeGenerator {
         }
       }
       if (source != '') {
-        interfaceBranches
-            .add(_SwitchBranch("interface == '${interface.name}'", source));
+        interfaceBranches.add(
+          _SwitchBranch("interface == '${interface.name}'", source),
+        );
       }
     }
 
@@ -585,7 +631,7 @@ class DBusCodeGenerator {
       'callMethod',
       'getAllProperties',
       'getProperty',
-      'setProperty'
+      'setProperty',
     ];
 
     for (var interface in node.interfaces) {
@@ -594,15 +640,28 @@ class DBusCodeGenerator {
         var lowerCaseName =
             signal.name[0].toLowerCase() + signal.name.substring(1);
         var variableName = _getUniqueMethodName(memberNames, lowerCaseName);
-        variables.add(_generateRemoteSignalVariable(
-            variableName, className, interface, signal));
-        variableConstructors.add(_generateRemoteSignalConstructor(
-            variableName, className, interface, signal));
+        variables.add(
+          _generateRemoteSignalVariable(
+            variableName,
+            className,
+            interface,
+            signal,
+          ),
+        );
+        variableConstructors.add(
+          _generateRemoteSignalConstructor(
+            variableName,
+            className,
+            interface,
+            signal,
+          ),
+        );
       }
 
       for (var property in interface.properties) {
         methods.addAll(
-            _generateRemotePropertyMethods(memberNames, interface, property));
+          _generateRemotePropertyMethods(memberNames, interface, property),
+        );
       }
 
       for (var method in interface.methods) {
@@ -643,8 +702,11 @@ class DBusCodeGenerator {
   }
 
   // Generate methods for the remote [property].
-  List<String> _generateRemotePropertyMethods(List<String> memberNames,
-      DBusIntrospectInterface interface, DBusIntrospectProperty property) {
+  List<String> _generateRemotePropertyMethods(
+    List<String> memberNames,
+    DBusIntrospectInterface interface,
+    DBusIntrospectProperty property,
+  ) {
     var methods = <String>[];
 
     var type = getDartType(property.type);
@@ -683,12 +745,17 @@ class DBusCodeGenerator {
   }
 
   // Generates a method for a remote D-Bus method call.
-  String _generateRemoteMethodCall(List<String> memberNames,
-      DBusIntrospectInterface interface, DBusIntrospectMethod method) {
-    var inputArgs =
-        method.args.where((arg) => arg.direction == DBusArgumentDirection.in_);
-    var outputArgs =
-        method.args.where((arg) => arg.direction == DBusArgumentDirection.out);
+  String _generateRemoteMethodCall(
+    List<String> memberNames,
+    DBusIntrospectInterface interface,
+    DBusIntrospectMethod method,
+  ) {
+    var inputArgs = method.args.where(
+      (arg) => arg.direction == DBusArgumentDirection.in_,
+    );
+    var outputArgs = method.args.where(
+      (arg) => arg.direction == DBusArgumentDirection.out,
+    );
 
     var argValues = <String>[];
     var argsList = <String>[];
@@ -702,10 +769,13 @@ class DBusCodeGenerator {
       index++;
     }
     argsList.add(
-        '{bool noAutoStart = false, bool allowInteractiveAuthorization = false}');
+      '{bool noAutoStart = false, bool allowInteractiveAuthorization = false}',
+    );
 
     var isNoReply = _getBooleanAnnotation(
-        method.annotations, 'org.freedesktop.DBus.Method.NoReply');
+      method.annotations,
+      'org.freedesktop.DBus.Method.NoReply',
+    );
 
     String returnType;
     if (isNoReply || outputArgs.isEmpty) {
@@ -721,14 +791,15 @@ class DBusCodeGenerator {
       "'${interface.name}'",
       "'${method.name}'",
       "[${argValues.join(', ')}]",
-      "replySignature: DBusSignature('${method.outputSignature.value}')"
+      "replySignature: DBusSignature('${method.outputSignature.value}')",
     ];
     if (isNoReply) {
       methodArgs.add('noReplyExpected: true');
     }
     methodArgs.add('noAutoStart: noAutoStart');
-    methodArgs
-        .add('allowInteractiveAuthorization: allowInteractiveAuthorization');
+    methodArgs.add(
+      'allowInteractiveAuthorization: allowInteractiveAuthorization',
+    );
     var methodCall = "await callMethod(${methodArgs.join(', ')});";
 
     var methodName = _getUniqueMethodName(memberNames, 'call${method.name}');
@@ -753,8 +824,11 @@ class DBusCodeGenerator {
   }
 
   // Generates a class to contain a signal response.
-  String _generateRemoteSignalClass(String classPrefix,
-      DBusIntrospectInterface interface, DBusIntrospectSignal signal) {
+  String _generateRemoteSignalClass(
+    String classPrefix,
+    DBusIntrospectInterface interface,
+    DBusIntrospectSignal signal,
+  ) {
     var argNames = [
       // Members of the DBusSignal class. Needs to be kept up to date.
       'interface',
@@ -796,7 +870,7 @@ class DBusCodeGenerator {
       'var',
       'void',
       'while',
-      'with'
+      'with',
     ];
 
     var properties = <String>[];
@@ -836,8 +910,12 @@ class DBusCodeGenerator {
   }
 
   // Generates a variable for a signal stream.
-  String _generateRemoteSignalVariable(String variableName, String classPrefix,
-      DBusIntrospectInterface interface, DBusIntrospectSignal signal) {
+  String _generateRemoteSignalVariable(
+    String variableName,
+    String classPrefix,
+    DBusIntrospectInterface interface,
+    DBusIntrospectSignal signal,
+  ) {
     var signalClassName = '$classPrefix${signal.name}';
 
     var source = '';
@@ -849,10 +927,11 @@ class DBusCodeGenerator {
 
   // Generates a constructor for a signal stream.
   String _generateRemoteSignalConstructor(
-      String variableName,
-      String classPrefix,
-      DBusIntrospectInterface interface,
-      DBusIntrospectSignal signal) {
+    String variableName,
+    String classPrefix,
+    DBusIntrospectInterface interface,
+    DBusIntrospectSignal signal,
+  ) {
     var signalClassName = '$classPrefix${signal.name}';
     return "    $variableName = DBusRemoteObjectSignalStream(object: this, interface: '${interface.name}', name: '${signal.name}', signature: DBusSignature('${signal.signature.value}')).asBroadcastStream().map((signal) => $signalClassName(signal));\n";
   }
@@ -885,8 +964,10 @@ class DBusCodeGenerator {
   }
 
   // Make switch (if/else) statement.
-  String _makeSwitch(Iterable<_SwitchBranch> branches,
-      [String? defaultBranch]) {
+  String _makeSwitch(
+    Iterable<_SwitchBranch> branches, [
+    String? defaultBranch,
+  ]) {
     if (branches.isEmpty) {
       return defaultBranch ?? '';
     }
@@ -923,7 +1004,9 @@ class DBusCodeGenerator {
   }
 
   String? _getAnnotation(
-      Iterable<DBusIntrospectAnnotation> annotations, String name) {
+    Iterable<DBusIntrospectAnnotation> annotations,
+    String name,
+  ) {
     for (var annotation in annotations) {
       if (annotation.name == name) {
         return annotation.value;
@@ -934,8 +1017,10 @@ class DBusCodeGenerator {
   }
 
   bool _getBooleanAnnotation(
-      Iterable<DBusIntrospectAnnotation> annotations, String name,
-      {bool defaultValue = false}) {
+    Iterable<DBusIntrospectAnnotation> annotations,
+    String name, {
+    bool defaultValue = false,
+  }) {
     var value = _getAnnotation(annotations, name);
     return value == null ? defaultValue : value == 'true';
   }

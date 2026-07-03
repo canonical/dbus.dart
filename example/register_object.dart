@@ -11,11 +11,17 @@ class TestObject extends DBusObject {
   @override
   List<DBusIntrospectInterface> introspect() {
     final testMethod = DBusIntrospectMethod('Test');
-    final countProperty = DBusIntrospectProperty('Count', DBusSignature('x'),
-        access: DBusPropertyAccess.read);
+    final countProperty = DBusIntrospectProperty(
+      'Count',
+      DBusSignature('x'),
+      access: DBusPropertyAccess.read,
+    );
     return [
-      DBusIntrospectInterface('com.canonical.DBusDart',
-          methods: [testMethod], properties: [countProperty])
+      DBusIntrospectInterface(
+        'com.canonical.DBusDart',
+        methods: [testMethod],
+        properties: [countProperty],
+      ),
     ];
   }
 
@@ -48,7 +54,10 @@ class TestObject extends DBusObject {
 
   @override
   Future<DBusMethodResponse> setProperty(
-      String interface, String name, DBusValue value) async {
+    String interface,
+    String name,
+    DBusValue value,
+  ) async {
     if (interface != 'com.canonical.DBusDart') {
       return DBusMethodErrorResponse.unknownInterface();
     }

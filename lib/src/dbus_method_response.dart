@@ -149,68 +149,94 @@ class DBusMethodErrorResponse extends DBusMethodResponse {
 
   /// Creates a new error response indicating the request failed.
   DBusMethodErrorResponse.failed([String? message])
-      : this('org.freedesktop.DBus.Error.Failed',
-            message != null ? [DBusString(message)] : []);
+    : this(
+        'org.freedesktop.DBus.Error.Failed',
+        message != null ? [DBusString(message)] : [],
+      );
 
   /// Creates a new error response indicating an unknown object.
   DBusMethodErrorResponse.unknownObject([String? message])
-      : this('org.freedesktop.DBus.Error.UnknownObject',
-            message != null ? [DBusString(message)] : []);
+    : this(
+        'org.freedesktop.DBus.Error.UnknownObject',
+        message != null ? [DBusString(message)] : [],
+      );
 
   /// Creates a new error response indicating an unknown interface.
   DBusMethodErrorResponse.unknownInterface([String? message])
-      : this('org.freedesktop.DBus.Error.UnknownInterface',
-            message != null ? [DBusString(message)] : []);
+    : this(
+        'org.freedesktop.DBus.Error.UnknownInterface',
+        message != null ? [DBusString(message)] : [],
+      );
 
   /// Creates a new error response indicating an unknown method.
   DBusMethodErrorResponse.unknownMethod([String? message])
-      : this('org.freedesktop.DBus.Error.UnknownMethod',
-            message != null ? [DBusString(message)] : []);
+    : this(
+        'org.freedesktop.DBus.Error.UnknownMethod',
+        message != null ? [DBusString(message)] : [],
+      );
 
   /// Creates a new error response indicating the request timed out.
   DBusMethodErrorResponse.timeout([String? message])
-      : this('org.freedesktop.DBus.Error.Timeout',
-            message != null ? [DBusString(message)] : []);
+    : this(
+        'org.freedesktop.DBus.Error.Timeout',
+        message != null ? [DBusString(message)] : [],
+      );
 
   /// Creates a new error response indicating the request timed out.
   DBusMethodErrorResponse.timedOut([String? message])
-      : this('org.freedesktop.DBus.Error.TimedOut',
-            message != null ? [DBusString(message)] : []);
+    : this(
+        'org.freedesktop.DBus.Error.TimedOut',
+        message != null ? [DBusString(message)] : [],
+      );
 
   /// Creates a new error response indicating the arguments passed were invalid.
   DBusMethodErrorResponse.invalidArgs([String? message])
-      : this('org.freedesktop.DBus.Error.InvalidArgs',
-            message != null ? [DBusString(message)] : []);
+    : this(
+        'org.freedesktop.DBus.Error.InvalidArgs',
+        message != null ? [DBusString(message)] : [],
+      );
 
   /// Creates a new error response indicating an unknown property.
   DBusMethodErrorResponse.unknownProperty([String? message])
-      : this('org.freedesktop.DBus.Error.UnknownProperty',
-            message != null ? [DBusString(message)] : []);
+    : this(
+        'org.freedesktop.DBus.Error.UnknownProperty',
+        message != null ? [DBusString(message)] : [],
+      );
 
   /// Creates a new error response when attempting to write to a read-only property.
   DBusMethodErrorResponse.propertyReadOnly([String? message])
-      : this('org.freedesktop.DBus.Error.PropertyReadOnly',
-            message != null ? [DBusString(message)] : []);
+    : this(
+        'org.freedesktop.DBus.Error.PropertyReadOnly',
+        message != null ? [DBusString(message)] : [],
+      );
 
   /// Creates a new error response when attempting to read to a write-only property.
   DBusMethodErrorResponse.propertyWriteOnly([String? message])
-      : this('org.freedesktop.DBus.Error.PropertyWriteOnly',
-            message != null ? [DBusString(message)] : []);
+    : this(
+        'org.freedesktop.DBus.Error.PropertyWriteOnly',
+        message != null ? [DBusString(message)] : [],
+      );
 
   /// Creates a new error response when accessing an unsupported feature.
   DBusMethodErrorResponse.notSupported([String? message])
-      : this('org.freedesktop.DBus.Error.NotSupported',
-            message != null ? [DBusString(message)] : []);
+    : this(
+        'org.freedesktop.DBus.Error.NotSupported',
+        message != null ? [DBusString(message)] : [],
+      );
 
   /// Creates a new error response indicating access was denied.
   DBusMethodErrorResponse.accessDenied([String? message])
-      : this('org.freedesktop.DBus.Error.AccessDenied',
-            message != null ? [DBusString(message)] : []);
+    : this(
+        'org.freedesktop.DBus.Error.AccessDenied',
+        message != null ? [DBusString(message)] : [],
+      );
 
   /// Creates a new error response indicating authentication failed.
   DBusMethodErrorResponse.authFailed([String? message])
-      : this('org.freedesktop.DBus.Error.AuthFailed',
-            message != null ? [DBusString(message)] : []);
+    : this(
+        'org.freedesktop.DBus.Error.AuthFailed',
+        message != null ? [DBusString(message)] : [],
+      );
 
   @override
   List<DBusValue> get returnValues => throw DBusMethodResponseException(this);
@@ -230,7 +256,7 @@ class DBusGetPropertyResponse extends DBusMethodSuccessResponse {
 /// A successful response to [DBusObject.getAllProperties].
 class DBusGetAllPropertiesResponse extends DBusMethodSuccessResponse {
   DBusGetAllPropertiesResponse(Map<String, DBusValue> values)
-      : super([DBusDict.stringVariant(values)]);
+    : super([DBusDict.stringVariant(values)]);
 
   @override
   String toString() => '$runtimeType(${values[0].asStringVariantDict()})';

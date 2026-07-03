@@ -25,7 +25,7 @@ class DBusAuthServer {
 
   /// Creates a new authentication server.
   DBusAuthServer(this.uuid, {bool unixFdSupported = false})
-      : _unixFdSupported = unixFdSupported;
+    : _unixFdSupported = unixFdSupported;
 
   /// Process a request [message] received from the client.
   void processRequest(String message) {

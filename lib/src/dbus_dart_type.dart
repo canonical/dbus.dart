@@ -34,8 +34,9 @@ DBusDartType getDartType(DBusSignature signature) {
   } else if (value.startsWith('(') && value.endsWith(')')) {
     return DBusStructType();
   } else if (value.startsWith('a{') && value.endsWith('}')) {
-    var signatures =
-        DBusSignature(value.substring(2, value.length - 1)).split();
+    var signatures = DBusSignature(
+      value.substring(2, value.length - 1),
+    ).split();
     if (signatures.length != 2) {
       return DBusComplexType();
     }

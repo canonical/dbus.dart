@@ -8,7 +8,8 @@ typedef _GetuidDart = int Function();
 int getuid() {
   if (!Platform.isLinux) {
     throw UnsupportedError(
-        'Unable to determine UID on: ${Platform.operatingSystem}');
+      'Unable to determine UID on: ${Platform.operatingSystem}',
+    );
   }
 
   final dylib = DynamicLibrary.open('libc.so.6');
