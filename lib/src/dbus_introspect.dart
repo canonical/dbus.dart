@@ -1,3 +1,6 @@
+// This is required to allow xml 7 while also allowing xml 6
+// ignore_for_file: deprecated_member_use
+
 import 'dbus_value.dart';
 import 'package:xml/xml.dart';
 
