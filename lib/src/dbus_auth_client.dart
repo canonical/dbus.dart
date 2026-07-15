@@ -10,6 +10,7 @@ class DBusAuthClient {
   final _doneCompleter = Completer();
   final _requestsController = StreamController<String>();
   var _attemptedExternal = false;
+  var _attemptedAnonymous = false;
   var _isAuthenticated = false;
   final bool _requestUnixFd;
   var _unixFdSupported = false;
@@ -66,18 +67,27 @@ class DBusAuthClient {
 
     switch (command) {
       case 'REJECTED':
-        if (!_attemptedExternal) {
-          var mechanisms = args.split(' ');
-          if (mechanisms.contains('EXTERNAL')) {
-            _attemptedExternal = true;
-            _authenticateExternal();
-          } else {
-            _fail('No supported mechanism');
-          }
-        } else {
+        if (_attemptedExternal && _attemptedAnonymous) {
           _errorMessage = args;
           _doneCompleter.complete();
+          break;
         }
+
+        final mechanisms = args.split(' ');
+
+        if (!_attemptedExternal && mechanisms.contains('EXTERNAL')) {
+          _attemptedExternal = true;
+          _authenticateExternal();
+          break;
+        }
+
+        if (!_attemptedAnonymous && mechanisms.contains('ANONYMOUS')) {
+          _attemptedAnonymous = true;
+          _authenticateAnonymous();
+          break;
+        }
+
+        _fail('No supported mechanism');
         break;
       case 'OK':
         try {
@@ -144,6 +154,10 @@ class DBusAuthClient {
       authIdHex += c.toRadixString(16).padLeft(2, '0');
     }
     _send('AUTH EXTERNAL $authIdHex');
+  }
+
+  void _authenticateAnonymous() {
+    _send('AUTH ANONYMOUS');
   }
 
   /// Complete authentication.
