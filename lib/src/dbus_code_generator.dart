@@ -714,7 +714,57 @@ class DBusCodeGenerator {
       var type = getDartType(outputArgs.first.type);
       returnType = 'Future<${type.nativeType}>';
     } else {
-      returnType = 'Future<List<DBusValue>>';
+      var argNames = [
+        'assert',
+        'break',
+        'case',
+        'catch',
+        'class',
+        'const',
+        'continue',
+        'default',
+        'do',
+        'else',
+        'enum',
+        'extends',
+        'false',
+        'final',
+        'finally',
+        'for',
+        'get',
+        'if',
+        'in',
+        'is',
+        'new',
+        'null',
+        'rethrow',
+        'return',
+        'super',
+        'switch',
+        'this',
+        'throw',
+        'true',
+        'try',
+        'var',
+        'void',
+        'while',
+        'with'
+      ];
+      var returnTypes = <String>[];
+      var index = 0;
+      for (var arg in outputArgs) {
+        var type = getDartType(arg.type);
+        var argName = (arg.name != null && arg.name!.isNotEmpty)
+            ? arg.name!
+            : 'arg_$index';
+        while (argNames.contains(argName)) {
+          argName += '_';
+        }
+        argNames.add(argName);
+        returnTypes.add('${type.nativeType} $argName');
+        index++;
+      }
+      returnType = 'Future<(${returnTypes.join(', ')})>';
     }
 
     var methodArgs = [
@@ -744,8 +794,15 @@ class DBusCodeGenerator {
       source += '    var result = $methodCall\n';
       source += '    return $convertedValue;\n';
     } else if (outputArgs.length > 1) {
+      var convertedValues = <String>[];
+      var index = 0;
+      for (var arg in outputArgs) {
+        var type = getDartType(arg.type);
+        convertedValues.add(type.dbusToNative('result.returnValues[$index]'));
+        index++;
+      }
       source += '    var result = $methodCall\n';
-      source += '    return result.returnValues;\n';
+      source += '    return (${convertedValues.join(', ')});\n';
     }
     source += '  }\n';
 
