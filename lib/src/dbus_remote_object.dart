@@ -15,13 +15,12 @@ class DBusRemoteObjectSignalStream extends DBusSignalStream {
       {required DBusRemoteObject object,
       required String interface,
       required String name,
-      DBusSignature? signature})
+      super.signature})
       : super(object.client,
             sender: object.name,
             path: object.path,
             interface: interface,
-            name: name,
-            signature: signature);
+            name: name);
 }
 
 /// Signal received when properties are changed.
