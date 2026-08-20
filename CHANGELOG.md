@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.15
+
+* Support both XML 6.x and 7.x
+
 ## 0.7.14
 
 * Drop xml dependency to 6.6.1, which is the version that Flutter is using.
