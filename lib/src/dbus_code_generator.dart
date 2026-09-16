@@ -1,6 +1,55 @@
 import 'package:dbus/dbus.dart';
 import 'package:dbus/src/dbus_dart_type.dart';
 
+// Dart keywords, these can't be used as names in generated code.
+const _dartKeywords = [
+  'assert',
+  'break',
+  'case',
+  'catch',
+  'class',
+  'const',
+  'continue',
+  'default',
+  'do',
+  'else',
+  'enum',
+  'extends',
+  'false',
+  'final',
+  'finally',
+  'for',
+  'get',
+  'if',
+  'in',
+  'is',
+  'new',
+  'null',
+  'rethrow',
+  'return',
+  'super',
+  'switch',
+  'this',
+  'throw',
+  'true',
+  'try',
+  'var',
+  'void',
+  'while',
+  'with'
+];
+
+// Checks if [name] is reserved and can't be used in generated code.
+bool _nameIsReserved(String name) {
+  return _dartKeywords.contains(name);
+}
+
+// Makes a Dart record containing [fields],
+// e.g. ['int x', 'int y'] generates '(int x, int y)'.
+String _makeRecordType(List<String> fields) {
+  return '(${fields.join(', ')})';
+}
+
 // Branch in a switch (if/else) statement.
 class _SwitchBranch {
   final String condition;
@@ -233,43 +282,7 @@ class DBusCodeGenerator {
   // Generates a method to emit a signal.
   String _generateSignalEmitMethod(List<String> memberNames,
       DBusIntrospectInterface interface, DBusIntrospectSignal signal) {
-    var argNames = [
-      // Dart keywords that aren't allowed.
-      'assert',
-      'break',
-      'case',
-      'catch',
-      'class',
-      'const',
-      'continue',
-      'default',
-      'do',
-      'else',
-      'enum',
-      'extends',
-      'false',
-      'final',
-      'finally',
-      'for',
-      'get',
-      'if',
-      'in',
-      'is',
-      'new',
-      'null',
-      'rethrow',
-      'return',
-      'super',
-      'switch',
-      'this',
-      'throw',
-      'true',
-      'try',
-      'var',
-      'void',
-      'while',
-      'with'
-    ];
+    var argNames = <String>[];
 
     var argValues = <String>[];
     var argsList = <String>[];
@@ -277,7 +290,7 @@ class DBusCodeGenerator {
     for (var arg in signal.args) {
       var type = getDartType(arg.type);
       var argName = arg.name ?? 'arg_$index';
-      while (argNames.contains(argName)) {
+      while (_nameIsReserved(argName) || argNames.contains(argName)) {
         argName += '_';
       }
       argNames.add(argName);
@@ -714,7 +727,23 @@ class DBusCodeGenerator {
       var type = getDartType(outputArgs.first.type);
       returnType = 'Future<${type.nativeType}>';
     } else {
-      returnType = 'Future<List<DBusValue>>';
+      var argNames = <String>[];
+      var fields = <String>[];
+      var index = 0;
+      for (var arg in outputArgs) {
+        var type = getDartType(arg.type);
+
+        // Modify the arg name if it collides.
+        var argName = arg.name ?? 'arg_$index';
+        while (_nameIsReserved(argName) || argNames.contains(argName)) {
+          argName += '_';
+        }
+        argNames.add(argName);
+
+        fields.add('${type.nativeType} $argName');
+        index++;
+      }
+      returnType = 'Future<${_makeRecordType(fields)}>';
     }
 
     var methodArgs = [
@@ -744,8 +773,15 @@ class DBusCodeGenerator {
       source += '    var result = $methodCall\n';
       source += '    return $convertedValue;\n';
     } else if (outputArgs.length > 1) {
+      var values = <String>[];
+      var index = 0;
+      for (var arg in outputArgs) {
+        var type = getDartType(arg.type);
+        values.add(type.dbusToNative('result.returnValues[$index]'));
+        index++;
+      }
       source += '    var result = $methodCall\n';
-      source += '    return result.returnValues;\n';
+      source += '    return ${_makeRecordType(values)};\n';
     }
     source += '  }\n';
 
@@ -761,42 +797,7 @@ class DBusCodeGenerator {
       'name',
       'path',
       'sender',
-      'values',
-      // Dart keywords that aren't allowed.
-      'assert',
-      'break',
-      'case',
-      'catch',
-      'class',
-      'const',
-      'continue',
-      'default',
-      'do',
-      'else',
-      'enum',
-      'extends',
-      'false',
-      'final',
-      'finally',
-      'for',
-      'get',
-      'if',
-      'in',
-      'is',
-      'new',
-      'null',
-      'rethrow',
-      'return',
-      'super',
-      'switch',
-      'this',
-      'throw',
-      'true',
-      'try',
-      'var',
-      'void',
-      'while',
-      'with'
+      'values'
     ];
 
     var properties = <String>[];
@@ -807,7 +808,7 @@ class DBusCodeGenerator {
 
       // Modify the arg name if it collides.
       var argName = arg.name ?? 'arg_$index';
-      while (argNames.contains(argName)) {
+      while (_nameIsReserved(argName) || argNames.contains(argName)) {
         argName += '_';
       }
       argNames.add(argName);
