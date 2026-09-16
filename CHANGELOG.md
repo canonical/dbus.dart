@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.0
+
+* Support anonymous client authentication.
+* Use Dart 3 records for multiple return values in code generator.
+
 ## 0.7.15
 
 * Support both XML 6.x and 7.x
