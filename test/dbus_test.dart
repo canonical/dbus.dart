@@ -3700,6 +3700,34 @@ void main() {
         'com.example.Test', 'Ping', [DBusString('Hello'), DBusUint32(42)]);
   });
 
+  test('subscribe signal - connect error', () async {
+    var client = DBusClient(DBusAddress.unix(path: '/nonexistent/bus'));
+    var signals = DBusSignalStream(client, interface: 'com.example.Test');
+    signals.listen(expectAsync1((signal) {}, count: 0),
+        onError: expectAsync1((Object error) {
+      expect(error, isA<SocketException>());
+    }));
+  });
+
+  test('subscribe signal - connect error - sender', () async {
+    var client = DBusClient(DBusAddress.unix(path: '/nonexistent/bus'));
+    var signals = DBusSignalStream(client, sender: 'com.example.Test');
+    signals.listen(expectAsync1((signal) {}, count: 0),
+        onError: expectAsync1((Object error) {
+      expect(error, isA<SocketException>());
+    }));
+  });
+
+  test('subscribe signal - connect error - peer', () async {
+    var client = DBusClient(DBusAddress.unix(path: '/nonexistent/bus'),
+        messageBus: false);
+    var signals = DBusSignalStream(client, interface: 'com.example.Test');
+    signals.listen(expectAsync1((signal) {}, count: 0),
+        onError: expectAsync1((Object error) {
+      expect(error, isA<SocketException>());
+    }));
+  });
+
   test('signal from method call', () async {
     var server = DBusServer();
     var address =
