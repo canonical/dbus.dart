@@ -1381,6 +1381,23 @@ void main() {
         equals("DBusMethodCall(sender: 'com.example.Test', name: 'Hello')"));
   });
 
+  test('connect error', () async {
+    var client = DBusClient(DBusAddress.unix(path: '/nonexistent/bus'));
+    await expectLater(client.ping(), throwsA(isA<SocketException>()));
+
+    // A later call gets the error too, and does not wait for the failed
+    // connection.
+    await expectLater(client.ping(), throwsA(isA<SocketException>()));
+  });
+
+  test('connect error - concurrent calls', () async {
+    var client = DBusClient(DBusAddress.unix(path: '/nonexistent/bus'));
+    var calls = [client.ping(), client.ping()];
+    for (var call in calls) {
+      await expectLater(call, throwsA(isA<SocketException>()));
+    }
+  });
+
   test('ping', () async {
     var server = DBusServer();
     var address =
