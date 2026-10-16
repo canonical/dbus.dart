@@ -803,36 +803,43 @@ class DBusClient {
     if (_connectCompleter != null) {
       return _connectCompleter?.future;
     }
-    _connectCompleter = Completer();
+    var completer = _connectCompleter = Completer();
 
-    await _openSocket();
-    _authClient.requests
-        .listen((message) => _socket?.write(utf8.encode('$message\r\n')));
-    await _authClient.done;
-    _authComplete = true;
-    if (!_authClient.isAuthenticated) {
-      await _socket?.close();
-      return;
+    try {
+      await _openSocket();
+      _authClient.requests
+          .listen((message) => _socket?.write(utf8.encode('$message\r\n')));
+      await _authClient.done;
+      _authComplete = true;
+      if (!_authClient.isAuthenticated) {
+        await _socket?.close();
+        return;
+      }
+
+      if (!_messageBus) {
+        completer.complete();
+        return;
+      }
+
+      // The first message to the bus must be this call, note requireConnect is
+      // false as the _connect call hasn't yet completed and would otherwise have
+      // been called again.
+      var result = await _callMethod(
+          destination: DBusBusName('org.freedesktop.DBus'),
+          path: DBusObjectPath('/org/freedesktop/DBus'),
+          interface: DBusInterfaceName('org.freedesktop.DBus'),
+          name: DBusMemberName('Hello'),
+          replySignature: DBusSignature('s'));
+      _uniqueName = DBusBusName(result.returnValues[0].asString());
+    } catch (error, stackTrace) {
+      // Fail the calls that wait for this connection, as it will not complete.
+      completer.future.ignore();
+      completer.completeError(error, stackTrace);
+      rethrow;
     }
-
-    if (!_messageBus) {
-      _connectCompleter?.complete();
-      return;
-    }
-
-    // The first message to the bus must be this call, note requireConnect is
-    // false as the _connect call hasn't yet completed and would otherwise have
-    // been called again.
-    var result = await _callMethod(
-        destination: DBusBusName('org.freedesktop.DBus'),
-        path: DBusObjectPath('/org/freedesktop/DBus'),
-        interface: DBusInterfaceName('org.freedesktop.DBus'),
-        name: DBusMemberName('Hello'),
-        replySignature: DBusSignature('s'));
-    _uniqueName = DBusBusName(result.returnValues[0].asString());
 
     // Notify anyone else awaiting connection.
-    _connectCompleter?.complete();
+    completer.complete();
 
     // Monitor name ownership so we know what names we have, and can match incoming signals from other clients.
     _nameAcquiredSubscription = nameAcquired.listen((name) {
