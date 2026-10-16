@@ -127,14 +127,18 @@ class DBusSignalStream extends Stream<DBusSignal> {
 
   void _onListen() {
     _client._signalStreams.add(this);
+    Future<void> subscribed;
     if (_client._messageBus) {
-      if (_rule.sender != null) {
-        _client._findUniqueName(_rule.sender!);
-      }
-      _client._addMatch(_rule.toDBusString());
+      // eagerError, as the calls that wait on a failed connect never complete.
+      subscribed = Future.wait([
+        if (_rule.sender != null) _client._findUniqueName(_rule.sender!),
+        _client._addMatch(_rule.toDBusString())
+      ], eagerError: true);
     } else {
-      _client._connect();
+      subscribed = _client._connect();
     }
+    // Report failures on the stream, as no caller holds these futures.
+    subscribed.then((_) {}, onError: _controller.addError);
   }
 
   Future<void> _onCancel() async {
