@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.1
+
+* Fail calls that wait for, or are made after, a failed connection instead of hanging.
+* Report signal subscription errors on the signal stream.
+
 ## 0.8.0
 
 * Support anonymous client authentication.
