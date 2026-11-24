@@ -1,0 +1,20 @@
+name: Publish dry run
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: dart-lang/setup-dart@v1
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Verify package can be published
+        run: dart pub publish --dry-run
