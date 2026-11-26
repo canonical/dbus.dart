@@ -1,0 +1,47 @@
+name: Release
+
+on:
+  push:
+    branches: [ main ]
+
+# Never run two release-please invocations at the same time.
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+
+    permissions:
+      actions: write # Required to dispatch the publish workflow
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - uses: googleapis/release-please-action@v5
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      # Tags created with GITHUB_TOKEN do not trigger `push` workflows, so
+      # start the publish workflow explicitly on the newly created tag.
+      # The release already exists at this point, so a failed dispatch is not
+      # retried by re-running this workflow: retry transient failures here.
+      - name: Start publishing
+        if: steps.release.outputs.release_created == 'true'
+        run: |
+          for attempt in 1 2 3; do
+            if gh workflow run publish.yml --repo "$GITHUB_REPOSITORY" --ref "$TAG"; then
+              exit 0
+            fi
+            echo "::warning::Failed to dispatch publish for $TAG (attempt $attempt/3)"
+            sleep 10
+          done
+          echo "::error::Failed to dispatch publish for $TAG; run 'gh workflow run publish.yml --ref $TAG' manually"
+          exit 1
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.release.outputs.tag_name }}
